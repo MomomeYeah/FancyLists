@@ -1,0 +1,24 @@
+{% extends "FancyLists/base.html" %}
+
+{% block content %}
+    <div class="row">
+        <div class="large-12 columns">
+            <h1>New Category</h1>
+            <form action="" method="post">
+                <div class="row">
+                    <div class="large-12 columns">
+                        <label for="id_name" class="{% if form.name.errors %}error{% endif %}"/>Name:
+                        {{ form.name }}
+                        </label>
+                        {% if form.name.errors %}
+                        <small class="error">Invalid Entry</small>
+                        {% endif %}
+                    </div>
+                </div>
+                {% csrf_token %}
+                <input type="submit" value="Create" class="button">
+                <a href="{% url 'lists:index' %}" class="button">Cancel</a>
+            </form>
+        </div>
+    </div>
+{% endblock %}

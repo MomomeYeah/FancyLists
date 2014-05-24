@@ -1,0 +1,38 @@
+{% extends "FancyLists/base.html" %}
+
+{% block content %}
+    <div class="row">
+        <div class="large-12 columns">
+            {% if latest_list %}
+                <h1>{{ latest_list.name }}</h1>
+                <p>Created on {{ latest_list.created_date }}</p>
+                <p><a href="{% url 'lists:delete_list' latest_list.id %}">Delete</a> this list</p>
+                
+                <h2>Categories</h2>
+                {% if latest_list.category_set.count > 0 %}
+                    <p><a href="{% url 'lists:new_category' latest_list.id %}">Add New</a></p>
+                    {% for category in latest_list.category_set.all %}
+                        <h3>{{ category.name }}</h3>
+                        <p><a href="{% url 'lists:delete_category' category.id %}">Delete</a> this category</p>
+
+                        <h4>Items</h4>
+                        {% if category.item_set.count > 0 %}
+                            <p><a href="{% url 'lists:new_item' category.id %}">Add New</a></p>
+                            {% for item in category.item_set.all %}
+                                <div>{{ item.name }} &nbsp; <a href="{% url 'lists:delete_item' item.id %}">Delete</a> this item</div>
+                            {% endfor %}
+                        {% else %}
+                            <p>No items!  Click <a href="{% url 'lists:new_item' category.id %}">here</a> to make one.</p>
+                        {% endif %}
+
+                    {% endfor %}
+                {% else %}
+                    <p>No categories!  Click <a href="{% url 'lists:new_category' latest_list.id %}">here</a> to make one.</p>
+                {% endif %}
+
+            {% else %}
+                <p>No lists!  Click <a href="{% url 'lists:new_list' %}">here</a> to make one.</p>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

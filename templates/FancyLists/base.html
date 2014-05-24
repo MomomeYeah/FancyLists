@@ -29,12 +29,14 @@
         {% block content %}{% endblock %}
 
         <hr />
-        <div class="row">
-            <footer>
-                <p>&copy; {{ current_date }} - Fancy Lists</p>
-            </footer>
-        </div>
-
+        <footer>
+            <div class="row">
+                <div class="large-12 columns">
+                    <p>&copy; {% now "Y" %} - Fancy Lists</p>
+                </div>
+            </div>
+        </footer>
+        
         <script src="/static/js/vendor/jquery.js"></script>
         <script src="/static/js/foundation.min.js"></script> 
         <script>

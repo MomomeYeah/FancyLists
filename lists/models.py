@@ -7,15 +7,13 @@ class ListManager(models.Manager):
         return book
 
 class CategoryManager(models.Manager):
-    def create_category(self, name, list_id):
+    def create_category(self, name):
         category = self.create(name = name)
-        category.lists.add(list_id)
         return category
 
 class ItemManager(models.Manager):
-    def create_item(self, name, category_id):
+    def create_item(self, name):
         item = self.create(name = name)
-        item.categories.add(category_id)
         return item
 
 class List(models.Model):
@@ -33,6 +31,14 @@ class Category(models.Model):
 
     def __unicode__(self):
         return self.name
+
+    def add_list(self, list_id):
+        self.lists.add(list_id)
+        self.save()
+
+    def remove_list(self, list_id):
+        self.lists.remove(list_id)
+        self.save()
 
     objects = CategoryManager()
 

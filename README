@@ -10,3 +10,6 @@ TODO:
 - Reorder categories within a list
 - Everything should flow and reorder when something is deleted
 - Make things look nice
+
+- Items should be associated with a List AND a Category
+  - i.e. an Item is in a Category for a specific List

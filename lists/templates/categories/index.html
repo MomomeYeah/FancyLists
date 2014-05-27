@@ -1,0 +1,13 @@
+{% extends "FancyLists/base.html" %}
+
+{% block content %}
+    <div class="row">
+        <div class="large-12 columns">
+            <h1>Categories</h1>
+            <p><a href="{% url 'lists:new_category' %}">Add New</a></p>
+            {% for category in categories %}
+            <div style="padding: 10px;">{{ category.name }} <span style="padding-left: 10px;">[<a href="{% url 'lists:delete_category' category.id %}">Delete</a>]</span></div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

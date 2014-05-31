@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 (b'name', models.CharField(max_length=100)),
-                (b'categories', models.ManyToManyField(to=b'lists.Category')),
+                (b'listCategory', models.ManyToManyField(to=b'lists.FancyListCategory', null=True)),
             ],
             options={
             },

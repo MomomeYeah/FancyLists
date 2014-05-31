@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name=b'List',
+            name=b'FancyList',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 (b'name', models.CharField(max_length=100)),
@@ -26,7 +26,17 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 (b'name', models.CharField(max_length=100)),
-                (b'lists', models.ManyToManyField(to=b'lists.List')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name=b'FancyListCategory',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                (b'FancyList', models.ForeignKey(to=b'lists.FancyList', to_field='id')),
+                (b'Category', models.ForeignKey(to=b'lists.Category', to_field='id')),
             ],
             options={
             },

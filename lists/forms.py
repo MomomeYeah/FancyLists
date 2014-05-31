@@ -13,5 +13,10 @@ class AddCategoryForm(forms.Form):
     category_id = forms.IntegerField()
 
 class RemoveCategoryForm(forms.Form):
-    list_id = forms.IntegerField()
     category_id = forms.IntegerField()
+
+class AddItemForm(forms.Form):
+    item_id = forms.IntegerField()
+
+class RemoveItemForm(forms.Form):
+    item_id = forms.IntegerField()

@@ -3,8 +3,8 @@ from django.utils import timezone
 from django.http import HttpResponseRedirect, HttpRequest
 from django.core.urlresolvers import reverse
 
-from lists.models import List, Category, Item
-from lists.forms import ListForm, CategoryForm, ItemForm, AddCategoryForm, RemoveCategoryForm
+from lists.models import FancyList, Category, FancyListCategory, Item
+from lists.forms import ListForm, CategoryForm, ItemForm, AddCategoryForm, RemoveCategoryForm, AddItemForm, RemoveItemForm
 
 def index_add_category(request, list_id):
     if request.method == 'POST':
@@ -12,48 +12,83 @@ def index_add_category(request, list_id):
         if form.is_valid():
             cd = form.cleaned_data
             category_id = cd['category_id']
-            if category_id != None:
-                add_category_list = Category.objects.filter(pk = category_id)
-                if add_category_list.count() > 0:
-                    add_category = add_category_list[0]
-                    add_category.add_list(list_id)
+            if list_id != None and category_id != None:
+                lists = FancyList.objects.filter(pk = list_id)
+                categories = Category.objects.filter(pk = category_id)
+                if lists.count() > 0 and categories.count() > 0:
+                    add_list = lists[0]
+                    add_category = categories[0]
+                    listCategory = FancyListCategory.objects.create_list_category(add_list, add_category)
+    return HttpResponseRedirect(reverse('lists:index'))
 
-def index_remove_category(request):
+def index_remove_category(request, list_id):
     if request.method == 'POST':
         form = RemoveCategoryForm(request.POST)
         if form.is_valid():
             cd = form.cleaned_data
-            list_id = cd['list_id']
             category_id = cd['category_id']
             if list_id != None and category_id != None:
-                lists = List.objects.filter(pk = list_id)
+                remove_list_categories = FancyListCategory.objects.filter(FancyList__id = list_id, Category__id = category_id)
+                if remove_list_categories.count() > 0:
+                    remove_list_category = remove_list_categories[0]
+                    remove_list_category.delete()
+    return HttpResponseRedirect(reverse('lists:index'))
+
+def index_add_item(request, list_id, category_id):
+    if request.method == 'POST':
+        form = AddItemForm(request.POST)
+        if form.is_valid():
+            cd = form.cleaned_data
+            item_id = cd['item_id']
+            if list_id != None and category_id != None and item_id != None:
+                lists = FancyList.objects.filter(pk = list_id)
                 categories = Category.objects.filter(pk = category_id)
-                if lists.count() == 1 and categories.count() == 1:
-                    remove_list = lists[0]
-                    remove_category = categories[0]
-                    remove_category.remove_list(remove_list.id)
+                items = Item.objects.filter(pk = item_id)
+                if lists.count() > 0 and categories.count() > 0 and items.count() > 0:
+                    add_list = lists[0]
+                    add_category = categories[0]
+                    add_item = items[0]
+                    add_list_categories = FancyListCategory.objects.filter(FancyList__id = list_id, Category__id = category_id)
+                    if add_list_categories.count() > 0:
+                        add_list_category = add_list_categories[0]
+                        add_item.add_list_category(add_list_category.id)
+    return HttpResponseRedirect(reverse('lists:index'))
+
+def index_remove_item(request, list_id, category_id):
+    if request.method == 'POST':
+        form = RemoveItemForm(request.POST)
+        if form.is_valid():
+            cd = form.cleaned_data
+            item_id = cd['item_id']
+            if list_id != None and category_id != None and item_id != None:
+                items = Item.objects.filter(pk = item_id)
+                remove_list_categories = FancyListCategory.objects.filter(FancyList__id = list_id, Category__id = category_id)
+                if remove_list_categories.count() == 1 and items.count() == 1:
+                    remove_list_category = remove_list_categories[0]
+                    remove_item = items[0]
+                    remove_item.remove_list_category(remove_list_category)
+    return HttpResponseRedirect(reverse('lists:index'))
 
 def index(request):
-    lists = List.objects.order_by('-created_date')[:1]
+    lists = FancyList.objects.order_by('-created_date')[:1]
     latest_list = None
     if lists.count() > 0:
         latest_list = lists[0]
-
-        index_add_category(request, latest_list.id)
-        index_remove_category(request)
-
         all_categories = []
+        all_items = []
         for category in Category.objects.all():
             all_categories.append({'id': category.id, 'name': category.name})
-    return render(request, 'lists/index.html', {'latest_list': latest_list, 'all_categories': all_categories})
+        for item in Item.objects.all():
+            all_items.append({'id': item.id, 'name': item.name})
+        return render(request, 'lists/index.html', {'latest_list': latest_list, 'all_categories': all_categories, 'all_items': all_items})
+    return render(request, 'lists/index.html', {'latest_list': latest_list})
 
 def new_list(request):
     if request.method == 'POST':
         form = ListForm(request.POST)
         if form.is_valid():
             cd = form.cleaned_data
-            new_list = List.objects.create_list(cd['name'])
-            new_list.save()
+            new_list = FancyList.objects.create_list(cd['name'])
             return HttpResponseRedirect(reverse('lists:index'))
     else:
         form = ListForm()
@@ -61,12 +96,12 @@ def new_list(request):
 
 def delete_list(request, list_id):
     if request.method == 'POST':
-        delete_list = List.objects.filter(pk = list_id)
+        delete_list = FancyList.objects.filter(pk = list_id)
         if delete_list.count() == 1:
             delete_list.delete()
         return HttpResponseRedirect(reverse('lists:index'))
     else:
-        lists = List.objects.filter(pk = list_id)
+        lists = FancyList.objects.filter(pk = list_id)
         if lists.count() == 1:
             return render(request, 'lists/delete.html', {'delete_list': lists[0]})
         return HttpResponseRedirect(reverse('lists:index'))
@@ -82,7 +117,6 @@ def new_category(request):
         if form.is_valid():
             cd = form.cleaned_data
             new_category = Category.objects.create_category(cd['name'])
-            new_category.save()
             return HttpResponseRedirect(reverse('lists:category_index'))
     else:
         form = CategoryForm()
@@ -111,7 +145,6 @@ def new_item(request):
         if form.is_valid():
             cd = form.cleaned_data
             new_item = Item.objects.create_item(cd['name'])
-            new_item.save()
             return HttpResponseRedirect(reverse('lists:item_index'))
     else:
         form = ItemForm()

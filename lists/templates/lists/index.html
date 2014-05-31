@@ -11,7 +11,7 @@
                 <h2>Categories</h2>
                 <div style="padding-top: 10px; padding-bottom: 10px;">
                     {% if all_categories|length > 0 %}
-                        <form id="addCategoryForm" action="" method="post">
+                        <form id="addCategoryForm" action="{% url 'lists:index_add_category' latest_list.id %}" method="post">
                             {% csrf_token %}
                             <select id="category_id" name="category_id" value="">
                                 <option value="">Add a Category</option>
@@ -22,22 +22,9 @@
                         </form>
                     {% endif %}
                 </div>
-                {% if latest_list.category_set.count > 0 %}
-                    {% for category in latest_list.category_set.all %}
-                        <h3>{{ category.name }}</h3>
-                        <form class="removeCategoryForm" action="" method="post">
-                            {% csrf_token %}
-                            <input type="hidden" name="list_id" value="{{ latest_list.id }}" />
-                            <input type="hidden" name="category_id" value="{{ category.id }}" />
-                            <p><a href="#">Remove</a> this category</p>
-                        </form>
-                        <h4>Items</h4>
-                        {% if category.item_set.count > 0 %}
-                            {% for item in category.item_set.all %}
-                                <div>{{ item.name }} &nbsp; <a href="{% url 'lists:remove_item' item.id %}">Remove</a> this item</div>
-                            {% endfor %}
-                        {% endif %}
-
+                {% if latest_list.fancylistcategory_set.count > 0 %}
+                    {% for fancylistcategory in latest_list.fancylistcategory_set.all %}
+                        {% include "lists/fancylistcategory.html" %}
                     {% endfor %}
                 {% endif %}
 

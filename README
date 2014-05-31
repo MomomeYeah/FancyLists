@@ -5,6 +5,7 @@ This is mostly a learning experience to learn Django but also to solve that prob
 TODO:
 
 - Validation
+- Users
 - Duplicate a new list from a previous one
 - Reorder items within a category
 - Reorder categories within a list

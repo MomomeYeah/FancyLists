@@ -14,4 +14,10 @@ $(document).ready(function() {
     $(".removeItemForm a").click(function() {
         $(this).parents(".removeItemForm").submit();
     })
+
+    $(".showHideCategory").click(function() {
+        categoryContents = $(this).parents("div.category").find("div.categoryContents").toggle();
+        $(this).find(".showCategory").toggle();
+        $(this).find(".hideCategory").toggle();
+    })
 })

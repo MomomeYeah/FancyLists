@@ -1,3 +1,10 @@
+html {
+    overflow-y: scroll; 
+}
+
+/*
+    List Styles
+ */
 div.fancylist {
 
 }
@@ -20,6 +27,9 @@ div.fancylist > div.addCategory {
 }
 
 
+/*
+    Category Styles
+ */
 div.categoryContainer {
     text-align: center;
 }
@@ -42,26 +52,30 @@ div.category > span.removeCategory {
     padding-left: 10px;
 }
 
+div.category > span.showHideCategory {
+    float: right;
+}
+
 div.category > span.remove-category > form.removeCategoryForm {
     display: inline;
 }
 
-div.category > div.addItem {
+div.category > div.categoryContents > div.addItem {
 
 }
 
-div.category > div.addItem > form.addItemForm {
+div.category > div.categoryContents > div.addItem > form.addItemForm {
 
 }
 
-div.category > div.item {
+div.category > div.categoryContents > div.item {
     
 }
 
-div.category > div.item > span.removeItem {
+div.category > div.categoryContents > div.item > span.removeItem {
     padding-left: 10px;
 }
 
-div.category > div.item > span.removeItem > form.removeItemForm {
+div.category > div.categoryContents > div.item > span.removeItem > form.removeItemForm {
     display: inline;
 }

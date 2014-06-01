@@ -1,36 +1,39 @@
-<h3>{{ fancylistcategory.Category.name }}</h3>
-<form class="removeCategoryForm" action="{% url 'lists:index_remove_category' latest_list.id %}" method="post">
-    {% csrf_token %}
-    <input type="hidden" name="category_id" value="{{ fancylistcategory.Category.id }}" />
-    <p><a href="#">Remove</a> this category</p>
-</form>
-
-<h4>Items</h4>
-<div style="padding-top: 10px; padding-bottom: 10px;">
-    {% if all_items|length > 0 %}
-        <form class="addItemForm" action="{% url 'lists:index_add_item' latest_list.id fancylistcategory.Category.id %}" method="post">
+<div class="category">
+    <h3 class="categoryTitle">{{ fancylistcategory.Category.name }}</h3>
+    <span class="removeCategory">
+        <form class="removeCategoryForm" action="{% url 'lists:index_remove_category'%}" method="post" style="display: inline;">
             {% csrf_token %}
-            <select class="item_id" name="item_id" value="">
-                <option value="">Add an Item</option>
-                {% for item in all_items %}
-                    <option value="{{ item.id }}">{{ item.name }}</option>
-                {% endfor %}
-            </select>
+            <input type="hidden" name="category_id" value="{{ fancylistcategory.id }}" />
+            [<a href="#">Remove</a>]
         </form>
+    </span>
+
+    <div class="addItem">
+        {% if all_items|length > 0 %}
+            <form class="addItemForm" action="{% url 'lists:index_add_item' fancylistcategory.id %}" method="post">
+                {% csrf_token %}
+                <select class="item_id" name="item_id" value="">
+                    <option value="">Add an Item</option>
+                    {% for item in all_items %}
+                        <option value="{{ item.id }}">{{ item.name }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        {% endif %}
+    </div>
+
+    {% if fancylistcategory.item_set.count > 0 %}
+        {% for item in fancylistcategory.item_set.all %}
+            <div class="item">{{ item.name }}
+                <span class="removeItem">
+                    <form class="removeItemForm" action="{% url 'lists:index_remove_item' fancylistcategory.id %}" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="item_id" value="{{ item.id }}" />
+                        [<a href="#">Remove</a>]
+                    </form>
+                </span>
+            </div>
+            <br/>
+        {% endfor %}
     {% endif %}
 </div>
-
-{% if fancylistcategory.item_set.count > 0 %}
-    {% for item in fancylistcategory.item_set.all %}
-        <div>{{ item.name }}
-            <span style="padding-left: 10px;">
-                <form class="removeItemForm" action="{% url 'lists:index_remove_item' latest_list.id fancylistcategory.Category.id %}" method="post" style="display: inline;">
-                    {% csrf_token %}
-                    <input type="hidden" name="item_id" value="{{ item.id }}" />
-                    <a href="#">Remove</a> this item
-                </form>
-            </span>
-        </div>
-        <br/>
-    {% endfor %}
-{% endif %}

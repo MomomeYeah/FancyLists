@@ -1,0 +1,67 @@
+div.fancylist {
+
+}
+
+div.fancylist > h1.listTitle {
+    display: inline-block;
+}
+
+div.fancylist > p.listDescription {
+    
+}
+
+div.fancylist > span.removeList {
+    padding-left: 10px;
+}
+
+div.fancylist > div.addCategory {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+
+div.categoryContainer {
+    text-align: center;
+}
+
+div.category {
+    border: 1px solid black;
+    margin: 10px;
+    padding: 10px;
+    width: 90%;
+    min-width: 300px;
+    display: inline-block;
+    text-align: left;
+}
+
+div.category > h3.categoryTitle {
+    display: inline-block;
+}
+
+div.category > span.removeCategory {
+    padding-left: 10px;
+}
+
+div.category > span.remove-category > form.removeCategoryForm {
+    display: inline;
+}
+
+div.category > div.addItem {
+
+}
+
+div.category > div.addItem > form.addItemForm {
+
+}
+
+div.category > div.item {
+    
+}
+
+div.category > div.item > span.removeItem {
+    padding-left: 10px;
+}
+
+div.category > div.item > span.removeItem > form.removeItemForm {
+    display: inline;
+}

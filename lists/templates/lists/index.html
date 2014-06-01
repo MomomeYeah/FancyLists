@@ -3,34 +3,38 @@
 {% block content %}
     <div class="row">
         <div class="large-12 columns">
-            {% if latest_list %}
-                <h1>{{ latest_list.name }}</h1>
-                <p>Created on {{ latest_list.created_date }}</p>
-                <p><a href="{% url 'lists:delete_list' latest_list.id %}">Delete</a> this list</p>
-                
-                <h2>Categories</h2>
-                <div style="padding-top: 10px; padding-bottom: 10px;">
-                    {% if all_categories|length > 0 %}
-                        <form id="addCategoryForm" action="{% url 'lists:index_add_category' latest_list.id %}" method="post">
-                            {% csrf_token %}
-                            <select id="category_id" name="category_id" value="">
-                                <option value="">Add a Category</option>
-                                {% for category in all_categories %}
-                                    <option value="{{ category.id }}">{{ category.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </form>
+            <div class="fancylist">
+                {% if latest_list %}
+                    <h1 class="listTitle">{{ latest_list.name }}</h1><span class="removeList">[<a href="{% url 'lists:delete_list' latest_list.id %}">Delete</a>]</span>
+                    <p>Created on {{ latest_list.created_date }}</p>
+                    
+                    <h2>Categories</h2>
+                    <div class="addCategory">
+                        {% if all_categories|length > 0 %}
+                            <form id="addCategoryForm" action="{% url 'lists:index_add_category' latest_list.id %}" method="post">
+                                {% csrf_token %}
+                                <select id="category_id" name="category_id" value="">
+                                    <option value="">Add a Category</option>
+                                    {% for category in all_categories %}
+                                        <option value="{{ category.id }}">{{ category.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </form>
+                        {% endif %}
+                    </div>
+                    {% if latest_list.fancylistcategory_set.count > 0 %}
+                        <div class="categoryContainer">
+                            {% for fancylistcategory in latest_list.fancylistcategory_set.all %}
+                                {% include "lists/fancylistcategory.html" %}
+                            {% endfor %}
+                        </div>
                     {% endif %}
-                </div>
-                {% if latest_list.fancylistcategory_set.count > 0 %}
-                    {% for fancylistcategory in latest_list.fancylistcategory_set.all %}
-                        {% include "lists/fancylistcategory.html" %}
-                    {% endfor %}
-                {% endif %}
 
-            {% else %}
-                <p>No lists!  Click <a href="{% url 'lists:new_list' %}">here</a> to make one.</p>
-            {% endif %}
+                {% else %}
+                    <h1 class="listTitle">Fancy Lists</h1>
+                    <p class="listDescription">No lists!  Click <a href="{% url 'lists:new_list' %}">here</a> to make one.</p>
+                {% endif %}
+            </div>
         </div>
     </div>
 {% endblock %}

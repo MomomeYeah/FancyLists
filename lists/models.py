@@ -41,14 +41,6 @@ class Category(models.Model):
     def __unicode__(self):
         return self.name
 
-    def add_list(self, fancylist):
-        self.lists.add(list_id)
-        self.save()
-
-    def remove_list(self, list_id):
-        self.lists.remove(list_id)
-        self.save()
-
     objects = CategoryManager()
 
 class FancyListCategory(models.Model):

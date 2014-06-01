@@ -56,6 +56,7 @@ STATIC_LISTS = os.path.join(os.path.join(os.path.join(BASE_DIR, 'lists'), 'stati
 STATICFILES_DIRS = (
     ('css', os.path.join(STATIC_FOUNDATION, 'css')),
     ('js', os.path.join(STATIC_FOUNDATION, 'js')),
+    ('css', os.path.join(STATIC_LISTS, 'css')),
     ('js', os.path.join(STATIC_LISTS, 'js')),
 )
 

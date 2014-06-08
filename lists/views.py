@@ -1,6 +1,5 @@
 from django.shortcuts import render
-from django.utils import timezone
-from django.http import HttpResponseRedirect, HttpRequest
+from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 
 from lists.models import FancyList, Category, FancyListCategory, Item
@@ -18,7 +17,7 @@ def index_add_category(request, list_id):
                 if lists.count() > 0 and categories.count() > 0:
                     add_list = lists[0]
                     add_category = categories[0]
-                    listCategory = FancyListCategory.objects.create_list_category(add_list, add_category)
+                    FancyListCategory.objects.create_list_category(add_list, add_category)
     return HttpResponseRedirect(reverse('lists:index'))
 
 def index_remove_category(request):
@@ -83,7 +82,7 @@ def new_list(request):
         form = ListForm(request.POST)
         if form.is_valid():
             cd = form.cleaned_data
-            new_list = FancyList.objects.create_list(cd['name'])
+            FancyList.objects.create_list(cd['name'])
             return HttpResponseRedirect(reverse('lists:index'))
     else:
         form = ListForm()
@@ -100,7 +99,7 @@ def delete_list(request, list_id):
         if lists.count() == 1:
             return render(request, 'lists/delete.html', {'delete_list': lists[0]})
         return HttpResponseRedirect(reverse('lists:index'))
-    return render(request, 'lists/new.html', {'form': form})
+    return render(request, 'lists/new.html')
 
 def category_index(request):
     categories = Category.objects.order_by('name')
@@ -111,7 +110,7 @@ def new_category(request):
         form = CategoryForm(request.POST)
         if form.is_valid():
             cd = form.cleaned_data
-            new_category = Category.objects.create_category(cd['name'])
+            Category.objects.create_category(cd['name'])
             return HttpResponseRedirect(reverse('lists:category_index'))
     else:
         form = CategoryForm()
@@ -128,7 +127,7 @@ def delete_category(request, category_id):
         if categories.count() == 1:
             return render(request, 'categories/delete.html', {'delete_category': categories[0]})
         return HttpResponseRedirect(reverse('lists:index'))
-    return render(request, 'categories/index.html', {'form': form})
+    return render(request, 'categories/index.html')
 
 def item_index(request):
     items = Item.objects.order_by('name')
@@ -139,7 +138,7 @@ def new_item(request):
         form = ItemForm(request.POST)
         if form.is_valid():
             cd = form.cleaned_data
-            new_item = Item.objects.create_item(cd['name'])
+            Item.objects.create_item(cd['name'])
             return HttpResponseRedirect(reverse('lists:item_index'))
     else:
         form = ItemForm()
@@ -156,4 +155,4 @@ def delete_item(request, item_id):
         if items.count() == 1:
             return render(request, 'items/delete.html', {'delete_item': items[0]})
         return HttpResponseRedirect(reverse('lists:index'))
-    return render(request, 'items/index.html', {'form': form})
+    return render(request, 'items/index.html')

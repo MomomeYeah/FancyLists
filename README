@@ -8,5 +8,7 @@ TODO:
 - Users
 - Duplicate a new list from a previous one
 - Reorder items within a category
+  - in model, define method returning sorted list
+  - in template, use sorted_list rather than category_set etc
 - Reorder categories within a list
 - Make things look nice

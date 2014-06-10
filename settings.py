@@ -52,11 +52,13 @@ MIDDLEWARE_CLASSES = (
 TEMPLATE_DIRS = [os.path.join(BASE_DIR, 'templates')]
 
 STATIC_FOUNDATION = os.path.join(os.path.join(BASE_DIR, 'static'), 'foundation')
+STATIC_JQUERYUI = os.path.join(os.path.join(BASE_DIR, 'static'), 'jquery-ui')
 STATIC_LISTS = os.path.join(os.path.join(os.path.join(BASE_DIR, 'lists'), 'static'), 'lists')
 STATICFILES_DIRS = (
     ('css', os.path.join(STATIC_FOUNDATION, 'css')),
-    ('css', os.path.join(STATIC_FOUNDATION, 'foundation_icons')),
+    ('css', os.path.join(STATIC_FOUNDATION, 'foundation-icons')),
     ('js', os.path.join(STATIC_FOUNDATION, 'js')),
+    ('js', os.path.join(STATIC_JQUERYUI, 'js')),
     ('css', os.path.join(STATIC_LISTS, 'css')),
     ('js', os.path.join(STATIC_LISTS, 'js')),
 )

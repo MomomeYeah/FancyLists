@@ -20,4 +20,34 @@ $(document).ready(function() {
         $(this).find(".showCategory").toggle();
         $(this).find(".hideCategory").toggle();
     })
+
+    $(".itemContainer").sortable({
+      axis: "y",
+      scroll: false,
+      placeholder: "sortable-item-placeholder",
+      forcePlaceholderSize: true,
+      cursor: "move",
+      revert: false,
+      stop: function(event, ui) {
+        reorderItemForm = ui.item.find(".reorderItemForm");
+        reorderItemForm.find("input[name='item_position']").val(ui.item.index());
+        reorderItemForm.submit();
+      }
+    });
+
+    $(".categoryContainer").sortable({
+      axis: "y",
+      scroll: false,
+      placeholder: "sortable-category-placeholder",
+      forcePlaceholderSize: true,
+      cursor: "move",
+      revert: false,
+      handle: ".categoryHandle",
+      stop: function(event, ui) {
+        reorderItemForm = ui.item.find(".reorderCategoryForm");
+        reorderItemForm.find("input[name='category_position']").val(ui.item.index());
+        reorderItemForm.submit();
+      }
+    });
+
 })

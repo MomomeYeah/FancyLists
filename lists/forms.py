@@ -12,11 +12,11 @@ class ItemForm(forms.Form):
 class AddCategoryForm(forms.Form):
     category_id = forms.IntegerField()
 
-class RemoveCategoryForm(forms.Form):
-    category_id = forms.IntegerField()
+class ReorderCategoryForm(forms.Form):
+    category_position = forms.IntegerField()
 
 class AddItemForm(forms.Form):
     item_id = forms.IntegerField()
 
-class RemoveItemForm(forms.Form):
-    item_id = forms.IntegerField()
+class ReorderItemForm(forms.Form):
+    item_position = forms.IntegerField()

@@ -22,9 +22,9 @@
                             </form>
                         {% endif %}
                     </div>
-                    {% if latest_list.fancylistcategory_set.count > 0 %}
+                    {% if latest_list.sortedListCategories.count > 0 %}
                         <div class="categoryContainer">
-                            {% for fancylistcategory in latest_list.fancylistcategory_set.all %}
+                            {% for fancylistcategory in latest_list.sortedListCategories %}
                                 {% include "lists/fancylistcategory.html" %}
                             {% endfor %}
                         </div>

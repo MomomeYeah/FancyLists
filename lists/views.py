@@ -1,10 +1,12 @@
 from django.shortcuts import get_object_or_404, render
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
+from django.contrib.auth.decorators import login_required
 
 from lists.models import FancyList, Category, FancyListCategory, Item, FancyListCategoryItem
 from lists.forms import ListForm, CategoryForm, ItemForm, AddCategoryForm, ReorderCategoryForm, AddItemForm, ReorderItemForm
 
+@login_required
 def index_add_category(request, list_id):
     if request.method == 'POST':
         form = AddCategoryForm(request.POST)
@@ -16,6 +18,7 @@ def index_add_category(request, list_id):
             FancyListCategory.objects.create_list_category(add_list, add_category)
     return HttpResponseRedirect(reverse('lists:index'))
 
+@login_required
 def index_remove_category(request, list_category_id):
     if request.method == 'POST':
         list_category = get_object_or_404(FancyListCategory, pk = list_category_id)
@@ -24,6 +27,7 @@ def index_remove_category(request, list_category_id):
         fancylist.reorder_list_categories()
     return HttpResponseRedirect(reverse('lists:index'))
 
+@login_required
 def index_reorder_category(request, list_category_id):
     if request.method == 'POST':
         form = ReorderCategoryForm(request.POST)
@@ -44,6 +48,7 @@ def index_reorder_category(request, list_category_id):
                 reorder_category.set_display_order(category_position)
     return HttpResponseRedirect(reverse('lists:index'))
 
+@login_required
 def index_add_item(request, list_category_id):
     if request.method == 'POST':
         form = AddItemForm(request.POST)
@@ -55,6 +60,7 @@ def index_add_item(request, list_category_id):
             FancyListCategoryItem.objects.create_list_category_item(add_list_category, add_item)
     return HttpResponseRedirect(reverse('lists:index'))
 
+@login_required
 def index_remove_item(request, list_category_item_id):
     if request.method == 'POST':
         list_category_item = get_object_or_404(FancyListCategoryItem, pk = list_category_item_id)
@@ -63,6 +69,7 @@ def index_remove_item(request, list_category_item_id):
         list_category.reorder_items()
     return HttpResponseRedirect(reverse('lists:index'))
 
+@login_required
 def index_reorder_item(request, list_category_item_id):
     if request.method == 'POST':
         form = ReorderItemForm(request.POST)
@@ -83,6 +90,7 @@ def index_reorder_item(request, list_category_item_id):
                 reorder_item.set_display_order(item_position)
     return HttpResponseRedirect(reverse('lists:index'))
 
+@login_required
 def index(request):
     lists = FancyList.objects.order_by('-created_date')[:1]
     latest_list = None
@@ -97,6 +105,7 @@ def index(request):
         return render(request, 'lists/index.html', {'latest_list': latest_list, 'all_categories': all_categories, 'all_items': all_items})
     return render(request, 'lists/index.html', {'latest_list': latest_list})
 
+@login_required
 def new_list(request):
     if request.method == 'POST':
         form = ListForm(request.POST)
@@ -108,6 +117,7 @@ def new_list(request):
         form = ListForm()
     return render(request, 'lists/new.html', {'form': form})
 
+@login_required
 def delete_list(request, list_id):
     fancylist = get_object_or_404(FancyList, pk = list_id)
     if request.method == 'POST':
@@ -116,10 +126,12 @@ def delete_list(request, list_id):
     else:
         return render(request, 'lists/delete.html', {'delete_list': fancylist})
 
+@login_required
 def category_index(request):
     categories = Category.objects.order_by('name')
     return render(request, 'categories/index.html', {'categories': categories})
 
+@login_required
 def new_category(request):
     if request.method == 'POST':
         form = CategoryForm(request.POST)
@@ -131,6 +143,7 @@ def new_category(request):
         form = CategoryForm()
     return render(request, 'categories/new.html', {'form': form})
 
+@login_required
 def delete_category(request, category_id):
     category = get_object_or_404(Category, pk = category_id)
     if request.method == 'POST':
@@ -139,10 +152,12 @@ def delete_category(request, category_id):
     else:
         return render(request, 'categories/delete.html', {'delete_category': category})
 
+@login_required
 def item_index(request):
     items = Item.objects.order_by('name')
     return render(request, 'items/index.html', {'items': items})
 
+@login_required
 def new_item(request):
     if request.method == 'POST':
         form = ItemForm(request.POST)
@@ -154,6 +169,7 @@ def new_item(request):
         form = ItemForm()
     return render(request, 'items/new.html', {'form': form})
 
+@login_required
 def delete_item(request, item_id):
     item = get_object_or_404(Item, pk = item_id)
     if request.method == 'POST':

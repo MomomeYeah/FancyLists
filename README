@@ -4,8 +4,11 @@ This is mostly a learning experience to learn Django but also to solve that prob
 
 TODO:
 
-- Validation
 - Users
+  - add created_by user to ListCategory (is this the only place it's needed?)
+  - set created_by user when creating ListCategory
+  - filter displayed information based on current user
+- Validation
 - Duplicate a new list from a previous one
 - AJAX this bitch up
 - Make things look nice

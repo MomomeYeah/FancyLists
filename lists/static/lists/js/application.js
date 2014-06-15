@@ -23,7 +23,7 @@ $(document).ready(function() {
 
     $(".itemContainer").sortable({
       axis: "y",
-      scroll: false,
+      scroll: true,
       placeholder: "sortable-item-placeholder",
       forcePlaceholderSize: true,
       cursor: "move",
@@ -37,7 +37,7 @@ $(document).ready(function() {
 
     $(".categoryContainer").sortable({
       axis: "y",
-      scroll: false,
+      scroll: true,
       placeholder: "sortable-category-placeholder",
       forcePlaceholderSize: true,
       cursor: "move",

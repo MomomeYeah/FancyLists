@@ -9,11 +9,10 @@ html {
 
 .sortable-category-placeholder {
     background-color: gainsboro;
-    margin: 10px;
+    margin: 0px 0px 10px 0px;
     padding: 10px;
-    width: 90%;
+    width: 100%;
     min-width: 300px;
-    display: inline-block;
 }
 
 div.loginContainer {
@@ -24,7 +23,8 @@ div.loginContainer {
     List Styles
  */
 div.fancylist {
-
+    width: 100%;
+    min-width: 300px;
 }
 
 div.fancylist > h1.listTitle {
@@ -54,11 +54,9 @@ div.categoryContainer {
 
 div.category {
     border: 1px solid black;
-    margin: 10px;
+    margin: 0px 0px 10px 0px;
     padding: 10px;
-    width: 90%;
-    min-width: 300px;
-    display: inline-block;
+    width: 100%;
     text-align: left;
     background-color: white;
 }

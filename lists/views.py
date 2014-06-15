@@ -92,7 +92,7 @@ def index_reorder_item(request, list_category_item_id):
 
 @login_required
 def index(request):
-    lists = FancyList.objects.order_by('-created_date')[:1]
+    lists = FancyList.objects.filter(created_by = request.user).order_by('-created_date')[:1]
     latest_list = None
     if lists.count() > 0:
         latest_list = lists[0]
@@ -111,7 +111,7 @@ def new_list(request):
         form = ListForm(request.POST)
         if form.is_valid():
             cd = form.cleaned_data
-            FancyList.objects.create_list(cd['name'])
+            FancyList.objects.create_list(cd['name'], request.user)
             return HttpResponseRedirect(reverse('lists:index'))
     else:
         form = ListForm()

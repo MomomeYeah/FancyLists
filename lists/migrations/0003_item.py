@@ -7,7 +7,7 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        (b'lists', b'0001_initial'),
+        (b'lists', b'0002_fancylistcategory_fancylistcategoryitem'),
     ]
 
     operations = [

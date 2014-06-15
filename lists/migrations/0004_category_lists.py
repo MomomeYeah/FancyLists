@@ -7,7 +7,7 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        (b'lists', b'0002_item'),
+        (b'lists', b'0003_item'),
     ]
 
     operations = [

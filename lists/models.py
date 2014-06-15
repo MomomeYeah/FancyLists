@@ -4,8 +4,8 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 
 class FancyListManager(models.Manager):
-    def create_list(self, name):
-        fancylist = self.create(name = name, created_date = timezone.now())
+    def create_list(self, name, user):
+        fancylist = self.create(name = name, created_date = timezone.now(), created_by = user)
         fancylist.save()
         return fancylist
 
@@ -48,6 +48,7 @@ class FancyListCategoryItemManager(models.Manager):
 class FancyList(models.Model):
     name = models.CharField(max_length = 100)
     created_date = models.DateTimeField()
+    created_by = models.ForeignKey(User)
 
     def __unicode__(self):
         return self.name

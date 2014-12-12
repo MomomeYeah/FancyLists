@@ -10,8 +10,7 @@ https://docs.djangoproject.com/en/dev/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
-# BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-BASE_DIR = os.path.dirname(__file__)
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/dev/howto/deployment/checklist/
@@ -65,7 +64,7 @@ STATICFILES_DIRS = (
 
 ROOT_URLCONF = 'urls'
 
-WSGI_APPLICATION = 'wsgi.application'
+WSGI_APPLICATION = 'lists.wsgi.application'
 
 
 # Database
@@ -83,7 +82,7 @@ DATABASES = {
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'AEST'
+TIME_ZONE = 'Australia/Canberra'
 
 USE_I18N = True
 

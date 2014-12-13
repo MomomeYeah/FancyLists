@@ -20,6 +20,8 @@
                                     {% endfor %}
                                 </select>
                             </form>
+                        {% else %}
+                            <p>No categories!  Click the link in the navbar above to create one.</p>
                         {% endif %}
                     </div>
                     {% if latest_list.sortedListCategories.count > 0 %}

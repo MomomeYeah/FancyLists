@@ -8,6 +8,9 @@ if os.environ.get('DEBUG') == 'True':
 else:
     DEBUG = False
 
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY')
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET')
+
 # Allow all hosts
 ALLOWED_HOSTS = ['*']
 

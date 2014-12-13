@@ -3,7 +3,10 @@
 from .base import *
 
 # No debug for production
-DEBUG = False
+if os.environ.get('DEBUG') == 'True':
+    DEBUG = True
+else:
+    DEBUG = False
 
 # Allow all hosts
 ALLOWED_HOSTS = ['*']

@@ -1,1 +1,1 @@
-web: gunicorn sudocool.wsgi --log-file -
+web: gunicorn lists.wsgi --log-file -

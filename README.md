@@ -6,7 +6,6 @@ This is mostly a learning experience to learn Django but also to solve that prob
 TODO
 ----
 
-* Register new user
 * Better validation
 * Create new lists
 * Duplicate a new list from a previous one

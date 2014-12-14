@@ -10,13 +10,27 @@ https://docs.djangoproject.com/en/dev/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+import json
+
+from django.core.exceptions import ImproperlyConfigured
+
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+SECRETS_LOC = os.path.join(BASE_DIR, 'settings', 'secrets.json')
+
+with open(SECRETS_LOC) as f:
+    secrets = json.loads(f.read())
+
+def get_secret(setting, secrets=secrets):
+    """Get the secret variable of return an explicit exception"""
+    try:
+        return secrets[setting]
+    except KeyError:
+        error_msg = "Set the {0} property in secrets.json".format(setting)
+        raise ImproperlyConfigured(error_msg)
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/dev/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '%v#ages*3p6dsbtmck^53x+xf2!-b5f27y(&5o3(10q6%elo*k'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

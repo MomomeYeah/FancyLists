@@ -38,3 +38,5 @@ Scripts
 *~
 *.db
 *.sqlite3
+
+secrets.json

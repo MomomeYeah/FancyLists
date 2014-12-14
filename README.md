@@ -11,3 +11,5 @@ TODO
 * Duplicate a new list from a previous one
 * AJAX this bitch up
 * Make things look nice
+* Deletes happen in modal dialogues?
+* Combine new/edit templates

@@ -3,13 +3,16 @@
         {% csrf_token %}
         <input type="hidden" name="category_position" value="" />
     </form>
+    
     <h3 class="categoryTitle"><i class="fi-list categoryHandle"></i> {{ fancylistcategory.Category.name }} ({{ fancylistcategory.display_order }})</h3>
+    
     <span class="removeCategory">
         <form class="removeCategoryForm" action="{% url 'lists:index_remove_category' fancylistcategory.id %}" method="post" style="display: inline;">
             {% csrf_token %}
             [<a href="#">Remove</a>]
         </form>
     </span>
+
     <span class="showHideCategory"><i class="fi-arrows-out showCategory" style="display: none;"></i><i class="fi-arrows-in hideCategory"></i></span>
 
     <div class="categoryContents">
@@ -30,20 +33,7 @@
         {% if fancylistcategory.sortedItems > 0 %}
             <div class="itemContainer">
                 {% for fancylistcategoryitem in fancylistcategory.sortedItems %}
-                    <div class="item">
-                        <form class="reorderItemForm" action="{% url 'lists:index_reorder_item' fancylistcategoryitem.id %}" method="post">
-                            {% csrf_token %}
-                            <input type="hidden" name="item_position" value="" />
-                        </form>
-                        <i class="fi-list"></i>
-                        <span class="itemName">{{ fancylistcategoryitem.Item.name }} ({{ fancylistcategoryitem.display_order }})</span>
-                        <span class="removeItem">
-                            <form class="removeItemForm" action="{% url 'lists:index_remove_item' fancylistcategoryitem.id %}" method="post">
-                                {% csrf_token %}
-                                [<a href="#">Remove</a>]
-                            </form>
-                        </span>
-                    </div>
+                    {% include "lists/fancylistcategoryitem.html" %}
                 {% endfor %}
             </div>
         {% endif %}

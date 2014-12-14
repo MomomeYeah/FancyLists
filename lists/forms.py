@@ -1,13 +1,24 @@
 from django import forms
+from lists.models import Category, Item
 
 class ListForm(forms.Form):
     name = forms.CharField(max_length = 100, widget = forms.TextInput(attrs = {'placeholder': 'Enter a name for your list'}))
 
-class CategoryForm(forms.Form):
-    name = forms.CharField(max_length = 100, widget = forms.TextInput(attrs = {'placeholder': 'Enter a name for your category'}))
+class CategoryForm(forms.ModelForm):
+    class Meta:
+        model = Category
+        fields = ['name']
+        widgets = {
+            'name': forms.TextInput(attrs = {'placeholder': 'Enter a name for your category'})
+        }
 
-class ItemForm(forms.Form):
-    name = forms.CharField(max_length = 100, widget = forms.TextInput(attrs = {'placeholder': 'Enter a name for your item'}))
+class ItemForm(forms.ModelForm):
+    class Meta:
+        model = Item
+        fields = ['name']
+        widgets = {
+            'name': forms.TextInput(attrs = {'placeholder': 'Enter a name for your item'})
+        }
 
 class AddCategoryForm(forms.Form):
     category_id = forms.IntegerField()

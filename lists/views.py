@@ -144,6 +144,18 @@ def new_category(request):
     return render(request, 'categories/new.html', {'form': form})
 
 @login_required
+def edit_category(request, category_id):
+    category = get_object_or_404(Category, pk = category_id)
+    if request.method == 'POST':
+        form = CategoryForm(request.POST, instance = category)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('lists:category_index'))
+    else:
+        form = CategoryForm(instance = category)
+    return render(request, 'categories/edit.html', {'edit_category': category, 'form': form})
+
+@login_required
 def delete_category(request, category_id):
     category = get_object_or_404(Category, pk = category_id)
     if request.method == 'POST':
@@ -168,6 +180,18 @@ def new_item(request):
     else:
         form = ItemForm()
     return render(request, 'items/new.html', {'form': form})
+
+@login_required
+def edit_item(request, item_id):
+    item = get_object_or_404(Item, pk = item_id)
+    if request.method == 'POST':
+        form = ItemForm(request.POST, instance = item)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('lists:item_index'))
+    else:
+        form = ItemForm(instance = item)
+    return render(request, 'items/edit.html', {'edit_item': item, 'form': form})
 
 @login_required
 def delete_item(request, item_id):

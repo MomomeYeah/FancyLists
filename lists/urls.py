@@ -19,5 +19,6 @@ urlpatterns = patterns('',
     url(r'^items/edit/(\d+)$', views.edit_item, name = 'edit_item'),
     url(r'^items/delete/(\d+)$', views.delete_item, name = 'delete_item'),
     url(r'^new/$', views.new_list, name = 'new_list'),
+    url(r'^edit/(\d+)$', views.edit_list, name = 'edit_list'),
     url(r'^delete/(\d+)$', views.delete_list, name = 'delete_list'),
 )

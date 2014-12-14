@@ -118,6 +118,18 @@ def new_list(request):
     return render(request, 'lists/new.html', {'form': form})
 
 @login_required
+def edit_list(request, list_id):
+    fancylist = get_object_or_404(FancyList, pk = list_id)
+    if request.method == 'POST':
+        form = ListForm(request.POST, instance = fancylist)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('lists:index'))
+    else:
+        form = ListForm(instance = fancylist)
+    return render(request, 'lists/edit.html', {'edit_list': fancylist, 'form': form})
+
+@login_required
 def delete_list(request, list_id):
     fancylist = get_object_or_404(FancyList, pk = list_id)
     if request.method == 'POST':

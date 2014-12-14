@@ -5,7 +5,11 @@
         <div class="large-12 columns">
             <div class="fancylist">
                 {% if latest_list %}
-                    <h1 class="listTitle">{{ latest_list.name }}</h1><span class="removeList">[<a href="{% url 'lists:delete_list' latest_list.id %}">Delete</a>]</span>
+                    <h1 class="listTitle">{{ latest_list.name }}</h1>
+                    <span class="removeList">
+                        [<a href="{% url 'lists:edit_list' latest_list.id %}">Edit</a>]
+                        [<a href="{% url 'lists:delete_list' latest_list.id %}">Delete</a>]
+                    </span>
                     <p>Created on {{ latest_list.created_date }}</p>
                     
                     <h2>Categories</h2>

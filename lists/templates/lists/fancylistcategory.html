@@ -1,33 +1,20 @@
 <div class="category">
     <input type="hidden" name="fancylistcategory_id" value="{{ fancylistcategory.id }}"/>
-    <form class="reorderCategoryForm" action="{% url 'lists:index_reorder_category' fancylistcategory.id %}" method="post">
-        {% csrf_token %}
-        <input type="hidden" name="category_position" value="" />
-    </form>
     
     <h3 class="categoryTitle"><i class="fi-list categoryHandle"></i> {{ fancylistcategory.Category.name }} ({{ fancylistcategory.display_order }})</h3>
-    
-    <span class="removeCategory">
-        <form class="removeCategoryForm" action="{% url 'lists:index_remove_category' fancylistcategory.id %}" method="post" style="display: inline;">
-            {% csrf_token %}
-            [<a href="#">Remove</a>]
-        </form>
-    </span>
+    <span class="removeCategory">[<a href="#">Remove</a>]</span>
 
     <span class="showHideCategory"><i class="fi-arrows-out showCategory" style="display: none;"></i><i class="fi-arrows-in hideCategory"></i></span>
 
     <div class="categoryContents">
         <div class="addItem">
             {% if all_items|length > 0 %}
-                <form class="addItemForm" action="{% url 'lists:index_add_item' fancylistcategory.id %}" method="post">
-                    {% csrf_token %}
-                    <select class="item_id" name="item_id" value="">
-                        <option value="">Add an Item</option>
-                        {% for item in all_items %}
-                            <option value="{{ item.id }}">{{ item.name }}</option>
-                        {% endfor %}
-                    </select>
-                </form>
+                <select class="item_id" name="item_id" value="">
+                    <option value="">Add an Item</option>
+                    {% for item in all_items %}
+                        <option value="{{ item.id }}">{{ item.name }}</option>
+                    {% endfor %}
+                </select>
             {% endif %}
         </div>
 

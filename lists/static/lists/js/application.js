@@ -1,6 +1,6 @@
 $(document).ready(function() {
     $(".fancylist").on("change", "#category_id", function() {
-        var fancylist = $(this).find("input[name='fancylist_id']").val();
+        var fancylist = $(this).parents("div.fancylist").find("input[name='fancylist_id']").val();
         var data_in = {
           category_id : $("#category_id").val()
         };
@@ -13,7 +13,7 @@ $(document).ready(function() {
         $(this).val("");
     });
 
-    $(".fancylist").on("click", ".removeCategoryForm a", function() {
+    $(".fancylist").on("click", ".removeCategory a", function() {
         var fancylistcategory = $(this).parents("div.category").find("input[name='fancylistcategory_id']").val();
         ajaxutil.post('/lists/removeCategory/' + fancylistcategory
           , null
@@ -36,7 +36,7 @@ $(document).ready(function() {
         $(this).val("");
     });
 
-    $(".fancylist").on("click", ".removeItemForm a", function() {
+    $(".fancylist").on("click", ".removeItem a", function() {
         var fancylistcategoryitem = $(this).parents("div.item").find("input[name='fancylistcategoryitem_id']").val();
         ajaxutil.post('/lists/removeItem/' + fancylistcategoryitem
           , null

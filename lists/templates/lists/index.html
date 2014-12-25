@@ -1,6 +1,8 @@
 {% extends "FancyLists/base.html" %}
 
 {% block content %}
+    <div data-alert id="banner-alert" class="banner-alert alert-box">&nbsp;</div>
+
     <div class="row">
         <div class="large-12 columns">
             <div class="fancylist">
@@ -28,13 +30,11 @@
                             <p>No categories!  Click the link in the navbar above to create one.</p>
                         {% endif %}
                     </div>
-                    {% if latest_list.sortedListCategories.count > 0 %}
-                        <div class="categoryContainer">
-                            {% for fancylistcategory in latest_list.sortedListCategories %}
-                                {% include "lists/fancylistcategory.html" %}
-                            {% endfor %}
-                        </div>
-                    {% endif %}
+                    <div class="categoryContainer">
+                        {% for fancylistcategory in latest_list.sortedListCategories %}
+                            {% include "lists/fancylistcategory.html" %}
+                        {% endfor %}
+                    </div>
 
                 {% else %}
                     <h1 class="listTitle">Fancy Lists</h1>

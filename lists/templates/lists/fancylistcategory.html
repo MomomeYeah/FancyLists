@@ -1,4 +1,5 @@
 <div class="category">
+    <input type="hidden" name="fancylistcategory_id" value="{{ fancylistcategory.id }}"/>
     <form class="reorderCategoryForm" action="{% url 'lists:index_reorder_category' fancylistcategory.id %}" method="post">
         {% csrf_token %}
         <input type="hidden" name="category_position" value="" />
@@ -30,12 +31,10 @@
             {% endif %}
         </div>
 
-        {% if fancylistcategory.sortedItems > 0 %}
-            <div class="itemContainer">
-                {% for fancylistcategoryitem in fancylistcategory.sortedItems %}
-                    {% include "lists/fancylistcategoryitem.html" %}
-                {% endfor %}
-            </div>
-        {% endif %}
+        <div class="itemContainer">
+            {% for fancylistcategoryitem in fancylistcategory.sortedItems %}
+                {% include "lists/fancylistcategoryitem.html" %}
+            {% endfor %}
+        </div>
     </div>
 </div>

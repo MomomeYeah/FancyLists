@@ -1,4 +1,5 @@
 <div class="item">
+    <input type="hidden" name="fancylistcategoryitem_id" value="{{ fancylistcategoryitem.id }}"/>
     <form class="reorderItemForm" action="{% url 'lists:index_reorder_item' fancylistcategoryitem.id %}" method="post">
         {% csrf_token %}
         <input type="hidden" name="item_position" value="" />

@@ -1,6 +1,5 @@
 from django.http import HttpResponse
 from django.template import RequestContext
-#from django.utils import simplejson
 import json as simplejson
 from django.utils.safestring import mark_safe
 from django.template.loader import render_to_string

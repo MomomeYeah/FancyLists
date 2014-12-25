@@ -47,23 +47,31 @@ def index_remove_category(request, list_category_id):
 @login_required
 def index_reorder_category(request, list_category_id):
     if request.method == 'POST':
-        form = ReorderCategoryForm(request.POST)
-        if form.is_valid():
-            cd = form.cleaned_data
-            category_position = cd['category_position']
-            if category_position != None:
-                reorder_category = get_object_or_404(FancyListCategory, pk = list_category_id)
-                category_original_position = reorder_category.display_order
-                min_category_position = min(category_position, category_original_position)
-                max_category_position = max(category_position, category_original_position)
-                list_categories = FancyListCategory.objects.filter(FancyList = reorder_category.FancyList, display_order__gte = min_category_position, display_order__lte = max_category_position)
-                for list_category in list_categories:
-                    if category_position < category_original_position:
-                        list_category.increment_display_order()
-                    elif category_position > category_original_position:
-                        list_category.decrement_display_order()
-                reorder_category.set_display_order(category_position)
-    return HttpResponseRedirect(reverse('lists:index'))
+        try:
+            form = ReorderCategoryForm(request.POST)
+            if form.is_valid():
+                cd = form.cleaned_data
+                category_position = cd['category_position']
+                if category_position != None:
+                    reorder_category = get_object_or_404(FancyListCategory, pk = list_category_id)
+                    category_original_position = reorder_category.display_order
+                    min_category_position = min(category_position, category_original_position)
+                    max_category_position = max(category_position, category_original_position)
+                    list_categories = FancyListCategory.objects.filter(FancyList = reorder_category.FancyList, display_order__gte = min_category_position, display_order__lte = max_category_position)
+                    for list_category in list_categories:
+                        if category_position < category_original_position:
+                            list_category.increment_display_order()
+                        elif category_position > category_original_position:
+                            list_category.decrement_display_order()
+                    reorder_category.set_display_order(category_position)
+                    return success_response(request=request, message=(u'Category reordered successfully'))
+                else:
+                    return failure_response(request=request, message=(u'Could not find category position'))
+            else:
+                return failure_response(request=request, message=(u'Invalid form'))
+        except:
+            return failure_response(request=request, message=(u'Could not reorder category'))
+    return failure_response(request=request, message=(u'Request method must be POST'))
 
 @login_required
 def index_add_item(request, list_category_id):
@@ -100,23 +108,31 @@ def index_remove_item(request, list_category_item_id):
 @login_required
 def index_reorder_item(request, list_category_item_id):
     if request.method == 'POST':
-        form = ReorderItemForm(request.POST)
-        if form.is_valid():
-            cd = form.cleaned_data
-            item_position = cd['item_position']
-            if item_position != None:
-                reorder_item = get_object_or_404(FancyListCategoryItem, pk = list_category_item_id)
-                item_original_position = reorder_item.display_order
-                min_item_position = min(item_position, item_original_position)
-                max_item_position = max(item_position, item_original_position)
-                list_category_items = FancyListCategoryItem.objects.filter(FancyListCategory = reorder_item.FancyListCategory, display_order__gte = min_item_position, display_order__lte = max_item_position)
-                for list_category_item in list_category_items:
-                    if item_position < item_original_position:
-                        list_category_item.increment_display_order()
-                    elif item_position > item_original_position:
-                        list_category_item.decrement_display_order()
-                reorder_item.set_display_order(item_position)
-    return HttpResponseRedirect(reverse('lists:index'))
+        try:
+            form = ReorderItemForm(request.POST)
+            if form.is_valid():
+                cd = form.cleaned_data
+                item_position = cd['item_position']
+                if item_position != None:
+                    reorder_item = get_object_or_404(FancyListCategoryItem, pk = list_category_item_id)
+                    item_original_position = reorder_item.display_order
+                    min_item_position = min(item_position, item_original_position)
+                    max_item_position = max(item_position, item_original_position)
+                    list_category_items = FancyListCategoryItem.objects.filter(FancyListCategory = reorder_item.FancyListCategory, display_order__gte = min_item_position, display_order__lte = max_item_position)
+                    for list_category_item in list_category_items:
+                        if item_position < item_original_position:
+                            list_category_item.increment_display_order()
+                        elif item_position > item_original_position:
+                            list_category_item.decrement_display_order()
+                    reorder_item.set_display_order(item_position)
+                    return success_response(request=request, message=(u'Item reordered successfully'))
+                else:
+                    return failure_response(request=request, message=(u'Could not find item position'))
+            else:
+                return failure_response(request=request, message=(u'Invalid form'))
+        except:
+            return failure_response(request=request, message=(u'Could not reorder item'))
+    return failure_response(request=request, message=(u'Request method must be POST'))
 
 @login_required
 def list_index(request):

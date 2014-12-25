@@ -59,9 +59,15 @@ $(document).ready(function() {
       cursor: "move",
       revert: false,
       stop: function(event, ui) {
-        reorderItemForm = ui.item.find(".reorderItemForm");
-        reorderItemForm.find("input[name='item_position']").val(ui.item.index());
-        reorderItemForm.submit();
+        var fancylistcategoryitem = ui.item.find("input[name='fancylistcategoryitem_id']").val();
+        var data_in = {
+          item_position : ui.item.index()
+        };
+        ajaxutil.post('/lists/reorderItem/' + fancylistcategoryitem
+          , data_in
+          , null
+          , null
+          );
       }
     });
 
@@ -74,10 +80,15 @@ $(document).ready(function() {
       revert: false,
       handle: ".categoryHandle",
       stop: function(event, ui) {
-        reorderItemForm = ui.item.find(".reorderCategoryForm");
-        reorderItemForm.find("input[name='category_position']").val(ui.item.index());
-        reorderItemForm.submit();
+        var fancylistcategory = ui.item.find("input[name='fancylistcategory_id']").val();
+        var data_in = {
+          category_position : ui.item.index()
+        };
+        ajaxutil.post('/lists/reorderCategory/' + fancylistcategory
+          , data_in
+          , null
+          , null
+          );
       }
     });
-
 });

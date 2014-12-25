@@ -136,23 +136,19 @@ def index_reorder_item(request, list_category_item_id):
 
 @login_required
 def list_index(request):
-    lists = FancyList.objects.order_by('-created_date')
+    lists = FancyList.objects.filter(created_by = request.user).order_by('-created_date')
     return render(request, 'lists/list_index.html', {'lists': lists})
 
 @login_required
-def index(request):
-    lists = FancyList.objects.filter(created_by = request.user).order_by('-created_date')[:1]
-    latest_list = None
-    if lists.count() > 0:
-        latest_list = lists[0]
-        all_categories = []
-        all_items = []
-        for category in Category.objects.all():
-            all_categories.append({'id': category.id, 'name': category.name})
-        for item in Item.objects.all():
-            all_items.append({'id': item.id, 'name': item.name})
-        return render(request, 'lists/index.html', {'latest_list': latest_list, 'all_categories': all_categories, 'all_items': all_items})
-    return render(request, 'lists/index.html', {'latest_list': latest_list})
+def index(request, list_id):
+    fancylist = get_object_or_404(FancyList, pk = list_id)
+    all_categories = []
+    all_items = []
+    for category in Category.objects.all():
+        all_categories.append({'id': category.id, 'name': category.name})
+    for item in Item.objects.all():
+        all_items.append({'id': item.id, 'name': item.name})
+    return render(request, 'lists/index.html', {'fancylist': fancylist, 'all_categories': all_categories, 'all_items': all_items})
 
 @login_required
 def new_list(request):
@@ -173,7 +169,7 @@ def edit_list(request, list_id):
         form = ListForm(request.POST, instance = fancylist)
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect(reverse('lists:index'))
+            return HttpResponseRedirect(reverse('lists:list_index'))
     else:
         form = ListForm(instance = fancylist)
     return render(request, 'lists/edit.html', {'edit_list': fancylist, 'form': form})

@@ -6,19 +6,19 @@
     <div class="row">
         <div class="large-12 columns">
             <div class="fancylist">
-                {% if latest_list %}
-                    <h1 class="listTitle">{{ latest_list.name }}</h1>
+                {% if fancylist %}
+                    <h1 class="listTitle">{{ fancylist.name }}</h1>
                     <span class="removeList">
-                        [<a href="{% url 'lists:edit_list' latest_list.id %}">Edit</a>]
-                        [<a href="{% url 'lists:delete_list' latest_list.id %}">Delete</a>]
+                        [<a href="{% url 'lists:edit_list' fancylist.id %}">Edit</a>]
+                        [<a href="{% url 'lists:delete_list' fancylist.id %}">Delete</a>]
                     </span>
-                    <p>Created on {{ latest_list.created_date }}</p>
-                    <input type="hidden" name="fancylist_id" value="{{ latest_list.id }}"/>
+                    <p>Created on {{ fancylist.created_date }}</p>
+                    <input type="hidden" name="fancylist_id" value="{{ fancylist.id }}"/>
                     
                     <h2>Categories</h2>
                     <div class="addCategory">
                         {% if all_categories|length > 0 %}
-                            <form id="addCategoryForm" action="{% url 'lists:index_add_category' latest_list.id %}" method="post">
+                            <form id="addCategoryForm" action="{% url 'lists:index_add_category' fancylist.id %}" method="post">
                                 {% csrf_token %}
                                 <select id="category_id" name="category_id" value="">
                                     <option value="">Add a Category</option>
@@ -32,7 +32,7 @@
                         {% endif %}
                     </div>
                     <div class="categoryContainer">
-                        {% for fancylistcategory in latest_list.sortedListCategories %}
+                        {% for fancylistcategory in fancylist.sortedListCategories %}
                             {% include "lists/fancylistcategory.html" %}
                         {% endfor %}
                     </div>

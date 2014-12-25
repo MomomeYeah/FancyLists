@@ -157,7 +157,7 @@ def new_list(request):
         if form.is_valid():
             cd = form.cleaned_data
             FancyList.objects.create_list(cd['name'], request.user)
-            return HttpResponseRedirect(reverse('lists:index'))
+            return HttpResponseRedirect(reverse('lists:list_index'))
     else:
         form = ListForm()
     return render(request, 'lists/new.html', {'form': form})
@@ -179,7 +179,7 @@ def delete_list(request, list_id):
     fancylist = get_object_or_404(FancyList, pk = list_id)
     if request.method == 'POST':
         fancylist.delete()
-        return HttpResponseRedirect(reverse('lists:index'))
+        return HttpResponseRedirect(reverse('lists:list_index'))
     else:
         return render(request, 'lists/delete.html', {'delete_list': fancylist})
 

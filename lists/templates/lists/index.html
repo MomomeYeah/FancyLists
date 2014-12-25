@@ -13,6 +13,7 @@
                         [<a href="{% url 'lists:delete_list' latest_list.id %}">Delete</a>]
                     </span>
                     <p>Created on {{ latest_list.created_date }}</p>
+                    <input type="hidden" name="fancylist_id" value="{{ latest_list.id }}"/>
                     
                     <h2>Categories</h2>
                     <div class="addCategory">

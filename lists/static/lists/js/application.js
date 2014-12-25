@@ -1,6 +1,6 @@
 $(document).ready(function() {
     $(".fancylist").on("change", "#category_id", function() {
-        var fancylist = 3;
+        var fancylist = $(this).find("input[name='fancylist_id']").val();
         var data_in = {
           category_id : $("#category_id").val()
         };
@@ -80,4 +80,4 @@ $(document).ready(function() {
       }
     });
 
-})
+});

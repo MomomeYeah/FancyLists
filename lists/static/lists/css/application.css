@@ -2,6 +2,19 @@ html {
     overflow-y: scroll; 
 }
 
+.banner-alert {
+  position: fixed;
+  width: 250px;
+  z-index: 999999999;
+  margin-top: -25px;
+  margin-left: auto;
+  margin-right: auto;
+  left: 0;
+  right: 0;
+  text-align: center;
+  display: none;
+}
+
 .sortable-item-placeholder {
     background-color: gainsboro;
     padding: 10px 0px 10px 0px;
@@ -9,7 +22,7 @@ html {
 
 .sortable-category-placeholder {
     background-color: gainsboro;
-    margin: 0px 0px 10px 0px;
+    margin: 0 0 10px 0;
     padding: 10px;
     width: 100%;
     min-width: 300px;

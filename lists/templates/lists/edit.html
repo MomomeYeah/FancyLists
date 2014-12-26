@@ -1,24 +1,45 @@
 {% extends "FancyLists/base.html" %}
 
 {% block content %}
+    <div data-alert id="banner-alert" class="banner-alert alert-box">&nbsp;</div>
+
     <div class="row">
         <div class="large-12 columns">
-            <h1>Edit List</h1>
-            <form action="" method="post">
-                <div class="row">
-                    <div class="large-12 columns">
-                        <label for="id_name" class="{% if form.name.errors %}error{% endif %}"/>Name:
-                        {{ form.name }}
-                        </label>
-                        {% if form.name.errors %}
-                        <small class="error">Please enter a name for this list</small>
+            <div class="fancylist">
+                {% if fancylist %}
+                    <h1 class="listTitle">{{ fancylist.name }}</h1>
+                    <span class="removeList">
+                        [<a href="{% url 'lists:edit_list_name' fancylist.id %}">Edit</a>]
+                        [<a href="{% url 'lists:duplicate_list' fancylist.id %}">Duplicate</a>]
+                        [<a href="{% url 'lists:delete_list' fancylist.id %}">Delete</a>]
+                    </span>
+                    <p>Created on {{ fancylist.created_date }}</p>
+                    <input type="hidden" name="fancylist_id" value="{{ fancylist.id }}"/>
+                    
+                    <h2>Categories</h2>
+                    <div class="addCategory">
+                        {% if all_categories|length > 0 %}
+                            <select id="category_id" name="category_id" value="">
+                                <option value="">Add a Category</option>
+                                {% for category in all_categories %}
+                                    <option value="{{ category.id }}">{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        {% else %}
+                            <p>No categories!  Click the link in the navbar above to create one.</p>
                         {% endif %}
                     </div>
-                </div>
-                {% csrf_token %}
-                <input type="submit" value="Save" class="button">
-                <a href="{% url 'lists:index' %}" class="button">Cancel</a>
-            </form>
+                    <div class="categoryContainer">
+                        {% for fancylistcategory in fancylist.sortedListCategories %}
+                            {% include "lists/fancylistcategory.html" %}
+                        {% endfor %}
+                    </div>
+
+                {% else %}
+                    <h1 class="listTitle">Fancy Lists</h1>
+                    <p class="listDescription">No lists!  Click <a href="{% url 'lists:new_list' %}">here</a> to make one.</p>
+                {% endif %}
+            </div>
         </div>
     </div>
 {% endblock %}

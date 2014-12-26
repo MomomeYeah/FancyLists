@@ -1,21 +1,51 @@
 $(document).ready(function() {
-    $("#category_id").change(function() {
-        $("#addCategoryForm").submit();
+    $(".fancylist").on("change", "#category_id", function() {
+        var fancylist = $(this).parents("div.fancylist").find("input[name='fancylist_id']").val();
+        var data_in = {
+          category_id : $("#category_id").val()
+        };
+        ajaxutil.post('/lists/addCategory/' + fancylist
+          , data_in
+          , null
+          , $('.categoryContainer')
+          );
+
+        $(this).val("");
     });
 
-    $(".removeCategoryForm a").click(function() {
-        $(this).parents(".removeCategoryForm").submit();
+    $(".fancylist").on("click", ".removeCategory a", function() {
+        var fancylistcategory = $(this).parents("div.category").find("input[name='fancylistcategory_id']").val();
+        ajaxutil.post('/lists/removeCategory/' + fancylistcategory
+          , null
+          , null
+          , $(this).parents("div.category")
+          );
     });
 
-    $(".item_id").change(function() {
-        $(this).parents(".addItemForm").submit();
+    $(".fancylist").on("change", ".item_id", function() {
+        var fancylistcategory = $(this).parents("div.category").find("input[name='fancylistcategory_id']").val();
+        var data_in = {
+          item_id : $(this).val()
+        };
+        ajaxutil.post('/lists/addItem/' + fancylistcategory
+          , data_in
+          , null
+          , $(this).parents("div.categoryContents").find("div.itemContainer")
+          );
+
+        $(this).val("");
     });
 
-    $(".removeItemForm a").click(function() {
-        $(this).parents(".removeItemForm").submit();
+    $(".fancylist").on("click", ".removeItem a", function() {
+        var fancylistcategoryitem = $(this).parents("div.item").find("input[name='fancylistcategoryitem_id']").val();
+        ajaxutil.post('/lists/removeItem/' + fancylistcategoryitem
+          , null
+          , null
+          , $(this).parents("div.item")
+          );
     });
 
-    $(".showHideCategory").click(function() {
+    $(".fancylist").on("click", ".showHideCategory", function() {
         categoryContents = $(this).parents("div.category").find("div.categoryContents").toggle();
         $(this).find(".showCategory").toggle();
         $(this).find(".hideCategory").toggle();
@@ -29,9 +59,15 @@ $(document).ready(function() {
       cursor: "move",
       revert: false,
       stop: function(event, ui) {
-        reorderItemForm = ui.item.find(".reorderItemForm");
-        reorderItemForm.find("input[name='item_position']").val(ui.item.index());
-        reorderItemForm.submit();
+        var fancylistcategoryitem = ui.item.find("input[name='fancylistcategoryitem_id']").val();
+        var data_in = {
+          item_position : ui.item.index()
+        };
+        ajaxutil.post('/lists/reorderItem/' + fancylistcategoryitem
+          , data_in
+          , null
+          , null
+          );
       }
     });
 
@@ -44,10 +80,15 @@ $(document).ready(function() {
       revert: false,
       handle: ".categoryHandle",
       stop: function(event, ui) {
-        reorderItemForm = ui.item.find(".reorderCategoryForm");
-        reorderItemForm.find("input[name='category_position']").val(ui.item.index());
-        reorderItemForm.submit();
+        var fancylistcategory = ui.item.find("input[name='fancylistcategory_id']").val();
+        var data_in = {
+          category_position : ui.item.index()
+        };
+        ajaxutil.post('/lists/reorderCategory/' + fancylistcategory
+          , data_in
+          , null
+          , null
+          );
       }
     });
-
-})
+});

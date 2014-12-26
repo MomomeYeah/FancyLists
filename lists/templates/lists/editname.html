@@ -3,7 +3,7 @@
 {% block content %}
     <div class="row">
         <div class="large-12 columns">
-            <h1>New List</h1>
+            <h1>Edit List</h1>
             <form action="" method="post">
                 <div class="row">
                     <div class="large-12 columns">
@@ -16,8 +16,8 @@
                     </div>
                 </div>
                 {% csrf_token %}
-                <input type="submit" value="Create" class="button">
-                <a href="{% url 'lists:list_index' %}" class="button">Cancel</a>
+                <input type="submit" value="Save" class="button">
+                <a href="{% url 'lists:edit_list' edit_list_id %}" class="button">Cancel</a>
             </form>
         </div>
     </div>

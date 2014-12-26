@@ -15,7 +15,7 @@ class FancyListManager(models.Manager):
         fancylist.save()
         for flc in FancyListCategory.objects.filter(FancyList = to_copy_list.id):
             FancyListCategory.objects.duplicate_list_category(fancylist, flc)
-        return
+        return fancylist
 
 class CategoryManager(models.Manager):
     def create_category(self, name):

@@ -140,24 +140,13 @@ def list_index(request):
     return render(request, 'lists/list_index.html', {'lists': lists})
 
 @login_required
-def index(request, list_id):
-    fancylist = get_object_or_404(FancyList, pk = list_id)
-    all_categories = []
-    all_items = []
-    for category in Category.objects.all():
-        all_categories.append({'id': category.id, 'name': category.name})
-    for item in Item.objects.all():
-        all_items.append({'id': item.id, 'name': item.name})
-    return render(request, 'lists/index.html', {'fancylist': fancylist, 'all_categories': all_categories, 'all_items': all_items})
-
-@login_required
 def new_list(request):
     if request.method == 'POST':
         form = ListForm(request.POST)
         if form.is_valid():
             cd = form.cleaned_data
-            FancyList.objects.create_list(cd['name'], request.user)
-            return HttpResponseRedirect(reverse('lists:list_index'))
+            fancylist = FancyList.objects.create_list(cd['name'], request.user)
+            return HttpResponseRedirect(reverse('lists:edit_list', args = (fancylist.id,)))
     else:
         form = ListForm()
     return render(request, 'lists/new.html', {'form': form})
@@ -165,14 +154,25 @@ def new_list(request):
 @login_required
 def edit_list(request, list_id):
     fancylist = get_object_or_404(FancyList, pk = list_id)
+    all_categories = []
+    all_items = []
+    for category in Category.objects.all():
+        all_categories.append({'id': category.id, 'name': category.name})
+    for item in Item.objects.all():
+        all_items.append({'id': item.id, 'name': item.name})
+    return render(request, 'lists/edit.html', {'fancylist': fancylist, 'all_categories': all_categories, 'all_items': all_items})
+
+@login_required
+def edit_list_name(request, list_id):
+    fancylist = get_object_or_404(FancyList, pk = list_id)
     if request.method == 'POST':
         form = ListForm(request.POST, instance = fancylist)
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect(reverse('lists:list_index'))
+            return HttpResponseRedirect(reverse('lists:edit_list', args = (list_id,)))
     else:
         form = ListForm(instance = fancylist)
-    return render(request, 'lists/edit.html', {'edit_list': fancylist, 'form': form})
+    return render(request, 'lists/editname.html', {'edit_list_id': fancylist.id, 'form': form})
 
 @login_required
 def duplicate_list(request, list_id):
@@ -181,8 +181,8 @@ def duplicate_list(request, list_id):
         form = ListForm(request.POST)
         if form.is_valid():
             cd = form.cleaned_data
-            FancyList.objects.duplicate_list(cd['name'], fancylist)
-            return HttpResponseRedirect(reverse('lists:list_index'))
+            fancylist_new = FancyList.objects.duplicate_list(cd['name'], fancylist)
+            return HttpResponseRedirect(reverse('lists:edit_list', args = (fancylist_new.id,)))
     else:
         form = ListForm()
     return render(request, 'lists/new.html', {'form': form})    

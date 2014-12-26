@@ -4,9 +4,9 @@ from lists import views
 
 urlpatterns = patterns('',
     url(r'^$', views.list_index, name = 'list_index'),
-    url(r'^index/(\d+)$', views.index, name = 'index'),
     url(r'^new/$', views.new_list, name = 'new_list'),
     url(r'^edit/(\d+)$', views.edit_list, name = 'edit_list'),
+    url(r'^editName/(\d+)$', views.edit_list_name, name = 'edit_list_name'),
     url(r'^duplicate/(\d+)$', views.duplicate_list, name = 'duplicate_list'),
     url(r'^delete/(\d+)$', views.delete_list, name = 'delete_list'),
     url(r'^addCategory/(\d+)$', views.index_add_category, name = 'index_add_category'),

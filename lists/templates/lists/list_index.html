@@ -9,6 +9,7 @@
             <div style="padding: 10px;">{{ list.name }}
                 <span style="padding-left: 10px;">
                     [<a href="{% url 'lists:index' list.id %}">Edit</a>]
+                    [<a href="{% url 'lists:duplicate_list' list.id %}">Duplicate</a>]
                     [<a href="{% url 'lists:delete_list' list.id %}">Delete</a>]
                 </span>
             </div>

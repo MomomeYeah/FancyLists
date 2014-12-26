@@ -10,6 +10,7 @@
                     <h1 class="listTitle">{{ fancylist.name }}</h1>
                     <span class="removeList">
                         [<a href="{% url 'lists:edit_list' fancylist.id %}">Edit</a>]
+                        [<a href="{% url 'lists:duplicate_list' fancylist.id %}">Duplicate</a>]
                         [<a href="{% url 'lists:delete_list' fancylist.id %}">Delete</a>]
                     </span>
                     <p>Created on {{ fancylist.created_date }}</p>

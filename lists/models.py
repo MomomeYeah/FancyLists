@@ -9,6 +9,14 @@ class FancyListManager(models.Manager):
         fancylist.save()
         return fancylist
 
+    # Create a new FancyList as a direct copy of to_copy_list
+    def duplicate_list(self, name, to_copy_list):
+        fancylist = self.create(name = name, created_date = timezone.now(), created_by = to_copy_list.created_by)
+        fancylist.save()
+        for flc in FancyListCategory.objects.filter(FancyList = to_copy_list.id):
+            FancyListCategory.objects.duplicate_list_category(fancylist, flc)
+        return
+
 class CategoryManager(models.Manager):
     def create_category(self, name):
         category = self.create(name = name)
@@ -27,6 +35,14 @@ class FancyListCategoryManager(models.Manager):
         listCategory.save()
         return listCategory
 
+    # Create a new FancyListCategory using the Category and display_order from fancylistcategory, pointing to fancylist
+    def duplicate_list_category(self, fancylist, fancylistcategory):
+        listCategory = self.create(FancyList = fancylist, Category = fancylistcategory.Category, display_order = fancylistcategory.display_order)
+        listCategory.save()
+        for flci in FancyListCategoryItem.objects.filter(FancyListCategory = fancylistcategory):
+            FancyListCategoryItem.objects.duplicate_list_category_item(listCategory, flci)
+        return listCategory
+
 class ItemManager(models.Manager):
     def create_item(self, name):
         item = self.create(name = name)
@@ -42,6 +58,12 @@ class FancyListCategoryItemManager(models.Manager):
         else:
             max_display_order += 1 
         listCategoryItem = self.create(FancyListCategory = fancylistcategory, Item = item, display_order = max_display_order)
+        listCategoryItem.save()
+        return listCategoryItem
+
+    # Create a new FancyListCategoryItem using the Item and display_order from fancylistcategoryitem, pointing to fancylistcategory
+    def duplicate_list_category_item(self, fancylistcategory, fancylistcategoryitem):
+        listCategoryItem = self.create(FancyListCategory = fancylistcategory, Item = fancylistcategoryitem.Item, display_order = fancylistcategoryitem.display_order)
         listCategoryItem.save()
         return listCategoryItem
 

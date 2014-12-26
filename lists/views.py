@@ -175,6 +175,19 @@ def edit_list(request, list_id):
     return render(request, 'lists/edit.html', {'edit_list': fancylist, 'form': form})
 
 @login_required
+def duplicate_list(request, list_id):
+    fancylist = get_object_or_404(FancyList, pk = list_id)
+    if request.method == 'POST':
+        form = ListForm(request.POST)
+        if form.is_valid():
+            cd = form.cleaned_data
+            FancyList.objects.duplicate_list(cd['name'], fancylist)
+            return HttpResponseRedirect(reverse('lists:list_index'))
+    else:
+        form = ListForm()
+    return render(request, 'lists/new.html', {'form': form})    
+
+@login_required
 def delete_list(request, list_id):
     fancylist = get_object_or_404(FancyList, pk = list_id)
     if request.method == 'POST':

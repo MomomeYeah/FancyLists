@@ -156,9 +156,9 @@ def edit_list(request, list_id):
     fancylist = get_object_or_404(FancyList, pk = list_id)
     all_categories = []
     all_items = []
-    for category in Category.objects.all():
+    for category in Category.objects.all().order_by('name'):
         all_categories.append({'id': category.id, 'name': category.name})
-    for item in Item.objects.all():
+    for item in Item.objects.all().order_by('name'):
         all_items.append({'id': item.id, 'name': item.name})
     return render(request, 'lists/edit.html', {'fancylist': fancylist, 'all_categories': all_categories, 'all_items': all_items})
 

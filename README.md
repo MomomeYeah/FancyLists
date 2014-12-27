@@ -10,3 +10,4 @@ TODO
 * Make things look nice
 * Deletes happen in modal dialogues?
 * Combine new/edit templates
+* Save user settings, i.e. which categories are expanded/collapsed, which list was last being edited, etc.

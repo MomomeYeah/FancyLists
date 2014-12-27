@@ -11,54 +11,99 @@
     </head>
     <body>
 
-        <div class="contain-to-grid fixed">
-            <nav class="top-bar" data-topbar>
-                <ul class="title-area">
-                    <li class="name">
-                        <h1><a href="{% url 'lists:list_index' %}">Fancy Lists</a></h1>
-                    </li>
-                </ul>
-                {% if user.is_authenticated %}
-                    <section class="top-bar-section">
-                        <ul class="left">
-                            <li class="divider"></li>
-                            <li><a href="{% url 'lists:category_index' %}">Categories</a></li>
-                            <li class="divider"></li>
-                            <li><a href="{% url 'lists:item_index' %}">Items</a></li>
-                        </ul>
+        <div class="off-canvas-wrap show-for-small-only" data-offcanvas>
+            <div class="inner-wrap">
+                <nav class="tab-bar">
+                    <section class="middle tab-bar-section">
+                        <h1 class="title">Fancy Lists</h1>
                     </section>
-                {% endif %}
-                <section class="top-bar-section">
-                    <ul class="right">
-                        {% if user.is_authenticated %}
-                            <li><a href="#">{{ user.username }}</a></li>
-                            <li class="divider"></li>
-                            <li><a href="{% url 'logout' %}">Log Out</a></li>
-                        {% endif %}
+
+                    <section class="right-small">
+                        <a class="right-off-canvas-toggle menu-icon" href="#"><span></span></a>
+                    </section>
+                </nav>
+
+                <aside class="right-off-canvas-menu">
+                    <ul class="off-canvas-list">
+                        <li><a href="{% url 'lists:list_index' %}">Fancy Lists</a></li>
+                        <li><a href="{% url 'lists:category_index' %}">Categories</a></li>
+                        <li><a href="{% url 'lists:item_index' %}">Items</a></li>
+                        <li><label>{{ user.username }}</label></li>
+                        <li><a href="{% url 'logout' %}">Log Out</a></li>
                     </ul>
+                </aside>
+
+                <section class="main-section">
+                    {% block content %}{% endblock %}
+
+                    <hr />
+                    <footer>
+                        <div class="row">
+                            <div class="large-12 columns">
+                                <p>&copy; {% now "Y" %} - Fancy Lists</p>
+                            </div>
+                        </div>
+                    </footer>
+                    
                 </section>
-            </nav>
+
+                <a class="exit-off-canvas"></a>
+
+            </div>
         </div>
 
-        {% block content %}{% endblock %}
-
-        <hr />
-        <footer>
-            <div class="row">
-                <div class="large-12 columns">
-                    <p>&copy; {% now "Y" %} - Fancy Lists</p>
-                </div>
+        <div class="hide-for-small-only">
+            <div class="contain-to-grid fixed">
+                <nav class="top-bar" data-topbar role="navigation">
+                    <ul class="title-area">
+                        <li class="name">
+                            <h1><a href="{% url 'lists:list_index' %}">Fancy Lists</a></h1>
+                        </li>
+                    </ul>
+                    {% if user.is_authenticated %}
+                        <section class="top-bar-section">
+                            <ul class="left">
+                                <li class="divider"></li>
+                                <li><a href="{% url 'lists:category_index' %}">Categories</a></li>
+                                <li class="divider"></li>
+                                <li><a href="{% url 'lists:item_index' %}">Items</a></li>
+                            </ul>
+                        </section>
+                    {% endif %}
+                    <section class="top-bar-section">
+                        <ul class="right">
+                            {% if user.is_authenticated %}
+                                <li><a href="#">{{ user.username }}</a></li>
+                                <li class="divider"></li>
+                                <li><a href="{% url 'logout' %}">Log Out</a></li>
+                            {% endif %}
+                        </ul>
+                    </section>
+                </nav>
             </div>
-        </footer>
-        
+
+            {% block content1 %}{% endblock %}
+
+            <hr />
+            <footer>
+                <div class="row">
+                    <div class="large-12 columns">
+                        <p>&copy; {% now "Y" %} - Fancy Lists</p>
+                    </div>
+                </div>
+            </footer>
+        </div>
+
         <script src="/static/js/vendor/jquery.js"></script>
-        <script src="/static/js/foundation.min.js"></script> 
+        <script src="/static/js/foundation.min.js"></script>
+        <script src="js/foundation/foundation.topbar.js"></script>
         <script>
           $(document).foundation();
         </script>
         <script src="/static/js/jquery-ui-1.10.4.js"></script>
         <script src="/static/js/jquery-ui-touch-punch.js"></script>
         <script src="/static/js/utils.js"></script>
-        <script src="/static/js/application.js"></script> 
+        <script src="/static/js/application.js"></script>
+
     </body>
 </html>

@@ -1,19 +1,8 @@
-{% extends "FancyLists/base.html" %}
+{% extends "FancyLists/index_base.html" %}
 
-{% block content %}
-    <div class="row">
-        <div class="large-12 columns">
-            <h1>Lists</h1>
-            <p><a href="{% url 'lists:new_list' %}">Add New</a></p>
-            {% for list in lists %}
-            <div style="padding: 10px;">{{ list.name }}
-                <span style="padding-left: 10px;">
-                    [<a href="{% url 'lists:edit_list' list.id %}">Edit</a>]
-                    [<a href="{% url 'lists:duplicate_list' list.id %}">Duplicate</a>]
-                    [<a href="{% url 'lists:delete_list' list.id %}">Delete</a>]
-                </span>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-{% endblock %}
+{% block pagetitle %}Lists{% endblock %}
+{% block newitemlink %}{% url 'lists:new_list' %}{% endblock %}
+{% block edititemlink %}{% url 'lists:edit_list' indexitem.id %}{% endblock %}
+{% block duplicateLink %}{% url 'lists:duplicate_list' indexitem.id %}{% endblock %}
+{% block deleteLink %}{% url 'lists:delete_list' indexitem.id %}{% endblock %}
+{% block createdDate %}Created on {{ indexitem.created_date }}{% endblock %}

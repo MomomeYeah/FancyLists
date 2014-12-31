@@ -13,7 +13,6 @@
                         [<a href="{% url 'lists:duplicate_list' fancylist.id %}">Duplicate</a>]
                         [<a href="{% url 'lists:delete_list' fancylist.id %}">Delete</a>]
                     </span>
-                    <p>Created on {{ fancylist.created_date }}</p>
                     <input type="hidden" name="fancylist_id" value="{{ fancylist.id }}"/>
                     
                     <h2>Categories</h2>

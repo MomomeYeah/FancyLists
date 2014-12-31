@@ -128,20 +128,20 @@ div.category > div.categoryContents > div.itemContainer > div.item > span.remove
     Index Screen Styles
  */
 div.indexItemContainer {
-  padding: 10px;
+  
 }
 
 div.indexItemContainer > span.indexItemTitle {
-  display: block;
   padding-bottom: 5px;
 }
 
 div.indexItemContainer > span.createdDate {
   display: block;
-  padding-bottom: 5px;
+  padding-top: 5px;
   font-style: italic;
+  font-size: 0.9em;
 }
 
 div.indexItemContainer > span.indexLinks {
-  display: block;
+  float: right;
 }

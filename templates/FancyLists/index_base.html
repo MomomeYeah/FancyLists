@@ -6,17 +6,15 @@
             <h1>{% block pagetitle %}{% endblock %}</h1>
             <p><a href="{% block newitemlink %}{% endblock %}">Add New</a></p>
             {% for indexitem in indexitems %}
+                <hr/>
                 <div class="indexItemContainer">
                     <span class="indexItemTitle"><a href="{% block edititemlink %}{% endblock %}">{{ indexitem.name }}</a></span>
-                    <span class="createdDate">{% block createdDate %}{% endblock %}</span>
                     <span class="indexLinks">
                         {% block duplicateLinkMaster %}[<a href="{% block duplicateLink %}{% endblock %}">Duplicate</a>]{% endblock %}
                         {% block deleteLinkMaster %}[<a href="{% block deleteLink %}{% endblock %}">Delete</a>]{% endblock %}
                     </span>
+                    {% block createDateMaster %}<span class="createdDate">{% block createdDate %}{% endblock %}</span>{% endblock %}
                 </div>
-                {% if not forloop.last %}
-                    <hr/>
-                {% endif %}
             {% endfor %}
         </div>
     </div>

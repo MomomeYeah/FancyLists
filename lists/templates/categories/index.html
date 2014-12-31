@@ -1,21 +1,7 @@
-{% extends "FancyLists/base.html" %}
+{% extends "FancyLists/index_base.html" %}
 
-{% block content %}
-    <div class="row">
-        <div class="large-12 columns">
-            <h1>Categories</h1>
-            <p><a href="{% url 'lists:new_category' %}">Add New</a></p>
-            {% for category in categories %}
-                <div class="indexItemContainer">
-                    <span class="indexItemTitle"><a href="{% url 'lists:edit_category' category.id %}">{{ category.name }}</a></span>
-                    <span class="indexLinks">
-                        [<a href="{% url 'lists:delete_category' category.id %}">Delete</a>]
-                    </span>
-                </div>
-                {% if not forloop.last %}
-                    <hr/>
-                {% endif %}
-            {% endfor %}
-        </div>
-    </div>
-{% endblock %}
+{% block pagetitle %}Categories{% endblock %}
+{% block newitemlink %}{% url 'lists:new_category' %}{% endblock %}
+{% block edititemlink %}{% url 'lists:edit_category' indexitem.id %}{% endblock %}
+{% block duplicateLinkMaster %}{% endblock %}
+{% block deleteLink %}{% url 'lists:delete_category' indexitem.id %}{% endblock %}

@@ -137,7 +137,7 @@ def index_reorder_item(request, list_category_item_id):
 @login_required
 def list_index(request):
     lists = FancyList.objects.filter(created_by = request.user).order_by('-created_date')
-    return render(request, 'lists/list_index.html', {'lists': lists})
+    return render(request, 'lists/list_index.html', {'indexitems': lists})
 
 @login_required
 def new_list(request):
@@ -199,7 +199,7 @@ def delete_list(request, list_id):
 @login_required
 def category_index(request):
     categories = Category.objects.order_by('name')
-    return render(request, 'categories/index.html', {'categories': categories})
+    return render(request, 'categories/index.html', {'indexitems': categories})
 
 @login_required
 def new_category(request):
@@ -237,7 +237,7 @@ def delete_category(request, category_id):
 @login_required
 def item_index(request):
     items = Item.objects.order_by('name')
-    return render(request, 'items/index.html', {'items': items})
+    return render(request, 'items/index.html', {'indexitems': items})
 
 @login_required
 def new_item(request):

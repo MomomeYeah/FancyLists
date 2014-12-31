@@ -6,13 +6,17 @@
             <h1>Lists</h1>
             <p><a href="{% url 'lists:new_list' %}">Add New</a></p>
             {% for list in lists %}
-            <div style="padding: 10px;">{{ list.name }}
-                <span style="padding-left: 10px;">
-                    [<a href="{% url 'lists:edit_list' list.id %}">Edit</a>]
-                    [<a href="{% url 'lists:duplicate_list' list.id %}">Duplicate</a>]
-                    [<a href="{% url 'lists:delete_list' list.id %}">Delete</a>]
-                </span>
-            </div>
+                <div class="indexItemContainer">
+                    <span class="indexItemTitle"><a href="{% url 'lists:edit_list' list.id %}">{{ list.name }}</a></span>
+                    <span class="createdDate">Created on {{ list.created_date }}</span>
+                    <span class="indexLinks">
+                        [<a href="{% url 'lists:duplicate_list' list.id %}">Duplicate</a>]
+                        [<a href="{% url 'lists:delete_list' list.id %}">Delete</a>]
+                    </span>
+                </div>
+                {% if not forloop.last %}
+                    <hr/>
+                {% endif %}
             {% endfor %}
         </div>
     </div>

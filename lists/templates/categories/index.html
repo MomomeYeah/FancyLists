@@ -6,12 +6,15 @@
             <h1>Categories</h1>
             <p><a href="{% url 'lists:new_category' %}">Add New</a></p>
             {% for category in categories %}
-            <div style="padding: 10px;">{{ category.name }}
-                <span style="padding-left: 10px;">
-                    [<a href="{% url 'lists:edit_category' category.id %}">Edit</a>]
-                    [<a href="{% url 'lists:delete_category' category.id %}">Delete</a>]
-                </span>
-            </div>
+                <div class="indexItemContainer">
+                    <span class="indexItemTitle"><a href="{% url 'lists:edit_category' category.id %}">{{ category.name }}</a></span>
+                    <span class="indexLinks">
+                        [<a href="{% url 'lists:delete_category' category.id %}">Delete</a>]
+                    </span>
+                </div>
+                {% if not forloop.last %}
+                    <hr/>
+                {% endif %}
             {% endfor %}
         </div>
     </div>

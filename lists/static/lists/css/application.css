@@ -41,7 +41,7 @@ div.fancylist {
 }
 
 div.fancylist > h1.listTitle {
-    display: inline-block;
+    
 }
 
 div.fancylist > p.listDescription {
@@ -49,7 +49,8 @@ div.fancylist > p.listDescription {
 }
 
 div.fancylist > span.removeList {
-    padding-left: 10px;
+    display: block;
+    padding-bottom: 10px;
 }
 
 div.fancylist > div.addCategory {
@@ -121,4 +122,26 @@ div.category > div.categoryContents > div.itemContainer > div.item > span.remove
 
 div.category > div.categoryContents > div.itemContainer > div.item > span.removeItem > form.removeItemForm {
     display: inline;
+}
+
+/*
+    Index Screen Styles
+ */
+div.indexItemContainer {
+  padding: 10px;
+}
+
+div.indexItemContainer > span.indexItemTitle {
+  display: block;
+  padding-bottom: 5px;
+}
+
+div.indexItemContainer > span.createdDate {
+  display: block;
+  padding-bottom: 5px;
+  font-style: italic;
+}
+
+div.indexItemContainer > span.indexLinks {
+  display: block;
 }

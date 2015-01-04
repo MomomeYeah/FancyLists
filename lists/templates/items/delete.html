@@ -1,15 +1,8 @@
-{% extends "FancyLists/base.html" %}
+{% extends "FancyLists/edit_base.html" %}
 
-{% block content %}
-    <div class="row">
-        <div class="large-12 columns">
-            <h1>Delete {{ delete_item.name }}</h1>
-            <p>Are you sure you want to delete this item?</p>
-            <form action="" method="post">
-                {% csrf_token %}
-                <input type="submit" value="Delete" class="button">
-                <a href="{% url 'lists:item_index' %}" class="button">Cancel</a>
-            </form>
-        </div>
-    </div>
-{% endblock %}
+{% block pageTitle %}Delete {{ delete_item.name }}{% endblock %}
+{% block pageSubTitle %}<p>Are you sure you want to delete this item?</p>{% endblock %}
+{% block formAction %}{% endblock %}
+{% block formContent %}{% endblock %}
+{% block saveButtonText %}Delete{% endblock %}
+{% block cancelURL %}{% url 'lists:item_index' %}{% endblock %}

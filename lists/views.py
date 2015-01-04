@@ -20,7 +20,7 @@ def index_add_category(request, list_id):
                 fancylistcategory = FancyListCategory.objects.create_list_category(add_list, add_category)
 
                 all_items = []
-                for item in Item.objects.all():
+                for item in Item.objects.all().order_by('name'):
                     all_items.append({'id': item.id, 'name': item.name})
 
                 categorydict = render_to_dict(request, 'lists/fancylistcategory.html', {'fancylistcategory': fancylistcategory, 'all_items': all_items})

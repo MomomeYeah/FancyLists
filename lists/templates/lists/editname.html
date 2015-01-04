@@ -1,24 +1,18 @@
-{% extends "FancyLists/base.html" %}
+{% extends "FancyLists/edit_base.html" %}
 
-{% block content %}
+{% block pageTitle %}Edit List{% endblock %}
+{% block formAction %}{% endblock %}
+{% block formContent %}
     <div class="row">
         <div class="large-12 columns">
-            <h1>Edit List</h1>
-            <form action="" method="post">
-                <div class="row">
-                    <div class="large-12 columns">
-                        <label for="id_name" class="{% if form.name.errors %}error{% endif %}"/>Name:
-                        {{ form.name }}
-                        </label>
-                        {% if form.name.errors %}
-                        <small class="error">Please enter a name for this list</small>
-                        {% endif %}
-                    </div>
-                </div>
-                {% csrf_token %}
-                <input type="submit" value="Save" class="button">
-                <a href="{% url 'lists:edit_list' edit_list_id %}" class="button">Cancel</a>
-            </form>
+            <label for="id_name" class="{% if form.name.errors %}error{% endif %}"/>Name:
+            {{ form.name }}
+            </label>
+            {% if form.name.errors %}
+            <small class="error">Please enter a name for this list</small>
+            {% endif %}
         </div>
     </div>
 {% endblock %}
+{% block saveButtonText %}Save{% endblock %}
+{% block cancelURL %}{% url 'lists:edit_list' edit_list_id %}{% endblock %}

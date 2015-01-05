@@ -2,7 +2,7 @@
 
 {% block pageTitle %}Delete {{ delete_item.name }}{% endblock %}
 {% block pageSubTitle %}<p>Are you sure you want to delete this item?</p>{% endblock %}
-{% block formAction %}{% endblock %}
+{% block formAction %}{% url 'lists:delete_item' delete_item.id %}{% endblock %}
 {% block formContent %}{% endblock %}
 {% block saveButtonText %}Delete{% endblock %}
 {% block cancelURL %}{% url 'lists:item_index' %}{% endblock %}

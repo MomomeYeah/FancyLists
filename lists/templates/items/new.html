@@ -1,11 +1,11 @@
 {% extends "FancyLists/edit_base.html" %}
 
 {% block pageTitle %}New Item{% endblock %}
-{% block formAction %}{% endblock %}
+{% block formAction %}{% url 'lists:new_item' %}{% endblock %}
 {% block formContent %}
     <div class="row">
         <div class="large-12 columns">
-            <label for="id_name" class="{% if form.name.errors %}error{% endif %}"/>Name:
+            <label for="id_name" class="{% if form.name.errors %}error{% endif %}">Name:
             {{ form.name }}
             </label>
             {% if form.name.errors %}

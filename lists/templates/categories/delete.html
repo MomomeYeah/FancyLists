@@ -2,7 +2,7 @@
 
 {% block pageTitle %}Delete {{ delete_category.name }}{% endblock %}
 {% block pageSubTitle %}<p>Are you sure you want to delete this category?</p>{% endblock %}
-{% block formAction %}{% endblock %}
+{% block formAction %}{% url 'lists:delete_category' delete_category.id %}{% endblock %}
 {% block formContent %}{% endblock %}
 {% block saveButtonText %}Delete{% endblock %}
 {% block cancelURL %}{% url 'lists:category_index' %}{% endblock %}

@@ -30,19 +30,6 @@ apt-get install -y "postgresql-$POSTGRES_VERSION" "postgresql-contrib-$POSTGRES_
 
 apt-get install -y libpq-dev
 
-# Node.js, npm
-apt-get install -y node
-apt-get install -y npm
-
-# install bower and gulp globally
-# npm install -g bower
-# npm install -g gulp
-
-# On Ubuntu, "node" is used for something other than node.js
-# Do some jiggery-pokery
-sudo mv /usr/sbin/node /usr/sbin/node-sbin
-sudo ln -s /usr/bin/nodejs /usr/sbin/node
-
 # Apache config
 a2enmod headers
 
@@ -93,25 +80,24 @@ EOF
 sudo pip3 install -r /vagrant/requirements.txt
 
 # default secrets file
-echo "Creating default secrets file..."
-cat << EOF > /vagrant/settings/secrets.json
-{
-    "SECRET_KEY": "SECRET_KEY",
-    "SOCIAL_AUTH_GOOGLE_OAUTH2_KEY": "SOCIAL_AUTH_GOOGLE_OAUTH2_KEY",
-    "SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET": "SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET"
-}
+if [ ! -f /vagrant/settings/secrets.json ]; then
+    echo "Creating default secrets file..."
+    cat << EOF > /vagrant/settings/secrets.json
+    {
+        "SECRET_KEY": "SECRET_KEY",
+        "SOCIAL_AUTH_GOOGLE_OAUTH2_KEY": "SOCIAL_AUTH_GOOGLE_OAUTH2_KEY",
+        "SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET": "SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET"
+    }
 
 EOF
-echo "...done."
+    echo "...done."
+else
+    echo "Secrets file exists, nothing to do"
+fi
 
 chmod u+x /vagrant/manage.py
 sudo python3 /vagrant/manage.py makemigrations
 sudo python3 /vagrant/manage.py migrate
-
-# install node dependencies and run post install
-su vagrant << EOF
-    cd /vagrant/ && npm install
-EOF
 
 # create super user
 echo "Creating superuser..."

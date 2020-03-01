@@ -3,7 +3,7 @@ from django.conf.urls import url
 from lists import views
 
 urlpatterns = [
-    url(r'^', views.list_index, name = 'list_index'),
+    url(r'^$', views.list_index, name = 'list_index'),
     url(r'^new/$', views.new_list, name = 'new_list'),
     url(r'^edit/(\d+)$', views.edit_list, name = 'edit_list'),
     url(r'^editName/(\d+)$', views.edit_list_name, name = 'edit_list_name'),

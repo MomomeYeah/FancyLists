@@ -28,44 +28,43 @@ DEFAULT_FAILURE_MESSAGE           = u'Oops! Something went wrong with your reque
 DEFAULT_PERMISSION_DENIED_MESSAGE = u'Sorry, you do not have the required permission to perform this action.'
 
 def success_response(request, message=None, data={}, html_update_method=None):
-  datadict = dict({SYS_CODE_NAME: SYS_CODE_SUCCESS}.items() + data.items())
-  datadict = _add_generic_items(datadict, message, html_update_method)
-  json = simplejson.dumps(datadict)
-  return HttpResponse(json, content_type='application/json')
+    datadict = {**{SYS_CODE_NAME: SYS_CODE_SUCCESS}, **data}
+    datadict = _add_generic_items(datadict, message, html_update_method)
+    json = simplejson.dumps(datadict)
+    return HttpResponse(json, content_type='application/json')
 
 def warning_response(request, message, data={}, close_modal=True, html_update_method=None):
-  datadict = dict({SYS_CODE_NAME: SYS_CODE_WARNING, CLOSE_MODAL_NAME: close_modal}.items() + data.items())
-  datadict = _add_generic_items(datadict, message, html_update_method)
-  json = simplejson.dumps(datadict)
-  return HttpResponse(json, content_type='application/json')
+    datadict = {**{SYS_CODE_NAME: SYS_CODE_WARNING, CLOSE_MODAL_NAME: close_modal}, **data}
+    datadict = _add_generic_items(datadict, message, html_update_method)
+    json = simplejson.dumps(datadict)
+    return HttpResponse(json, content_type='application/json')
 
 def failure_response(request, message=DEFAULT_FAILURE_MESSAGE, data={}, close_modal=True, html_update_method=None):
-  datadict = dict({SYS_CODE_NAME: SYS_CODE_ERROR, CLOSE_MODAL_NAME: close_modal}.items() + data.items())
-  datadict = _add_generic_items(datadict, message, html_update_method)
-  json = simplejson.dumps(datadict)
-  return HttpResponse(json, content_type='application/json')
+    datadict = {**{SYS_CODE_NAME: SYS_CODE_ERROR, CLOSE_MODAL_NAME: close_modal}, **data}
+    datadict = _add_generic_items(datadict, message, html_update_method)
+    json = simplejson.dumps(datadict)
+    return HttpResponse(json, content_type='application/json')
 
 def permission_denied_response(request, message=DEFAULT_PERMISSION_DENIED_MESSAGE, data={}, html_update_method=None):
-  datadict = dict({SYS_CODE_NAME: SYS_CODE_PERMISSION_DENIED}.items() + data.items())
-  datadict = _add_generic_items(datadict, message, html_update_method)
-  json = simplejson.dumps(datadict)
-  return HttpResponse(json, content_type='application/json')
-  
+    datadict = {**{SYS_CODE_NAME: SYS_CODE_PERMISSION_DENIED}, **data}
+    datadict = _add_generic_items(datadict, message, html_update_method)
+    json = simplejson.dumps(datadict)
+    return HttpResponse(json, content_type='application/json')
+
 def render_to_dict(request, template_name, context):
-  datadict = {INSERT_HTML_NAME: render_to_string(template_name, RequestContext(request, context))}
-  return datadict
+    datadict = {INSERT_HTML_NAME: render_to_string(template_name, context)}
+    return datadict
 
 def _add_generic_items(datadict, message, html_update_method):
-  msg_data = {}
-  if (message):
-    msg_data = {MESSAGE_NAME: mark_safe(message)}
-  update_method = ''
-  if (html_update_method != None):
-    update_method = html_update_method
-  elif (datadict.get(INSERT_HTML_NAME) and html_update_method == None):
-    update_method = HTML_UPDATE_APPEND # default if insertHtml is present but the update method is not.
-  else:
-    return dict(msg_data.items() + datadict.items())
-  return dict({UPDATE_HTML_METHOD_NAME: update_method}.items() + msg_data.items() + datadict.items())
+    msg_data = {}
+    if (message):
+        msg_data = {MESSAGE_NAME: mark_safe(message)}
+    update_method = ''
+    if (html_update_method != None):
+        update_method = html_update_method
+    elif (datadict.get(INSERT_HTML_NAME) and html_update_method == None):
+        update_method = HTML_UPDATE_APPEND # default if insertHtml is present but the update method is not.
+    else:
+        return {**msg_data, **datadict}
 
-
+    return {**{UPDATE_HTML_METHOD_NAME: update_method}, **msg_data, **datadict}

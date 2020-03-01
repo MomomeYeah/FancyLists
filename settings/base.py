@@ -18,8 +18,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-TEMPLATE_DEBUG = True
-
 ALLOWED_HOSTS = []
 
 
@@ -51,15 +49,26 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 )
 
-TEMPLATE_CONTEXT_PROCESSORS = (
-    'social.apps.django_app.context_processors.backends',
-    'social.apps.django_app.context_processors.login_redirect',
-    'django.contrib.auth.context_processors.auth',
-)
-
 LOGIN_REDIRECT_URL = '/lists/'
 
-TEMPLATE_DIRS = [os.path.join(BASE_DIR, 'templates')]
+TEMPLATES = [
+    {
+        "APP_DIRS": True,
+        "BACKEND": 'django.template.backends.django.DjangoTemplates',
+        "DIRS": [os.path.join(BASE_DIR, 'templates')],
+        "OPTIONS": {
+            "context_processors": [
+                "social.apps.django_app.context_processors.backends",
+                "social.apps.django_app.context_processors.login_redirect",
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+            ],
+            "debug": True,
+        },
+    },
+]
 
 STATIC_FOUNDATION = os.path.join(os.path.join(BASE_DIR, 'static'), 'foundation')
 STATIC_JQUERYUI = os.path.join(os.path.join(BASE_DIR, 'static'), 'jquery-ui')

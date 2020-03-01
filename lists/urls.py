@@ -1,9 +1,9 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 
 from lists import views
 
-urlpatterns = patterns('',
-    url(r'^$', views.list_index, name = 'list_index'),
+urlpatterns = [
+    url(r'^', views.list_index, name = 'list_index'),
     url(r'^new/$', views.new_list, name = 'new_list'),
     url(r'^edit/(\d+)$', views.edit_list, name = 'edit_list'),
     url(r'^editName/(\d+)$', views.edit_list_name, name = 'edit_list_name'),
@@ -23,4 +23,4 @@ urlpatterns = patterns('',
     url(r'^items/new/$', views.new_item, name = 'new_item'),
     url(r'^items/edit/(\d+)$', views.edit_item, name = 'edit_item'),
     url(r'^items/delete/(\d+)$', views.delete_item, name = 'delete_item'),
-)
+]

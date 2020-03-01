@@ -7,14 +7,14 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        (b'lists', b'0004_category_lists'),
+        ('lists', '0004_category_lists'),
     ]
 
     operations = [
         migrations.AddField(
-            model_name=b'fancylistcategoryitem',
-            name=b'Item',
-            field=models.ForeignKey(to=b'lists.Item', to_field='id'),
+            model_name='fancylistcategoryitem',
+            name='Item',
+            field=models.ForeignKey(to="lists.Item", to_field='id'),
             preserve_default=True,
         ),
     ]

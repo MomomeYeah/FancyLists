@@ -14,22 +14,22 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name=b'FancyList',
+            name='FancyList',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                (b'name', models.CharField(max_length=100)),
-                (b'created_date', models.DateTimeField()),
-                (b'created_by', models.ForeignKey(to=settings.AUTH_USER_MODEL, to_field='id')),
+                ('name', models.CharField(max_length=100)),
+                ('created_date', models.DateTimeField()),
+                ('created_by', models.ForeignKey(to=settings.AUTH_USER_MODEL, to_field='id')),
             ],
             options={
             },
             bases=(models.Model,),
         ),
         migrations.CreateModel(
-            name=b'Category',
+            name='Category',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                (b'name', models.CharField(max_length=100)),
+                ('name', models.CharField(max_length=100)),
             ],
             options={
             },

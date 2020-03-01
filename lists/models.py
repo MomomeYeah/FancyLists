@@ -30,7 +30,7 @@ class FancyListCategoryManager(models.Manager):
         if max_display_order == None:
             max_display_order = 0
         else:
-            max_display_order += 1 
+            max_display_order += 1
         listCategory = self.create(FancyList = fancylist, Category = category, display_order = max_display_order)
         listCategory.save()
         return listCategory
@@ -56,7 +56,7 @@ class FancyListCategoryItemManager(models.Manager):
         if max_display_order == None:
             max_display_order = 0
         else:
-            max_display_order += 1 
+            max_display_order += 1
         listCategoryItem = self.create(FancyListCategory = fancylistcategory, Item = item, display_order = max_display_order)
         listCategoryItem.save()
         return listCategoryItem
@@ -128,7 +128,7 @@ class FancyListCategory(models.Model):
 
 class Item(models.Model):
     name = models.CharField(max_length = 100)
-    listCategory = models.ManyToManyField(FancyListCategory, through = 'FancyListCategoryItem', null = True)
+    listCategory = models.ManyToManyField(FancyListCategory, through = 'FancyListCategoryItem')
 
     def __unicode__(self):
         return self.name
@@ -164,4 +164,3 @@ class FancyListCategoryItem(models.Model):
         self.save()
 
     objects = FancyListCategoryItemManager()
-

@@ -7,14 +7,14 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        (b'lists', b'0003_item'),
+        ('lists', '0003_item'),
     ]
 
     operations = [
         migrations.AddField(
-            model_name=b'category',
-            name=b'lists',
-            field=models.ManyToManyField(to=b'lists.FancyList', through=b'lists.FancyListCategory'),
+            model_name='category',
+            name='lists',
+            field=models.ManyToManyField(to="lists.FancyList", through="lists.FancyListCategory"),
             preserve_default=True,
         ),
     ]

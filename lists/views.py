@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404, render
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
-from ajax import *
+from . ajax import *
 
 from lists.models import FancyList, Category, FancyListCategory, Item, FancyListCategoryItem
 from lists.forms import ListForm, CategoryForm, ItemForm, AddCategoryForm, ReorderCategoryForm, AddItemForm, ReorderItemForm
@@ -185,7 +185,7 @@ def duplicate_list(request, list_id):
             return HttpResponseRedirect(reverse('lists:edit_list', args = (fancylist_new.id,)))
     else:
         form = ListForm()
-    return render(request, 'lists/new.html', {'form': form})    
+    return render(request, 'lists/new.html', {'form': form})
 
 @login_required
 def delete_list(request, list_id):

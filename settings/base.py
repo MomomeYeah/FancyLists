@@ -30,7 +30,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'social.apps.django_app.default',
+    'social_django',
     'lists',
 )
 
@@ -45,11 +45,11 @@ MIDDLEWARE_CLASSES = (
 )
 
 AUTHENTICATION_BACKENDS = (
-    'social.backends.google.GoogleOAuth2',
+    'social_core.backends.google.GoogleOAuth2',
     'django.contrib.auth.backends.ModelBackend',
 )
 
-LOGIN_REDIRECT_URL = '/lists/'
+SOCIAL_AUTH_LOGIN_REDIRECT_URL = '/lists/'
 
 TEMPLATES = [
     {
@@ -58,8 +58,8 @@ TEMPLATES = [
         "DIRS": [os.path.join(BASE_DIR, 'templates')],
         "OPTIONS": {
             "context_processors": [
-                "social.apps.django_app.context_processors.backends",
-                "social.apps.django_app.context_processors.login_redirect",
+                "social_django.context_processors.backends",
+                "social_django.context_processors.login_redirect",
                 "django.template.context_processors.debug",
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",

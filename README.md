@@ -1,21 +1,24 @@
 FancyLists
 ==========
 
-This is mostly a learning experience to learn Django but also to solve that problem of having to write shopping lists in plain text...the horror!
+This project is a great idea I had about being able to share shopping lists with my wife. I was super excited about it until I realised I'd basically just re-invented Trello.
 
 ## Development Setup
 
-* run `vagrant up` to provision an Ubuntu VM and run setup script
-* login to VM via `vagrant ssh`
-* `cd /vagrant`
-* fill in the appropriate values in settings/secrets.json
-* start the Django server with `python3 manage.py runserver 0.0.0.0:8000`
-* on your host machine, navigate to `localhost:8090`
-* once you're done, `vagrant suspend` to the stop the VM
+* create a file in the project root directory named `.env`, and populate it with the following:
 
+```
+POSTGRES_PASSWORD=<POSTGRES_PASSWORD>
+POSTGRES_USER=<POSTGRES_USER>
+POSTGRES_DB=<POSTGRES_DB>
 
-## TODO
+DEBUG=<True|False>
 
-* Deletes happen in modal dialogues?
-* Save user settings, i.e. which categories are expanded/collapsed, which list was last being edited, etc.
-* Create items against categories, on index add item check item category matches
+SECRET_KEY=<Django secret key - django.core.management.utils.get_random_secret_key()>
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY=<***-***.apps.googleusercontent.com>
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET=<Your Google OAuth secret>
+```
+
+* build dev containers
+* access the frontend at `localhost:3000`
+* access the backend at `localhost:8000`

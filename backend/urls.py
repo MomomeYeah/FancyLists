@@ -7,6 +7,5 @@ urlpatterns = [
     re_path(r'^accounts/login/$', LoginView.as_view(), name="login"),
     re_path(r'^accounts/logout/$', logout_then_login, name="logout"),
     re_path('', include('social_django.urls', namespace="social")),
-    re_path(r'^lists/', include('lists.urls', namespace='lists')),
-    re_path(r'^', include('lists.urls', namespace='lists')),
+    re_path(r'^api/', include('lists.urls', namespace='api')),
 ]

@@ -1,9 +1,16 @@
 # TODO
 
 ## Backend
-* Rework + simplify data model - categories belong to a single task, items to a single category
 * Remove templated frontend entirely, replaced with API
-* Provide swagger viewer?
+    * dj_static
+    * all static files
+* Lists "shared with"
+* Items
+    * comments
+    * description
+    * start / due dates
+    * owner / members?
+* authentication - DRF auth? Ensure some kind of user token is provided to API calls from frontend?
 
 ## Frontend
 * Auto-update / live-sync via e.g. web sockets
@@ -15,6 +22,7 @@
 
 ## Production Release
 * Ensure values in wsgi.py / manage.py / production settings / etc. are set appropriately
+* Can we remove files such as Procfile, runtime.txt?
 
 # Notes
 * [Container Setup](https://testdriven.io/blog/dockerizing-django-with-postgres-gunicorn-and-nginx/)

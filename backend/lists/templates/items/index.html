@@ -1,8 +1,0 @@
-{% extends "FancyLists/index_base.html" %}
-
-{% block pagetitle %}Items{% endblock %}
-{% block newitemlink %}{% url 'lists:new_item' %}{% endblock %}
-{% block edititemlink %}{% url 'lists:edit_item' indexitem.id %}{% endblock %}
-{% block duplicateLinkMaster %}{% endblock %}
-{% block deleteLink %}{% url 'lists:delete_item' indexitem.id %}{% endblock %}
-{% block createdDateMaster %}{% endblock %}

@@ -30,7 +30,6 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
     'rest_framework',
     'social_django',
     'lists',
@@ -81,18 +80,6 @@ TEMPLATES = [
     },
 ]
 
-STATIC_FOUNDATION = os.path.join(os.path.join(BASE_DIR, 'static'), 'foundation')
-STATIC_JQUERYUI = os.path.join(os.path.join(BASE_DIR, 'static'), 'jquery-ui')
-STATIC_LISTS = os.path.join(os.path.join(os.path.join(BASE_DIR, 'lists'), 'static'), 'lists')
-STATICFILES_DIRS = (
-    ('css', os.path.join(STATIC_FOUNDATION, 'css')),
-    ('css', os.path.join(STATIC_FOUNDATION, 'foundation-icons')),
-    ('js', os.path.join(STATIC_FOUNDATION, 'js')),
-    ('js', os.path.join(STATIC_JQUERYUI, 'js')),
-    ('css', os.path.join(STATIC_LISTS, 'css')),
-    ('js', os.path.join(STATIC_LISTS, 'js')),
-)
-
 ROOT_URLCONF = 'urls'
 
 WSGI_APPLICATION = 'lists.wsgi.application'
@@ -126,10 +113,3 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
-
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/dev/howto/static-files/
-
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATIC_URL = '/static/'

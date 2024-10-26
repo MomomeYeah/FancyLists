@@ -1,9 +1,6 @@
 # TODO
 
 ## Backend
-* Remove templated frontend entirely, replaced with API
-    * dj_static
-    * all static files
 * Lists "shared with"
 * Items
     * comments
@@ -11,6 +8,7 @@
     * start / due dates
     * owner / members?
 * authentication - DRF auth? Ensure some kind of user token is provided to API calls from frontend?
+    * presumably we can remove social-auth-app-django
 
 ## Frontend
 * Auto-update / live-sync via e.g. web sockets

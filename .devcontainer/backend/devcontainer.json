@@ -41,7 +41,8 @@
 				"ms-python.python",
 				"ms-python.vscode-pylance",
 				"ms-python.black-formatter",
-				"ecmel.vscode-html-css"
+				"ecmel.vscode-html-css",
+				"ms-azuretools.vscode-docker"
             ]
         }
     },

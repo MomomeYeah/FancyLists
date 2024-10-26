@@ -12,8 +12,7 @@ import os
 
 if os.environ.get('DEPLOY_ENVIRONMENT') == 'production':
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings.production")
-    from dj_static import Cling
-    application = Cling(get_wsgi_application())
+    application = get_wsgi_application()
 else:
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings.local")
     application = get_wsgi_application()

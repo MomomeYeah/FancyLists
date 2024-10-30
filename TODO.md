@@ -1,7 +1,11 @@
 # TODO
 
 ## Backend
-* Lists "shared with"
+* API
+    * return categories + items in main list response to avoid multiple calls?
+* Lists
+    * "shared with"
+    * images
 * Items
     * comments
     * description
@@ -11,9 +15,9 @@
     * presumably we can remove social-auth-app-django
 
 ## Frontend
-* Auto-update / live-sync via e.g. web sockets
-* React + MUI for UI
+* Auto-update / live-sync via e.g. web sockets?
 * Save user settings, i.e. which categories are expanded/collapsed, which list was last being edited, etc.
+* Search within list - show matching categories or categories with matching items
 
 ## Dev Infrastructure
 * Address warnings on DB container startup

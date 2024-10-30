@@ -20,5 +20,5 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET=<Your Google OAuth secret>
 ```
 
 * build dev containers
-* access the frontend at `localhost:3000`
+* access the frontend at `localhost:3001`
 * access the backend at `localhost:8000`

@@ -19,7 +19,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost']
 
 
 # Application definition
@@ -30,13 +30,17 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'django.contrib.staticfiles',
     'rest_framework',
     'social_django',
+    'corsheaders',
     'lists',
 )
 
 MIDDLEWARE = (
     'django.contrib.sessions.middleware.SessionMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -60,6 +64,11 @@ AUTHENTICATION_BACKENDS = (
 SOCIAL_AUTH_LOGIN_REDIRECT_URL = '/lists/'
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY')
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET')
+
+# Enable DRF to serve static files
+STATIC_URL = '/static/'
+
+CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]
 
 TEMPLATES = [
     {

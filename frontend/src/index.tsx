@@ -1,16 +1,42 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import './index.css';
-import App from './App';
+import { Root } from './routes/root';
+import { ListSummary, loader as listSummaryLoader } from './routes/list-summary';
+import { FancyList, loader as listLoader } from './routes/list';
+import ErrorPage from './error-page';
 import reportWebVitals from './reportWebVitals';
 
+const router = createBrowserRouter([
+    {
+        path: "/",
+        element: <Root />,
+        errorElement: <ErrorPage />,
+        children: [
+            {
+                path: "/",
+                element: <ListSummary />,
+                errorElement: <ErrorPage />,
+                loader: listSummaryLoader
+            },
+            {
+                path: "lists/:listId",
+                element: <FancyList />,
+                errorElement: <ErrorPage />,
+                loader: listLoader
+            }
+        ]
+    }
+]);
+
 const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement
+    document.getElementById('root') as HTMLElement
 );
 root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
+    <React.StrictMode>
+        <RouterProvider router={router} />
+    </React.StrictMode>
 );
 
 // If you want to start measuring performance in your app, pass a function

@@ -24,6 +24,10 @@ export async function getList(listId: number): Promise<ListType> {
 
     return list;
 }
+export async function deleteList(listId: number): Promise<void> {
+    const listURL = `http://localhost:8000/api/lists/${listId}/`;
+    await fetch(listURL, {method: 'DELETE'});
+}
 
 export type CategoryType = {
     id: number,
@@ -43,6 +47,10 @@ export async function getCategory(categoryId: number): Promise<CategoryType> {
 
     return category;
 }
+export async function deleteCategory(categoryId: number): Promise<void> {
+    const categoryURL = `http://localhost:8000/api/categories/${categoryId}/`;
+    await fetch(categoryURL, {method: 'DELETE'});
+}
 
 // TODO: probably better to just get item names from category detail
 export type ItemType = {
@@ -54,4 +62,8 @@ export async function getItem(itemId: number): Promise<ItemType> {
     const itemURL = `http://localhost:8000/api/items/${itemId}`;
     const itemRaw = await fetch(itemURL);
     return itemRaw.json();
+}
+export async function deleteItem(itemId: number): Promise<void> {
+    const itemURL = `http://localhost:8000/api/items/${itemId}/`;
+    await fetch(itemURL, {method: 'DELETE'});
 }

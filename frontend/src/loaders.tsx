@@ -24,6 +24,20 @@ export async function getList(listId: number): Promise<ListType> {
 
     return list;
 }
+export async function addList(name: string): Promise<void> {
+    const listURL = `http://localhost:8000/api/lists/`;
+    await fetch(listURL, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': 'Token e607389c6a75a4e6c790676d6e221978989ae804'
+        },
+        body: JSON.stringify({
+            name: name
+        })
+    });
+}
 export async function deleteList(listId: number): Promise<void> {
     const listURL = `http://localhost:8000/api/lists/${listId}/`;
     await fetch(listURL, {method: 'DELETE'});
@@ -47,6 +61,20 @@ export async function getCategory(categoryId: number): Promise<CategoryType> {
 
     return category;
 }
+export async function addCategory(listId: number, name: string): Promise<void> {
+    const categoryURL = `http://localhost:8000/api/categories/`;
+    await fetch(categoryURL, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            list: listId,
+            name: name
+        })
+    });
+}
 export async function deleteCategory(categoryId: number): Promise<void> {
     const categoryURL = `http://localhost:8000/api/categories/${categoryId}/`;
     await fetch(categoryURL, {method: 'DELETE'});
@@ -62,6 +90,20 @@ export async function getItem(itemId: number): Promise<ItemType> {
     const itemURL = `http://localhost:8000/api/items/${itemId}`;
     const itemRaw = await fetch(itemURL);
     return itemRaw.json();
+}
+export async function addItem(categoryId: number, name: string): Promise<void> {
+    const itemURL = `http://localhost:8000/api/items/`;
+    await fetch(itemURL, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            category: categoryId,
+            name: name
+        })
+    });
 }
 export async function deleteItem(itemId: number): Promise<void> {
     const itemURL = `http://localhost:8000/api/items/${itemId}/`;

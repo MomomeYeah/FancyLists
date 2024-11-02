@@ -11,6 +11,8 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 import { ListType, CategoryType, getList, deleteCategory, deleteItem } from '../loaders';
+import { CreateCategoryDialog } from '../components/CreateCategoryDialog';
+import { CreateItemDialog } from '../components/CreateItemDialog';
 import { CardActionArea } from '@mui/material';
 
 export async function loader({ params }: {params: Params<"listId">}) {
@@ -43,6 +45,14 @@ function ItemArea({children}: {children: React.ReactNode}) {
 }
 
 function Category({category}: {category: CategoryType}) {
+    const [createItemDialogOpen, setCreateItemDialogOpen] = React.useState(false);
+    const handleClickOpen = () => {
+        setCreateItemDialogOpen(true);
+      };
+      const handleClose = () => {
+        setCreateItemDialogOpen(false);
+    };
+
     const categoryItems = category.items.map(item => {
         return (
             <ItemArea key={item.id}>
@@ -58,7 +68,7 @@ function Category({category}: {category: CategoryType}) {
                 </IconButton>
             </ItemArea>
         );
-    })
+    });
 
     return (
         <Box sx={{ minWidth: 275 }}>
@@ -101,9 +111,11 @@ function Category({category}: {category: CategoryType}) {
                                 color="inherit"
                                 aria-label="menu"                           
                                 sx={{ mr: 2 }}
+                                onClick={() => handleClickOpen()}
                                 ><AddIcon/>
                             </IconButton>
                         </ItemArea>
+                        <CreateItemDialog open={createItemDialogOpen} handleClose={handleClose} category={category.id} />
                     </Box>
                 </CardContent>
             </Card>
@@ -115,12 +127,20 @@ export function FancyList() {
     const list = useLoaderData() as ListType;
     const listCategories = list.categories.map(category => <Category key={category.id} category={category} />);
 
+    const [createCategoryDialogOpen, setCreateCategoryDialogOpen] = React.useState(false);
+    const handleClickOpen = () => {
+        setCreateCategoryDialogOpen(true);
+      };
+      const handleClose = () => {
+        setCreateCategoryDialogOpen(false);
+    };
+
     return (
         <React.Fragment>
             {listCategories}
             <Box sx={{ minWidth: 275 }}>
                 <Card variant="outlined">
-                    <CardActionArea>
+                    <CardActionArea onClick={() => handleClickOpen()}>
                         <CardContent>
                             <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                                 <Typography variant="h5" component="div">
@@ -130,6 +150,7 @@ export function FancyList() {
                             </Box>
                         </CardContent>
                     </CardActionArea>
+                    <CreateCategoryDialog open={createCategoryDialogOpen} handleClose={handleClose} list={list.id} />
                 </Card>
             </Box>
         </React.Fragment>

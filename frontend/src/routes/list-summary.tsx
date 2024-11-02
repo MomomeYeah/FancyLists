@@ -11,6 +11,7 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 import { ListType, getLists, deleteList } from '../loaders';
+import { CreateListDialog } from '../components/CreateListDialog';
 import '../App.css';
 
 export async function loader() {
@@ -19,6 +20,14 @@ export async function loader() {
 
 export function ListSummary() {
     const lists = useLoaderData() as Array<ListType>;
+
+    const [createListDialogOpen, setCreateListDialogOpen] = React.useState(false);
+    const handleClickOpen = () => {
+        setCreateListDialogOpen(true);
+      };
+      const handleClose = () => {
+        setCreateListDialogOpen(false);
+    };
     
     const appLists = lists.map(list => {
         const targetURL = `/lists/${list.id}`;
@@ -58,7 +67,7 @@ export function ListSummary() {
             {appLists}
             <Box key="Add List" sx={{ minWidth: 275 }}>
                 <Card variant="outlined" sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                    <CardActionArea component={Link} to="/">
+                    <CardActionArea onClick={() => handleClickOpen()}>
                         <CardContent sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                             <Typography variant="h5" component="div">
                                 Add List
@@ -66,6 +75,7 @@ export function ListSummary() {
                             <AddIcon />
                         </CardContent>
                     </CardActionArea>
+                    <CreateListDialog open={createListDialogOpen} handleClose={handleClose} />
                 </Card>
             </Box>
         </React.Fragment>

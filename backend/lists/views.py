@@ -1,6 +1,6 @@
 from lists.models import FancyList, Category, Item
 from lists.serializers import (
-    FancyListSerializer,
+    FancyListListSerializer, FancyListSerializer,
     CategorySerializer, UpdateCategorySerializer,
     ItemSerializer, UpdateItemSerializer
 )
@@ -21,7 +21,7 @@ def api_root(request, format=None):
 
 class FancyListList(generics.ListCreateAPIView):
     queryset = FancyList.objects.all().order_by('display_order')
-    serializer_class = FancyListSerializer
+    serializer_class = FancyListListSerializer
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)

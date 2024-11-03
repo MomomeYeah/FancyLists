@@ -29,8 +29,8 @@ export type ListType = {
     id: number,
     name: string,
     created_date: string,
+    owner: string,
     display_order: number,
-    category_set: Array<number>,
     categories: Array<CategoryType>
 }
 export async function getLists(): Promise<Array<ListType>> {
@@ -39,13 +39,7 @@ export async function getLists(): Promise<Array<ListType>> {
 }
 export async function getList(listId: number): Promise<ListType> {
     const listURL = `http://localhost:8000/api/lists/${listId}`;
-    const list = await makeAPIRequest(listURL, 'GET') as ListType;
-
-    list.categories = await Promise.all(
-        list.category_set.map(async (category) => await getCategory(category))
-    );
-
-    return list;
+    return await makeAPIRequest(listURL, 'GET') as ListType;
 }
 export async function addList(name: string): Promise<void> {
     const listURL = `http://localhost:8000/api/lists/`;
@@ -61,23 +55,13 @@ export async function deleteList(listId: number): Promise<void> {
 export type CategoryType = {
     id: number,
     name: string,
+    list: number,
     display_order: number,
-    item_set: Array<number>,
     items: Array<ItemType>
-}
-export async function getCategory(categoryId: number): Promise<CategoryType> {
-    const categoryURL = `http://localhost:8000/api/categories/${categoryId}`;
-    const category = await makeAPIRequest(categoryURL, 'GET') as CategoryType;
-
-    category.items = await Promise.all(
-        category.item_set.map(async (item) => await getItem(item))
-    );
-
-    return category;
 }
 export async function addCategory(listId: number, name: string): Promise<void> {
     const categoryURL = `http://localhost:8000/api/categories/`;
-    await makeAPIRequest(categoryURL, 'POST', JSON.stringify({
+    return await makeAPIRequest(categoryURL, 'POST', JSON.stringify({
         list: listId,
         name: name
     }));
@@ -87,19 +71,15 @@ export async function deleteCategory(categoryId: number): Promise<void> {
     await makeAPIRequest(categoryURL, 'DELETE');
 }
 
-// TODO: probably better to just get item names from category detail
 export type ItemType = {
     id: number,
     name: string,
+    category: number,
     display_order: number
-}
-export async function getItem(itemId: number): Promise<ItemType> {
-    const itemURL = `http://localhost:8000/api/items/${itemId}`;
-    return await makeAPIRequest(itemURL, 'GET');
 }
 export async function addItem(categoryId: number, name: string): Promise<void> {
     const itemURL = `http://localhost:8000/api/items/`;
-    await makeAPIRequest(itemURL, 'POST', JSON.stringify({
+    return await makeAPIRequest(itemURL, 'POST', JSON.stringify({
         category: categoryId,
         name: name
     }));

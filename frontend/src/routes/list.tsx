@@ -113,7 +113,7 @@ function Category({category}: {category: CategoryType}) {
                     }}>
                         {categoryItems}
                         <ItemArea key="Add Item">
-                            <Typography component={'div'} sx={{flexGrow: 2}}>Add Item</Typography>
+                            <Typography component='div' sx={{flexGrow: 2}}>Add Item</Typography>
                             <IconButton 
                                 id="demo-positioned-button"
                                 size="large"

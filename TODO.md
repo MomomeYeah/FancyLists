@@ -1,8 +1,6 @@
 # TODO
 
 ## Backend
-* API
-    * return categories + items in main list response to avoid multiple calls?
 * Lists
     * "shared with"
     * images
@@ -34,6 +32,7 @@
 * do not refresh page when not necessary, e.g. just remove items from DOM on successful delete
 * pull out hard-coded URLs into somewhere more appropriate
 * convert loaders into a hook?
+* list detail - show list name
 
 ## Dev Infrastructure
 * Address warnings on DB container startup

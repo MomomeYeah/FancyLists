@@ -1,5 +1,5 @@
 import React from 'react';
-import { Params, useLoaderData } from 'react-router-dom';
+import { Params, useLoaderData, useNavigate } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -45,12 +45,22 @@ function ItemArea({children}: {children: React.ReactNode}) {
 }
 
 function Category({category}: {category: CategoryType}) {
+    const navigate = useNavigate();
+    
     const [createItemDialogOpen, setCreateItemDialogOpen] = React.useState(false);
     const handleClickOpen = () => {
         setCreateItemDialogOpen(true);
       };
       const handleClose = () => {
         setCreateItemDialogOpen(false);
+    };
+    const handleClickDeleteCategory = async (categoryId: number) => {
+        await deleteCategory(categoryId);
+        navigate(0);
+    };
+    const handleClickDeleteItem = async (itemId: number) => {
+        await deleteItem(itemId);
+        navigate(0);
     };
 
     const categoryItems = category.items.map(item => {
@@ -63,7 +73,7 @@ function Category({category}: {category: CategoryType}) {
                     color="inherit"
                     aria-label="menu"                           
                     sx={{ mr: 2 }}
-                    onClick={e => deleteItem(item.id)}
+                    onClick={e => handleClickDeleteItem(item.id)}
                     ><DeleteIcon/>
                 </IconButton>
             </ItemArea>
@@ -89,7 +99,7 @@ function Category({category}: {category: CategoryType}) {
                             color="inherit"
                             aria-label="menu"                           
                             sx={{ mr: 2 }}
-                            onClick={e => deleteCategory(category.id)}
+                            onClick={e => handleClickDeleteCategory(category.id)}
                             ><DeleteIcon/>
                         </IconButton>
                     </Box>

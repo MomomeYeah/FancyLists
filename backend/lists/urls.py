@@ -24,5 +24,4 @@ urlpatterns = [
     path("items/<int:pk>/",
          views.ItemDetail.as_view(),
          name="item-detail"),
-    # path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 ]

@@ -2,29 +2,43 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import './index.css';
+import { AuthRoot } from './routes/auth-root';
 import { Root } from './routes/root';
 import { ListSummary, loader as listSummaryLoader } from './routes/list-summary';
 import { FancyList, loader as listLoader } from './routes/list';
+import { Login } from './routes/login';
 import ErrorPage from './error-page';
 import reportWebVitals from './reportWebVitals';
 
 const router = createBrowserRouter([
     {
         path: "/",
-        element: <Root />,
+        element: <AuthRoot />,
         errorElement: <ErrorPage />,
         children: [
             {
                 path: "/",
-                element: <ListSummary />,
+                element: <Root />,
                 errorElement: <ErrorPage />,
-                loader: listSummaryLoader
+                children: [
+                    {
+                        path: "/",
+                        element: <ListSummary />,
+                        errorElement: <ErrorPage />,
+                        loader: listSummaryLoader
+                    },
+                    {
+                        path: "lists/:listId",
+                        element: <FancyList />,
+                        errorElement: <ErrorPage />,
+                        loader: listLoader
+                    }
+                ]
             },
             {
-                path: "lists/:listId",
-                element: <FancyList />,
-                errorElement: <ErrorPage />,
-                loader: listLoader
+                path: "login",
+                element: <Login />,
+                errorElement: <ErrorPage />
             }
         ]
     }

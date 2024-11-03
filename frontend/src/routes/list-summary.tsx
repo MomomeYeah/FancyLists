@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLoaderData, Link } from 'react-router-dom';
+import { useLoaderData, Link, useNavigate } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -19,14 +19,19 @@ export async function loader() {
 }
 
 export function ListSummary() {
+    const navigate = useNavigate();
     const lists = useLoaderData() as Array<ListType>;
 
     const [createListDialogOpen, setCreateListDialogOpen] = React.useState(false);
     const handleClickOpen = () => {
         setCreateListDialogOpen(true);
-      };
-      const handleClose = () => {
+    };
+    const handleClose = () => {
         setCreateListDialogOpen(false);
+    };
+    const handleClickDelete = async (listId: number) => {
+        await deleteList(listId);
+        navigate(0);
     };
     
     const appLists = lists.map(list => {
@@ -54,7 +59,7 @@ export function ListSummary() {
                         color="inherit"
                         aria-label="menu"                           
                         sx={{ mr: 2, ml: 2 }}
-                        onClick={e => deleteList(list.id)}
+                        onClick={e => handleClickDelete(list.id)}
                         ><DeleteIcon />
                     </IconButton>
                 </Card>

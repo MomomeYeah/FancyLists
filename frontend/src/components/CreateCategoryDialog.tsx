@@ -8,8 +8,11 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 
 import { addCategory } from '../loaders';
+import { useNavigate } from 'react-router-dom';
 
 export function CreateCategoryDialog({open, handleClose, list}: {open: boolean, handleClose: Function, list: number}) {
+    const navigate = useNavigate();
+
     return (
         <Dialog
             open={open}
@@ -22,6 +25,7 @@ export function CreateCategoryDialog({open, handleClose, list}: {open: boolean, 
                     const formData = new FormData(event.currentTarget);
                     const formJson = Object.fromEntries((formData as any).entries());
                     addCategory(list, formJson.name);
+                    navigate(0);
                     handleClose();
                 },
             }}

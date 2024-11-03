@@ -1,5 +1,30 @@
 // TODO: use proper typing here, return values, etc.
 
+export async function makeAPIRequest(URL: string, method: string, body?: string) {
+    let userData = window.localStorage.getItem('user');
+    if ( ! userData ) {
+        userData = JSON.stringify({
+            key: ''
+        });
+    }
+
+    const token = JSON.parse(userData).key;
+    const response = await fetch(URL, {
+        method: method,
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': `Token ${token}`
+        },
+        body: body
+    });
+
+    if ( [200, 201].includes(response.status) ) {
+        return response.json();
+    }
+    return null;
+}
+
 export type ListType = {
     id: number,
     name: string,
@@ -9,14 +34,12 @@ export type ListType = {
     categories: Array<CategoryType>
 }
 export async function getLists(): Promise<Array<ListType>> {
-    const APIURL = "http://localhost:8000/api/lists";
-    const lists = await fetch(APIURL);
-    return lists.json();
+    const listsURL = "http://localhost:8000/api/lists";
+    return await makeAPIRequest(listsURL, 'GET');
 }
 export async function getList(listId: number): Promise<ListType> {
     const listURL = `http://localhost:8000/api/lists/${listId}`;
-    const listRaw = await fetch(listURL);
-    const list = await listRaw.json() as ListType;
+    const list = await makeAPIRequest(listURL, 'GET') as ListType;
 
     list.categories = await Promise.all(
         list.category_set.map(async (category) => await getCategory(category))
@@ -26,21 +49,13 @@ export async function getList(listId: number): Promise<ListType> {
 }
 export async function addList(name: string): Promise<void> {
     const listURL = `http://localhost:8000/api/lists/`;
-    await fetch(listURL, {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'Authorization': 'Token e607389c6a75a4e6c790676d6e221978989ae804'
-        },
-        body: JSON.stringify({
-            name: name
-        })
-    });
+    await makeAPIRequest(listURL, 'POST', JSON.stringify({
+        name: name
+    }));
 }
 export async function deleteList(listId: number): Promise<void> {
     const listURL = `http://localhost:8000/api/lists/${listId}/`;
-    await fetch(listURL, {method: 'DELETE'});
+    await makeAPIRequest(listURL, 'DELETE');
 }
 
 export type CategoryType = {
@@ -52,8 +67,7 @@ export type CategoryType = {
 }
 export async function getCategory(categoryId: number): Promise<CategoryType> {
     const categoryURL = `http://localhost:8000/api/categories/${categoryId}`;
-    const categoryRaw = await fetch(categoryURL);
-    const category = await categoryRaw.json() as CategoryType;
+    const category = await makeAPIRequest(categoryURL, 'GET') as CategoryType;
 
     category.items = await Promise.all(
         category.item_set.map(async (item) => await getItem(item))
@@ -63,21 +77,14 @@ export async function getCategory(categoryId: number): Promise<CategoryType> {
 }
 export async function addCategory(listId: number, name: string): Promise<void> {
     const categoryURL = `http://localhost:8000/api/categories/`;
-    await fetch(categoryURL, {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            list: listId,
-            name: name
-        })
-    });
+    await makeAPIRequest(categoryURL, 'POST', JSON.stringify({
+        list: listId,
+        name: name
+    }));
 }
 export async function deleteCategory(categoryId: number): Promise<void> {
     const categoryURL = `http://localhost:8000/api/categories/${categoryId}/`;
-    await fetch(categoryURL, {method: 'DELETE'});
+    await makeAPIRequest(categoryURL, 'DELETE');
 }
 
 // TODO: probably better to just get item names from category detail
@@ -88,24 +95,16 @@ export type ItemType = {
 }
 export async function getItem(itemId: number): Promise<ItemType> {
     const itemURL = `http://localhost:8000/api/items/${itemId}`;
-    const itemRaw = await fetch(itemURL);
-    return itemRaw.json();
+    return await makeAPIRequest(itemURL, 'GET');
 }
 export async function addItem(categoryId: number, name: string): Promise<void> {
     const itemURL = `http://localhost:8000/api/items/`;
-    await fetch(itemURL, {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            category: categoryId,
-            name: name
-        })
-    });
+    await makeAPIRequest(itemURL, 'POST', JSON.stringify({
+        category: categoryId,
+        name: name
+    }));
 }
 export async function deleteItem(itemId: number): Promise<void> {
     const itemURL = `http://localhost:8000/api/items/${itemId}/`;
-    await fetch(itemURL, {method: 'DELETE'});
+    await makeAPIRequest(itemURL, 'DELETE');
 }

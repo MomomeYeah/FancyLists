@@ -8,8 +8,11 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 
 import { addList } from '../loaders';
+import { useNavigate } from 'react-router-dom';
 
 export function CreateListDialog({open, handleClose}: {open: boolean, handleClose: Function}) {
+    const navigate = useNavigate();
+
     return (
         <Dialog
             open={open}
@@ -22,6 +25,7 @@ export function CreateListDialog({open, handleClose}: {open: boolean, handleClos
                     const formData = new FormData(event.currentTarget);
                     const formJson = Object.fromEntries((formData as any).entries());
                     addList(formJson.name);
+                    navigate(0);
                     handleClose();
                 },
             }}

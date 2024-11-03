@@ -8,8 +8,11 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 
 import { addItem } from '../loaders';
+import { useNavigate } from 'react-router-dom';
 
 export function CreateItemDialog({open, handleClose, category}: {open: boolean, handleClose: Function, category: number}) {
+    const navigate = useNavigate();
+
     return (
         <Dialog
             open={open}
@@ -22,6 +25,7 @@ export function CreateItemDialog({open, handleClose, category}: {open: boolean, 
                     const formData = new FormData(event.currentTarget);
                     const formJson = Object.fromEntries((formData as any).entries());
                     addItem(category, formJson.name);
+                    navigate(0);
                     handleClose();
                 },
             }}

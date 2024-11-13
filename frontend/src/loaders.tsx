@@ -25,8 +25,6 @@ async function makeAPIRequest<T>(URL: string, method: string, body?: string): Pr
         'Content-Type': 'application/json',
     };
     const userData = window.localStorage.getItem('user');
-    console.log(userData);
-    console.log(typeof userData);
     if ( userData ) {
         headers['Authorization'] = `Token ${JSON.parse(userData).key}`;
     }
@@ -39,7 +37,15 @@ async function makeAPIRequest<T>(URL: string, method: string, body?: string): Pr
         if ( ! response.ok ) {
             try {
                 const errorData = await response.json();
-                return errorResponse(errorData['non_field_errors']);
+                if ( 'detail' in errorData ) {
+                    // e.g attempting to access a list you don't own
+                    return errorResponse(errorData['detail']);
+                } else if ( 'non_field_errors' in errorData ) {
+                    // e.g. bad login credentials
+                    return errorResponse(errorData['non_field_errors']);    
+                } else {
+                    return errorResponse(response.statusText);    
+                }
             }
             catch (e) {
                 return errorResponse(response.statusText);
@@ -60,6 +66,7 @@ async function makeAPIRequest<T>(URL: string, method: string, body?: string): Pr
         if ( typeof error === 'string' ) {
             return errorResponse(error);
         } else if ( error instanceof Error ) {
+            // e.g. failed to fetch
             return errorResponse(error.message);
         } else {
             console.log(error);

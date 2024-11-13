@@ -50,43 +50,41 @@ export function Root() {
     }
 
     return (
-        <AuthProvider>
-            <Container maxWidth="md">
-                <Snackbar
-                    anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-                    open={snackbarOpen}
-                    autoHideDuration={6000}
+        <Container maxWidth="md">
+            <Snackbar
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                open={snackbarOpen}
+                autoHideDuration={6000}
+                onClose={handleSnackbarClose}
+            >
+                <Alert
                     onClose={handleSnackbarClose}
+                    severity={snackbarSuccess ? "success" : "error"}
+                    variant="filled"
+                    sx={{ width: '100%' }}
                 >
-                    <Alert
-                        onClose={handleSnackbarClose}
-                        severity={snackbarSuccess ? "success" : "error"}
-                        variant="filled"
-                        sx={{ width: '100%' }}
-                    >
-                        {snackbarMessage}
-                    </Alert>
-                </Snackbar>
-                <Box sx={{ flexGrow: 1 }}>
-                    <AppBar position="static">
-                        <Toolbar>
-                            <IconButton 
-                                id="demo-positioned-button"
-                                size="large"
-                                edge="start"
-                                color="inherit"
-                                aria-label="menu"                           
-                                sx={{ mr: 2 }}
-                                ><MenuIcon />
-                            </IconButton>
-                            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>Fancy Lists</Typography>
-                            <Button color="inherit" component={Link} to="/">Home</Button>
-                            <Button color="inherit" onClick={() => auth.logout()}>Logout</Button>
-                        </Toolbar>
-                    </AppBar>
-                </Box>
-                <Outlet context={outletContext satisfies SnackbarContextType } />
-            </Container>
-        </AuthProvider>
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
+            <Box sx={{ flexGrow: 1 }}>
+                <AppBar position="static">
+                    <Toolbar>
+                        <IconButton 
+                            id="demo-positioned-button"
+                            size="large"
+                            edge="start"
+                            color="inherit"
+                            aria-label="menu"                           
+                            sx={{ mr: 2 }}
+                            ><MenuIcon />
+                        </IconButton>
+                        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>Fancy Lists</Typography>
+                        <Button color="inherit" component={Link} to="/">Home</Button>
+                        <Button color="inherit" onClick={() => auth.logout()}>Logout ({auth.user.username})</Button>
+                    </Toolbar>
+                </AppBar>
+            </Box>
+            <Outlet context={outletContext satisfies SnackbarContextType } />
+        </Container>
     );
 }

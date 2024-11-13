@@ -8,8 +8,10 @@ export const useLocalStorage = (keyName: string, defaultValue: string | null) =>
             const value = window.localStorage.getItem(keyName);
             if (value) {
                 return JSON.parse(value);
-            } else {
+            } else if (defaultValue) {
                 window.localStorage.setItem(keyName, JSON.stringify(defaultValue));
+                return defaultValue;
+            } else {
                 return defaultValue;
             }
         } catch (err) {

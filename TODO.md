@@ -44,7 +44,6 @@
     * https://dndkit.com/
     * https://docs.dndkit.com/
     * https://github.com/clauderic/dnd-kit
-* auto-redirect from login page if already logged in
 
 ## Dev Infrastructure
 * Address warnings on DB container startup

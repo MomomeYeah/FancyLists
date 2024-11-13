@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Navigate } from 'react-router-dom';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -66,6 +67,10 @@ export function Login() {
         return isValid;
     };
     
+    if ( auth.user ) {
+        // user is already authenticated
+        return <Navigate to="/" />;
+    }
     return (
         <Container maxWidth="md">
             <Card variant="outlined" sx={{ padding: '2em' }}>

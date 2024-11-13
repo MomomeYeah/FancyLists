@@ -3,6 +3,7 @@
 import { createContext, useContext, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLocalStorage } from "./useLocalStorage";
+import { APIResponse, login as doLogin } from '../loaders';
 
 const AuthContext = createContext({});
 
@@ -12,26 +13,16 @@ export const AuthProvider = ({children }: {children: React.ReactNode}) => {
     
     // call this function when you want to authenticate the user
     const login = async (username: string, password: string) => {
-        const loginURL = "http://localhost:8000/auth/login/";
-        const response = await fetch(loginURL, {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
+        const loginResponse = await doLogin(username, password) as APIResponse<any>;
+        if ( loginResponse.success ) {
+            setUser({
                 username: username,
-                password: password
-            })
-        });
-        const responseData = await response.json();
-        const userData = {
-            username: username,
-            key: responseData.key
+                key: loginResponse.data.key
+            });
+            navigate("/");
+        } else {
+            return loginResponse.error;
         }
-        console.log(userData);
-        setUser(userData);
-        navigate("/");
     };
     
     // call this function to sign out logged in user

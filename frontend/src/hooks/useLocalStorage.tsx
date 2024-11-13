@@ -16,9 +16,13 @@ export const useLocalStorage = (keyName: string, defaultValue: string | null) =>
             return defaultValue;
         }
     });
-    const setValue = (newValue: string) => {
+    const setValue = (newValue: string | null) => {
         try {
-            window.localStorage.setItem(keyName, JSON.stringify(newValue));
+            if ( ! newValue ) {
+                window.localStorage.removeItem(keyName);
+            } else {
+                window.localStorage.setItem(keyName, JSON.stringify(newValue));
+            }
         } catch (err) {
             console.log(err);
         }

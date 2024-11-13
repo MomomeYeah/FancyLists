@@ -1,8 +1,9 @@
 import React from 'react';
-import { Params, useLoaderData, useNavigate } from 'react-router-dom';
+import { Params, redirect, useLoaderData, useNavigate, useOutletContext } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
+import CardActionArea from '@mui/material/CardActionArea';
 import CardContent from '@mui/material/CardContent';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
@@ -10,16 +11,21 @@ import Paper from '@mui/material/Paper';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-import { ListType, CategoryType, getList, deleteCategory, deleteItem } from '../loaders';
 import { CreateCategoryDialog } from '../components/CreateCategoryDialog';
 import { CreateItemDialog } from '../components/CreateItemDialog';
-import { CardActionArea } from '@mui/material';
+import { ListType, CategoryType, getList, deleteCategory, deleteItem } from '../loaders';
+import { SnackbarContextType } from './root';
 
 export async function loader({ params }: {params: Params<"listId">}) {
     if ( params.hasOwnProperty("listId") ) {
         const listId = Number(params.listId)
         if ( ! isNaN(listId) ) {
-            return await getList(listId);
+            const APIResponse = await getList(listId);
+            if ( APIResponse.success ) {
+                return APIResponse.data;
+            } else {
+                return redirect(`/?error=${APIResponse.error}`)
+            }
         }
     }
 
@@ -46,6 +52,7 @@ function ItemArea({children}: {children: React.ReactNode}) {
 
 function Category({category}: {category: CategoryType}) {
     const navigate = useNavigate();
+    const context = useOutletContext() as SnackbarContextType;
     
     const [createItemDialogOpen, setCreateItemDialogOpen] = React.useState(false);
     const handleClickOpen = () => {
@@ -55,12 +62,20 @@ function Category({category}: {category: CategoryType}) {
         setCreateItemDialogOpen(false);
     };
     const handleClickDeleteCategory = async (categoryId: number) => {
-        await deleteCategory(categoryId);
-        navigate(0);
+        const APIResponse = await deleteCategory(categoryId);
+        if ( APIResponse.success ) {
+            navigate(0);
+        } else {
+            context.setSnackBarError(APIResponse.error);
+        }
     };
     const handleClickDeleteItem = async (itemId: number) => {
-        await deleteItem(itemId);
-        navigate(0);
+        const APIResponse = await deleteItem(itemId);
+        if ( APIResponse.success ) {
+            navigate(0);
+        } else {
+            context.setSnackBarError(APIResponse.error);
+        }
     };
 
     const categoryItems = category.items.map(item => {
@@ -147,6 +162,15 @@ export function FancyList() {
 
     return (
         <React.Fragment>
+            <Box sx={{ minWidth: 275 }}>
+                <Card variant="outlined">
+                    <CardContent>
+                        <Typography variant="h5" component="div">
+                            {list.name}
+                        </Typography>
+                    </CardContent>
+                </Card>
+            </Box>
             {listCategories}
             <Box sx={{ minWidth: 275 }}>
                 <Card variant="outlined">

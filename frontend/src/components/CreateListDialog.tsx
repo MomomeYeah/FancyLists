@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
@@ -8,10 +9,20 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 
 import { addList } from '../loaders';
-import { useNavigate } from 'react-router-dom';
+import { SnackbarContextType } from '../routes/root';
 
 export function CreateListDialog({open, handleClose}: {open: boolean, handleClose: Function}) {
     const navigate = useNavigate();
+    const context = useOutletContext() as SnackbarContextType;
+
+    const handleCreateList = async (name: string) => {
+        const APIResponse = await addList(name);
+        if ( APIResponse.success ) {
+            navigate(0);
+        } else {
+            context.setSnackBarError(APIResponse.error);
+        }
+    }
 
     return (
         <Dialog
@@ -24,9 +35,7 @@ export function CreateListDialog({open, handleClose}: {open: boolean, handleClos
                     event.preventDefault();
                     const formData = new FormData(event.currentTarget);
                     const formJson = Object.fromEntries((formData as any).entries());
-                    addList(formJson.name);
-                    navigate(0);
-                    handleClose();
+                    handleCreateList(formJson.name);
                 },
             }}
         >

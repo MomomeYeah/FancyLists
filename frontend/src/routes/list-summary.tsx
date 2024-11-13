@@ -1,5 +1,5 @@
-import React from 'react';
-import { useLoaderData, Link, useNavigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useLoaderData, Link, useNavigate, useOutletContext } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -10,9 +10,10 @@ import CardActionArea from '@mui/material/CardActionArea';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-import { ListType, getLists, deleteList } from '../loaders';
+import { ListType, getLists, deleteList, APIResponse } from '../loaders';
 import { CreateListDialog } from '../components/CreateListDialog';
 import '../App.css';
+import { SnackbarContextType } from './root';
 
 export async function loader() {
     return await getLists();
@@ -20,7 +21,9 @@ export async function loader() {
 
 export function ListSummary() {
     const navigate = useNavigate();
-    const lists = useLoaderData() as Array<ListType>;
+    const APIResponse = useLoaderData() as APIResponse<Array<ListType>>;
+    const lists = APIResponse.success ? APIResponse.data as Array<ListType> : [];
+    const context = useOutletContext() as SnackbarContextType;
 
     const [createListDialogOpen, setCreateListDialogOpen] = React.useState(false);
     const handleClickOpen = () => {
@@ -30,10 +33,20 @@ export function ListSummary() {
         setCreateListDialogOpen(false);
     };
     const handleClickDelete = async (listId: number) => {
-        await deleteList(listId);
-        navigate(0);
+        const APIResponse = await deleteList(listId);
+        if ( APIResponse.success ) {
+            navigate(0);
+        } else {
+            context.setSnackBarError(APIResponse.error);
+        }
     };
     
+    useEffect(() => {
+        if ( ! APIResponse.success ) {
+            context.setSnackBarError(APIResponse.error);
+        }
+    }, []);
+        
     const appLists = lists.map(list => {
         const targetURL = `/lists/${list.id}`;
         const createdDate = new Date(list.created_date);

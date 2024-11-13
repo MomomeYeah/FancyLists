@@ -7,7 +7,7 @@ import { Root } from './routes/root';
 import { ListSummary, loader as listSummaryLoader } from './routes/list-summary';
 import { FancyList, loader as listLoader } from './routes/list';
 import { Login } from './routes/login';
-import ErrorPage from './error-page';
+import { ErrorPage } from './components/ErrorPage';
 import reportWebVitals from './reportWebVitals';
 
 const router = createBrowserRouter([

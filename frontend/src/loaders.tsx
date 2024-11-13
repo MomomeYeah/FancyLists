@@ -1,28 +1,78 @@
-// TODO: use proper typing here, return values, etc.
+const AUTH_URL = "http://localhost:8000/auth/login/";
+const API_URL = "http://localhost:8000/api";
 
-export async function makeAPIRequest(URL: string, method: string, body?: string) {
-    let userData = window.localStorage.getItem('user');
-    if ( ! userData ) {
-        userData = JSON.stringify({
-            key: ''
+type APISuccessResponse<T> = {
+    success: true,
+    data: T
+}
+type APIErrorResponse = {
+    success: false,
+    error: string
+}
+export type APIResponse<T> = 
+    | APISuccessResponse<T>
+    | APIErrorResponse;
+async function makeAPIRequest<T>(URL: string, method: string, body?: string): Promise<APIResponse<T>> {
+    const successResponse = (data: any): APIResponse<T> => {
+        return {success: true, data: data};
+    }
+    const errorResponse = (error: string): APIResponse<T> => {
+        return {success: false, error: error};
+    }
+
+    const headers: {Accept: string, 'Content-Type': string, Authorization?: string } = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+    };
+    const userData = window.localStorage.getItem('user');
+    console.log(userData);
+    console.log(typeof userData);
+    if ( userData ) {
+        headers['Authorization'] = `Token ${JSON.parse(userData).key}`;
+    }
+    try {
+        const response = await fetch(URL, {
+            method: method,
+            headers: headers,
+            body: body
         });
+        if ( ! response.ok ) {
+            try {
+                const errorData = await response.json();
+                return errorResponse(errorData['non_field_errors']);
+            }
+            catch (e) {
+                return errorResponse(response.statusText);
+            }
+        }
+    
+        if ( [200, 201].includes(response.status) ) {
+            const success = await response.json();
+            return successResponse(success);
+        } else if ( response.status === 204 ) {
+            return successResponse(null);
+        } else {
+            console.error(`Unknown error: ${response}`);
+            return errorResponse("Unknown error");
+        }
     }
-
-    const token = JSON.parse(userData).key;
-    const response = await fetch(URL, {
-        method: method,
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'Authorization': `Token ${token}`
-        },
-        body: body
-    });
-
-    if ( [200, 201].includes(response.status) ) {
-        return response.json();
+    catch (error) {
+        if ( typeof error === 'string' ) {
+            return errorResponse(error);
+        } else if ( error instanceof Error ) {
+            return errorResponse(error.message);
+        } else {
+            console.log(error);
+            return errorResponse("");
+        }
     }
-    return null;
+}
+
+export async function login(username: string, password: string): Promise<APIResponse<void>> {
+    return await makeAPIRequest(AUTH_URL, 'POST', JSON.stringify({
+        username: username,
+        password: password
+    }));
 }
 
 export type ListType = {
@@ -33,23 +83,23 @@ export type ListType = {
     display_order: number,
     categories: Array<CategoryType>
 }
-export async function getLists(): Promise<Array<ListType>> {
-    const listsURL = "http://localhost:8000/api/lists";
+export async function getLists(): Promise<APIResponse<Array<ListType>>> {
+    const listsURL = `${API_URL}/lists`;
     return await makeAPIRequest(listsURL, 'GET');
 }
-export async function getList(listId: number): Promise<ListType> {
-    const listURL = `http://localhost:8000/api/lists/${listId}`;
-    return await makeAPIRequest(listURL, 'GET') as ListType;
+export async function getList(listId: number): Promise<APIResponse<ListType>> {
+    const listURL = `${API_URL}/lists/${listId}`;
+    return await makeAPIRequest(listURL, 'GET');
 }
-export async function addList(name: string): Promise<void> {
-    const listURL = `http://localhost:8000/api/lists/`;
-    await makeAPIRequest(listURL, 'POST', JSON.stringify({
+export async function addList(name: string): Promise<APIResponse<void>> {
+    const listURL = `${API_URL}/lists/`;
+    return await makeAPIRequest(listURL, 'POST', JSON.stringify({
         name: name
     }));
 }
-export async function deleteList(listId: number): Promise<void> {
-    const listURL = `http://localhost:8000/api/lists/${listId}/`;
-    await makeAPIRequest(listURL, 'DELETE');
+export async function deleteList(listId: number): Promise<APIResponse<void>> {
+    const listURL = `${API_URL}/lists/${listId}/`;
+    return await makeAPIRequest(listURL, 'DELETE');
 }
 
 export type CategoryType = {
@@ -59,16 +109,16 @@ export type CategoryType = {
     display_order: number,
     items: Array<ItemType>
 }
-export async function addCategory(listId: number, name: string): Promise<void> {
-    const categoryURL = `http://localhost:8000/api/categories/`;
+export async function addCategory(listId: number, name: string): Promise<APIResponse<void>> {
+    const categoryURL = `${API_URL}/categories/`;
     return await makeAPIRequest(categoryURL, 'POST', JSON.stringify({
         list: listId,
         name: name
     }));
 }
-export async function deleteCategory(categoryId: number): Promise<void> {
-    const categoryURL = `http://localhost:8000/api/categories/${categoryId}/`;
-    await makeAPIRequest(categoryURL, 'DELETE');
+export async function deleteCategory(categoryId: number): Promise<APIResponse<void>> {
+    const categoryURL = `${API_URL}/categories/${categoryId}/`;
+    return await makeAPIRequest(categoryURL, 'DELETE');
 }
 
 export type ItemType = {
@@ -77,14 +127,14 @@ export type ItemType = {
     category: number,
     display_order: number
 }
-export async function addItem(categoryId: number, name: string): Promise<void> {
-    const itemURL = `http://localhost:8000/api/items/`;
+export async function addItem(categoryId: number, name: string): Promise<APIResponse<void>> {
+    const itemURL = `${API_URL}/items/`;
     return await makeAPIRequest(itemURL, 'POST', JSON.stringify({
         category: categoryId,
         name: name
     }));
 }
-export async function deleteItem(itemId: number): Promise<void> {
-    const itemURL = `http://localhost:8000/api/items/${itemId}/`;
-    await makeAPIRequest(itemURL, 'DELETE');
+export async function deleteItem(itemId: number): Promise<APIResponse<void>> {
+    const itemURL = `${API_URL}/items/${itemId}/`;
+    return await makeAPIRequest(itemURL, 'DELETE');
 }

@@ -1,5 +1,6 @@
 from lists.models import FancyList, Category, Item
 from rest_framework import serializers
+from rest_framework.exceptions import PermissionDenied
 
 from django.db.models import Max
 from django.utils import timezone
@@ -17,6 +18,15 @@ class ItemSerializer(serializers.ModelSerializer):
             category=validated_data.get("category"),
             display_order=display_order
         )
+
+    # DRF will correct run permission class validation on LIST, GET, 
+    # DELETE, and UPDATE, but not on CREATE
+    def validate(self, data):
+        category = data['category']
+        if category.list.owner == self.context['request'].user:
+            return data
+        
+        raise PermissionDenied(detail=None, code=None)
 
     class Meta:
         model = Item
@@ -44,6 +54,15 @@ class CategorySerializer(serializers.ModelSerializer):
             list=validated_data.get("list"),
             display_order=display_order
         )
+
+    # DRF will correct run permission class validation on LIST, GET, 
+    # DELETE, and UPDATE, but not on CREATE
+    def validate(self, data):
+        list = data['list']
+        if list.owner == self.context['request'].user:
+            return data
+        
+        raise PermissionDenied(detail=None, code=None)
 
     class Meta:
         model = Category

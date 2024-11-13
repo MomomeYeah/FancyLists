@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
@@ -8,10 +9,20 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 
 import { addCategory } from '../loaders';
-import { useNavigate } from 'react-router-dom';
+import { SnackbarContextType } from '../routes/root';
 
 export function CreateCategoryDialog({open, handleClose, list}: {open: boolean, handleClose: Function, list: number}) {
     const navigate = useNavigate();
+    const context = useOutletContext() as SnackbarContextType;
+
+    const handleCreateCategory = async (name: string) => {
+        const APIResponse = await addCategory(list, name);
+        if ( APIResponse.success ) {
+            navigate(0);
+        } else {
+            context.setSnackBarError(APIResponse.error);
+        }
+    }
 
     return (
         <Dialog
@@ -24,9 +35,7 @@ export function CreateCategoryDialog({open, handleClose, list}: {open: boolean, 
                     event.preventDefault();
                     const formData = new FormData(event.currentTarget);
                     const formJson = Object.fromEntries((formData as any).entries());
-                    addCategory(list, formJson.name);
-                    navigate(0);
-                    handleClose();
+                    handleCreateCategory(formJson.name);
                 },
             }}
         >

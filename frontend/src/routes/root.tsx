@@ -11,7 +11,7 @@ import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
 import Snackbar from '@mui/material/Snackbar';
 
-import { AuthProvider, useAuth } from "../hooks/useAuth";
+import { useAuth } from "../hooks/useAuth";
 import '../App.css';
 
 export type SnackbarContextType = {

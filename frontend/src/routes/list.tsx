@@ -7,7 +7,6 @@ import CardActionArea from '@mui/material/CardActionArea';
 import CardContent from '@mui/material/CardContent';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
-import Paper from '@mui/material/Paper';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 
@@ -15,6 +14,7 @@ import { CreateCategoryDialog } from '../components/CreateCategoryDialog';
 import { CreateItemDialog } from '../components/CreateItemDialog';
 import { ListType, CategoryType, getList, deleteCategory, deleteItem } from '../loaders';
 import { SnackbarContextType } from './root';
+import './list.css';
 
 export async function loader({ params }: {params: Params<"listId">}) {
     if ( params.hasOwnProperty("listId") ) {
@@ -34,19 +34,11 @@ export async function loader({ params }: {params: Params<"listId">}) {
 
 function ItemArea({children}: {children: React.ReactNode}) {
     return (
-        <Paper
-            elevation={6}
-            sx={{
-                height: '60px',
-                lineHeight: '60px',
-                textAlign: 'center',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-            }}
-        >
-            {children}
-        </Paper>
+        <Card variant="elevation" elevation={6} className='item-card'>
+            <CardContent className='flex-parent'>
+                {children}
+            </CardContent>
+        </Card>
     );
 }
 
@@ -81,13 +73,12 @@ function Category({category}: {category: CategoryType}) {
     const categoryItems = category.items.map(item => {
         return (
             <ItemArea key={item.id}>
-                <Typography component={'div'} sx={{flexGrow: 2}}>{item.name}</Typography>
+                <Typography component="div">{item.name}</Typography>
                 <IconButton 
                     size="large"
                     edge="start"
                     color="inherit"
-                    aria-label="menu"                           
-                    sx={{ mr: 2 }}
+                    aria-label="menu"
                     onClick={e => handleClickDeleteItem(item.id)}
                     ><DeleteIcon/>
                 </IconButton>
@@ -113,7 +104,7 @@ function Category({category}: {category: CategoryType}) {
                             edge="start"
                             color="inherit"
                             aria-label="menu"                           
-                            sx={{ mr: 2 }}
+                            sx={{ mr: 2, padding: '5px' }}
                             onClick={e => handleClickDeleteCategory(category.id)}
                             ><DeleteIcon/>
                         </IconButton>
@@ -127,19 +118,16 @@ function Category({category}: {category: CategoryType}) {
                         gap: 2
                     }}>
                         {categoryItems}
-                        <ItemArea key="Add Item">
-                            <Typography component='div' sx={{flexGrow: 2}}>Add Item</Typography>
-                            <IconButton 
-                                id="demo-positioned-button"
-                                size="large"
-                                edge="start"
-                                color="inherit"
-                                aria-label="menu"                           
-                                sx={{ mr: 2 }}
-                                onClick={() => handleClickOpen()}
-                                ><AddIcon/>
-                            </IconButton>
-                        </ItemArea>
+                        <Card variant="elevation" elevation={6} className='item-card'>
+                            <CardActionArea onClick={() => handleClickOpen()}>
+                                <CardContent className='flex-parent'>
+                                    <Typography component="div">
+                                        Add Item
+                                    </Typography>
+                                    <AddIcon />
+                                </CardContent>
+                            </CardActionArea>
+                        </Card>
                         <CreateItemDialog open={createItemDialogOpen} handleClose={handleClose} category={category.id} />
                     </Box>
                 </CardContent>

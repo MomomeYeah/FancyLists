@@ -1,0 +1,24 @@
+.item-card {
+    height: 60px;
+    line-height: 60px;
+    width: 100%;
+}
+.item-card > * {
+    height: 100%;
+}
+
+.flex-parent {
+    padding: 16px !important;
+    height: 100%;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.flex-parent button {
+    padding: 5px;
+}
+.flex-parent > svg {
+    margin: 5px;
+}
+

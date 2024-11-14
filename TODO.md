@@ -36,8 +36,6 @@
 * do not refresh page when not necessary, e.g. just remove items from DOM on successful delete
     * https://mui.com/material-ui/transitions/
     * only redirect to "/" on e.g. permission violations
-* list detail
-    * highlight entire "add item" box
 * drag and drop to reorder categories and items
     * https://www.reddit.com/r/reactjs/comments/14w4zrh/which_library_is_good_for_drag_and_drop/?rdt=41280
     * https://github.com/hello-pangea/dnd

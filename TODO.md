@@ -10,6 +10,8 @@
     * description
     * start / due dates
     * owner / members?
+* reordering
+    * allow items to be moved to categories within the same list
 * social auth
     * should be able to do this via df-rest-auth, so should be able to remove social-auth-app-django
 * provide a method of creating a user
@@ -20,6 +22,7 @@
         * https://www.django-rest-framework.org/api-guide/permissions/#isauthenticated
 * tests
     * permissions
+    * reordering
 * CI
     * mypy
 
@@ -40,8 +43,8 @@
     * https://www.reddit.com/r/reactjs/comments/14w4zrh/which_library_is_good_for_drag_and_drop/?rdt=41280
     * https://github.com/hello-pangea/dnd
     * https://dndkit.com/
-    * https://docs.dndkit.com/
-    * https://github.com/clauderic/dnd-kit
+    * https://github.com/atlassian/pragmatic-drag-and-drop
+* when on lists page with an error, remove it from query string so refresh doesn't re-show the error
 
 ## Dev Infrastructure
 * Address warnings on DB container startup

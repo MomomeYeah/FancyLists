@@ -12,9 +12,14 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 import { CreateCategoryDialog } from '../components/CreateCategoryDialog';
 import { CreateItemDialog } from '../components/CreateItemDialog';
-import { ListType, CategoryType, getList, deleteCategory, deleteItem } from '../loaders';
+import { ListType, CategoryType, getList, deleteCategory, updateItemDisplayOrder, deleteItem, updateCategoryDisplayOrder, ItemType } from '../loaders';
 import { SnackbarContextType } from './root';
 import './list.css';
+import { DndContext, DraggableAttributes, DragOverlay } from '@dnd-kit/core';
+import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { DragIndicator } from '@mui/icons-material';
+import { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
+import { getDraggableData, getDraggableTransform, useReorderable } from '../hooks/useReorderable';
 
 export async function loader({ params }: {params: Params<"listId">}) {
     if ( params.hasOwnProperty("listId") ) {
@@ -32,19 +37,85 @@ export async function loader({ params }: {params: Params<"listId">}) {
     throw new Error("Unable to parse route param");
 }
 
-function ItemArea({children}: {children: React.ReactNode}) {
+function SortableItem({item}: {item: ItemType}) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+    } = useSortable({
+        id: item.id,
+        data: getDraggableData(item)
+    });
+    
     return (
-        <Card variant="elevation" elevation={6} className='item-card'>
-            <CardContent className='flex-parent'>
-                {children}
-            </CardContent>
-        </Card>
+        <Box ref={setNodeRef} style={getDraggableTransform(transform, transition)}>
+            <Item item={item} listeners={listeners} attributes={attributes} />
+        </Box>
     );
 }
 
-function Category({category}: {category: CategoryType}) {
+function Item({item, listeners, attributes}: {item: ItemType, listeners?: SyntheticListenerMap, attributes?: DraggableAttributes}) {
     const navigate = useNavigate();
     const context = useOutletContext() as SnackbarContextType;
+    
+    const handleClickDeleteItem = async () => {
+        const APIResponse = await deleteItem(item.id);
+        if ( APIResponse.success ) {
+            navigate(0);
+        } else {
+            context.setSnackBarError(APIResponse.error);
+        }
+    };
+
+    return (
+        <Card variant="elevation" elevation={6} className='item-card'>
+            <CardContent className='flex-parent'>
+                <IconButton {...attributes} {...listeners}
+                    size="large"
+                    edge="start"
+                    color="inherit"
+                    aria-label="menu"
+                    ><DragIndicator />
+                </IconButton>
+                <Typography component="div">{item.name} ({item.display_order})</Typography>
+                <IconButton 
+                    size="large"
+                    edge="start"
+                    color="inherit"
+                    aria-label="menu"
+                    onClick={e => handleClickDeleteItem()}
+                    ><DeleteIcon/>
+                </IconButton>
+            </CardContent>
+        </Card>
+    )
+}
+
+function SortableCategory({category}: {category: CategoryType}) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+    } = useSortable({
+        id: category.id,
+        data: getDraggableData(category)
+    });
+    
+    return (
+        <Box ref={setNodeRef} style={getDraggableTransform(transform, transition)}>
+            <Category category={category} listeners={listeners} attributes={attributes} />
+        </Box>
+    );
+}
+
+function Category({category, listeners, attributes}: {category: CategoryType, listeners?: SyntheticListenerMap, attributes?: DraggableAttributes}) {
+    const navigate = useNavigate();
+    const context = useOutletContext() as SnackbarContextType;
+    const [activeItem, handleDragStart, handleDragEnd] = useReorderable(category.items, updateItemDisplayOrder);
     
     const [createItemDialogOpen, setCreateItemDialogOpen] = React.useState(false);
     const handleClickOpen = () => {
@@ -61,63 +132,46 @@ function Category({category}: {category: CategoryType}) {
             context.setSnackBarError(APIResponse.error);
         }
     };
-    const handleClickDeleteItem = async (itemId: number) => {
-        const APIResponse = await deleteItem(itemId);
-        if ( APIResponse.success ) {
-            navigate(0);
-        } else {
-            context.setSnackBarError(APIResponse.error);
-        }
-    };
 
-    const categoryItems = category.items.map(item => {
-        return (
-            <ItemArea key={item.id}>
-                <Typography component="div">{item.name}</Typography>
-                <IconButton 
-                    size="large"
-                    edge="start"
-                    color="inherit"
-                    aria-label="menu"
-                    onClick={e => handleClickDeleteItem(item.id)}
-                    ><DeleteIcon/>
-                </IconButton>
-            </ItemArea>
-        );
-    });
-
+    const categoryItems = category.items.map(item => <SortableItem key={item.id} item={item} />);
     return (
-        <Box sx={{ minWidth: 275 }}>
-            <Card variant="outlined">
-                <CardContent>
-                    <Box sx={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center'
-                    }}>
-                        <Typography variant="h5" component="div">
-                            {category.name}
-                        </Typography>
-                        <IconButton 
-                            id="demo-positioned-button"
-                            size="large"
-                            edge="start"
-                            color="inherit"
-                            aria-label="menu"                           
-                            sx={{ mr: 2, padding: '5px' }}
-                            onClick={e => handleClickDeleteCategory(category.id)}
-                            ><DeleteIcon/>
-                        </IconButton>
-                    </Box>
-                    <Box sx={{
-                        p: 2,
-                        borderRadius: 2,
-                        bgcolor: 'background.default',
-                        display: 'grid',
-                        gridTemplateColumns: { md: '1fr 1fr' },
-                        gap: 2
-                    }}>
-                        {categoryItems}
+        <DndContext
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+        >
+            <Box sx={{ minWidth: 275 }}>
+                <Card variant="outlined">
+                    <CardContent>
+                        <Box sx={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
+                        }}>
+                            <IconButton {...attributes} {...listeners}
+                                size="large"
+                                edge="start"
+                                color="inherit"
+                                aria-label="menu"
+                                ><DragIndicator />
+                            </IconButton>
+                            <Typography variant="h5" component="div">
+                                {category.name} ({category.display_order})
+                            </Typography>
+                            <IconButton
+                                size="large"
+                                edge="start"
+                                color="inherit"
+                                aria-label="menu"
+                                onClick={e => handleClickDeleteCategory(category.id)}
+                                ><DeleteIcon/>
+                            </IconButton>
+                        </Box>
+                        <SortableContext items={category.items} strategy={verticalListSortingStrategy}>
+                            {categoryItems}
+                        </SortableContext>
+                        <DragOverlay>
+                            {activeItem ? <Item item={activeItem} /> : null}
+                        </DragOverlay>
                         <Card variant="elevation" elevation={6} className='item-card'>
                             <CardActionArea onClick={() => handleClickOpen()}>
                                 <CardContent className='flex-parent'>
@@ -129,16 +183,17 @@ function Category({category}: {category: CategoryType}) {
                             </CardActionArea>
                         </Card>
                         <CreateItemDialog open={createItemDialogOpen} handleClose={handleClose} category={category.id} />
-                    </Box>
-                </CardContent>
-            </Card>
-        </Box>
+                    </CardContent>
+                </Card>
+            </Box>
+        </DndContext>
     );
 }
 
 export function FancyList() {
     const list = useLoaderData() as ListType;
-    const listCategories = list.categories.map(category => <Category key={category.id} category={category} />);
+    const [activeCategory, handleDragStart, handleDragEnd] = useReorderable(list.categories, updateCategoryDisplayOrder);
+    const listCategories = list.categories.map(category => <SortableCategory key={category.id} category={category} />);
 
     const [createCategoryDialogOpen, setCreateCategoryDialogOpen] = React.useState(false);
     const handleClickOpen = () => {
@@ -149,7 +204,10 @@ export function FancyList() {
     };
 
     return (
-        <React.Fragment>
+        <DndContext
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+        >
             <Box sx={{ minWidth: 275 }}>
                 <Card variant="outlined">
                     <CardContent>
@@ -159,7 +217,12 @@ export function FancyList() {
                     </CardContent>
                 </Card>
             </Box>
-            {listCategories}
+            <SortableContext items={list.categories} strategy={verticalListSortingStrategy}>
+                {listCategories}
+            </SortableContext>
+            <DragOverlay>
+                {activeCategory ? <Category category={activeCategory} /> : null}
+            </DragOverlay>
             <Box sx={{ minWidth: 275 }}>
                 <Card variant="outlined">
                     <CardActionArea onClick={() => handleClickOpen()}>
@@ -175,6 +238,6 @@ export function FancyList() {
                     <CreateCategoryDialog open={createCategoryDialogOpen} handleClose={handleClose} list={list.id} />
                 </Card>
             </Box>
-        </React.Fragment>
+        </DndContext>
     );
 }

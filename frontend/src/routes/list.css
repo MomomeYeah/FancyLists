@@ -1,6 +1,7 @@
 .item-card {
     height: 60px;
     line-height: 60px;
+    margin: 1em 0;
     width: 100%;
 }
 .item-card > * {

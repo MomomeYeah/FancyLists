@@ -28,9 +28,12 @@
 
 ## Frontend
 * Auto-update / live-sync via e.g. web sockets?
+* Update Lists / Categories / Items
 * Search within list - show matching categories or categories with matching items
-* uuid or similar for URLs
-* nicer styles for add X modals
+* UUID or similar for URLs
+* Nicer styles
+    * Modal windows
+    * Categories
 * CSRF tokens
 * make sure all errors from APIs are handled
     * handle API errors with a specific key other than "non_field_errors", such as adding list with bad category
@@ -39,11 +42,8 @@
 * do not refresh page when not necessary, e.g. just remove items from DOM on successful delete
     * https://mui.com/material-ui/transitions/
     * only redirect to "/" on e.g. permission violations
-* drag and drop to reorder categories and items
-    * https://www.reddit.com/r/reactjs/comments/14w4zrh/which_library_is_good_for_drag_and_drop/?rdt=41280
-    * https://github.com/hello-pangea/dnd
-    * https://dndkit.com/
-    * https://github.com/atlassian/pragmatic-drag-and-drop
+    * update snackbar to allow brief transient success message
+    * re-order lists in place and revert if update fails
 * when on lists page with an error, remove it from query string so refresh doesn't re-show the error
 
 ## Dev Infrastructure

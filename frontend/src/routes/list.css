@@ -1,7 +1,14 @@
+:root {
+    --padding-multiplier: 0.6em;
+}
+
+.category-container {
+    padding: 0 calc(1.8 * var(--padding-multiplier)) var(--padding-multiplier) calc(1.8 * var(--padding-multiplier));
+}
 .item-card {
     height: 60px;
     line-height: 60px;
-    margin: 1em 0;
+    margin-bottom: var(--padding-multiplier);
     width: 100%;
 }
 .item-card > * {
@@ -9,7 +16,7 @@
 }
 
 .flex-parent {
-    padding: 16px !important;
+    padding: 0 16px;
     height: 100%;
 
     display: flex;

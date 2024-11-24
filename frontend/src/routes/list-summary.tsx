@@ -9,6 +9,7 @@ import Typography from '@mui/material/Typography';
 import CardActionArea from '@mui/material/CardActionArea';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 
 import { ListType, getLists, deleteList, APIResponse, updateListDisplayOrder } from '../loaders';
 import { CreateListDialog } from '../components/CreateListDialog';
@@ -19,6 +20,7 @@ import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-
 import { DragIndicator } from '@mui/icons-material';
 import { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
 import { getDraggableData, getDraggableTransform, useReorderable } from '../hooks/useReorderable';
+import { UpdateListDialog } from '../components/UpdateListDialog';
 
 export async function loader() {
     return await getLists();
@@ -47,6 +49,14 @@ function List({list, listeners, attributes}: {list: ListType, listeners?: Synthe
     const navigate = useNavigate();
     const context = useOutletContext() as SnackbarContextType;
 
+    const [updateListDialogOpen, setUpdateListDialogOpen] = React.useState(false);
+    const handleClickUpdateListOpen = () => {
+        setUpdateListDialogOpen(true);
+      };
+      const handleClickUpdateListClose = () => {
+        setUpdateListDialogOpen(false);
+    };
+
     const handleClickDelete = async (listId: number) => {
         const APIResponse = await deleteList(listId);
         if ( APIResponse.success ) {
@@ -60,37 +70,49 @@ function List({list, listeners, attributes}: {list: ListType, listeners?: Synthe
     const createdDate = new Date(list.created_date);
 
     return (
-        <Card variant="outlined" sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-            <IconButton {...attributes} {...listeners}
-                size="large"
-                edge="start"
-                color="inherit"
-                aria-label="menu"
-                sx={{ ml: 2 }}
-                ><DragIndicator />
-            </IconButton>
-            <CardActionArea component={Link} to={targetURL}>
-                <CardContent>
-                    <Typography gutterBottom sx={{ color: 'text.secondary', fontSize: 14 }}>
-                        Created {createdDate.toLocaleDateString()} at {createdDate.toLocaleTimeString()}
-                    </Typography>
-                    <Box>
-                        <Typography variant="h5" component="div">
-                            {list.name} ({list.display_order})
+        <React.Fragment>
+            <Card variant="outlined" sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                <IconButton {...attributes} {...listeners}
+                    size="large"
+                    edge="start"
+                    color="inherit"
+                    aria-label="menu"
+                    sx={{ ml: 2, mr: 2 }}
+                    ><DragIndicator />
+                </IconButton>
+                <CardActionArea component={Link} to={targetURL}>
+                    <CardContent>
+                        <Typography gutterBottom sx={{ color: 'text.secondary', fontSize: 14 }}>
+                            Created {createdDate.toLocaleDateString()} at {createdDate.toLocaleTimeString()}
                         </Typography>
-                    </Box>
-                </CardContent>
-            </CardActionArea>
-            <IconButton 
-                size="large"
-                edge="start"
-                color="inherit"
-                aria-label="menu"                           
-                sx={{ mr: 2 }}
-                onClick={e => handleClickDelete(list.id)}
-                ><DeleteIcon />
-            </IconButton>
-        </Card>
+                        <Box>
+                            <Typography variant="h5" component="div">
+                                {list.name} ({list.display_order})
+                            </Typography>
+                        </Box>
+                    </CardContent>
+                </CardActionArea>
+                <IconButton 
+                    size="large"
+                    edge="start"
+                    color="inherit"
+                    aria-label="menu"                           
+                    sx={{ mr: 2, ml: 2 }}
+                    onClick={e => handleClickUpdateListOpen()}
+                    ><EditIcon />
+                </IconButton>
+                <IconButton 
+                    size="large"
+                    edge="start"
+                    color="inherit"
+                    aria-label="menu"                           
+                    sx={{ mr: 2 }}
+                    onClick={e => handleClickDelete(list.id)}
+                    ><DeleteIcon />
+                </IconButton>
+            </Card>
+            <UpdateListDialog open={updateListDialogOpen} handleClose={handleClickUpdateListClose} list={list} />
+        </React.Fragment>
     );
 }
 

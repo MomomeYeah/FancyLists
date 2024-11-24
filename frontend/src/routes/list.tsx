@@ -20,6 +20,8 @@ import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-
 import { DragIndicator } from '@mui/icons-material';
 import { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
 import { getDraggableData, getDraggableTransform, useReorderable } from '../hooks/useReorderable';
+import { UpdateItemDialog } from '../components/UpdateItemDialog';
+import { UpdateCategoryDialog } from '../components/UpdateCategoryDialog';
 
 export async function loader({ params }: {params: Params<"listId">}) {
     if ( params.hasOwnProperty("listId") ) {
@@ -69,28 +71,43 @@ function Item({item, listeners, attributes}: {item: ItemType, listeners?: Synthe
         }
     };
 
+    const [updateItemDialogOpen, setUpdateItemDialogOpen] = React.useState(false);
+    const handleClickOpen = () => {
+        setUpdateItemDialogOpen(true);
+      };
+      const handleClose = () => {
+        setUpdateItemDialogOpen(false);
+    };
+
     return (
-        <Card variant="elevation" elevation={6} className='item-card'>
-            <CardContent className='flex-parent'>
+        <React.Fragment>
+            <Card variant="elevation" elevation={6} className='item-card flex-parent'>
                 <IconButton {...attributes} {...listeners}
                     size="large"
                     edge="start"
                     color="inherit"
                     aria-label="menu"
+                    sx={{mr: "0.5em"}}
                     ><DragIndicator />
                 </IconButton>
-                <Typography component="div">{item.name} ({item.display_order})</Typography>
+                <CardActionArea onClick={() => handleClickOpen()}>
+                    <CardContent>
+                        <Typography component="div">{item.name} ({item.display_order})</Typography>
+                    </CardContent>
+                </CardActionArea>
                 <IconButton 
                     size="large"
                     edge="start"
                     color="inherit"
                     aria-label="menu"
+                    sx={{ml: "0.5em"}}
                     onClick={e => handleClickDeleteItem()}
                     ><DeleteIcon/>
                 </IconButton>
-            </CardContent>
-        </Card>
-    )
+            </Card>
+            <UpdateItemDialog open={updateItemDialogOpen} handleClose={handleClose} item={item} />
+        </React.Fragment>
+    );
 }
 
 function SortableCategory({category}: {category: CategoryType}) {
@@ -118,12 +135,21 @@ function Category({category, listeners, attributes}: {category: CategoryType, li
     const [activeItem, handleDragStart, handleDragEnd] = useReorderable(category.items, updateItemDisplayOrder);
     
     const [createItemDialogOpen, setCreateItemDialogOpen] = React.useState(false);
-    const handleClickOpen = () => {
+    const handleClickCreateItemOpen = () => {
         setCreateItemDialogOpen(true);
       };
-      const handleClose = () => {
+      const handleClickCreateItemClose = () => {
         setCreateItemDialogOpen(false);
     };
+
+    const [updateCategoryDialogOpen, setUpdateCategoryDialogOpen] = React.useState(false);
+    const handleClickUpdateCategoryOpen = () => {
+        setUpdateCategoryDialogOpen(true);
+      };
+      const handleClickUpdateCategoryClose = () => {
+        setUpdateCategoryDialogOpen(false);
+    };
+
     const handleClickDeleteCategory = async (categoryId: number) => {
         const APIResponse = await deleteCategory(categoryId);
         if ( APIResponse.success ) {
@@ -140,50 +166,49 @@ function Category({category, listeners, attributes}: {category: CategoryType, li
             onDragEnd={handleDragEnd}
         >
             <Box sx={{ minWidth: 275 }}>
-                <Card variant="outlined">
-                    <CardContent>
-                        <Box sx={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center'
-                        }}>
-                            <IconButton {...attributes} {...listeners}
-                                size="large"
-                                edge="start"
-                                color="inherit"
-                                aria-label="menu"
-                                ><DragIndicator />
-                            </IconButton>
-                            <Typography variant="h5" component="div">
-                                {category.name} ({category.display_order})
-                            </Typography>
-                            <IconButton
-                                size="large"
-                                edge="start"
-                                color="inherit"
-                                aria-label="menu"
-                                onClick={e => handleClickDeleteCategory(category.id)}
-                                ><DeleteIcon/>
-                            </IconButton>
-                        </Box>
-                        <SortableContext items={category.items} strategy={verticalListSortingStrategy}>
-                            {categoryItems}
-                        </SortableContext>
-                        <DragOverlay>
-                            {activeItem ? <Item item={activeItem} /> : null}
-                        </DragOverlay>
-                        <Card variant="elevation" elevation={6} className='item-card'>
-                            <CardActionArea onClick={() => handleClickOpen()}>
-                                <CardContent className='flex-parent'>
-                                    <Typography component="div">
-                                        Add Item
-                                    </Typography>
-                                    <AddIcon />
-                                </CardContent>
-                            </CardActionArea>
-                        </Card>
-                        <CreateItemDialog open={createItemDialogOpen} handleClose={handleClose} category={category.id} />
-                    </CardContent>
+                <Card variant="outlined" className='category-container'>
+                    <Box className='flex-parent' sx={{padding: '0'}}>
+                        <IconButton {...attributes} {...listeners}
+                            size="large"
+                            edge="start"
+                            color="inherit"
+                            aria-label="menu"
+                            ><DragIndicator />
+                        </IconButton>
+                        <CardActionArea onClick={() => handleClickUpdateCategoryOpen()}>
+                            <CardContent>    
+                                <Typography variant="h5" component="div">
+                                    {category.name} ({category.display_order})
+                                </Typography>
+                            </CardContent>
+                        </CardActionArea>
+                        <IconButton
+                            size="large"
+                            edge="start"
+                            color="inherit"
+                            aria-label="menu"
+                            onClick={e => handleClickDeleteCategory(category.id)}
+                            ><DeleteIcon/>
+                        </IconButton>
+                    </Box>
+                    <UpdateCategoryDialog open={updateCategoryDialogOpen} handleClose={handleClickUpdateCategoryClose} category={category} />
+                    <SortableContext items={category.items} strategy={verticalListSortingStrategy}>
+                        {categoryItems}
+                    </SortableContext>
+                    <DragOverlay>
+                        {activeItem ? <Item item={activeItem} /> : null}
+                    </DragOverlay>
+                    <Card variant="elevation" elevation={6} className='item-card'>
+                        <CardActionArea onClick={() => handleClickCreateItemOpen()}>
+                            <CardContent className='flex-parent'>
+                                <Typography component="div">
+                                    Add Item
+                                </Typography>
+                                <AddIcon />
+                            </CardContent>
+                        </CardActionArea>
+                    </Card>
+                    <CreateItemDialog open={createItemDialogOpen} handleClose={handleClickCreateItemClose} category={category.id} />
                 </Card>
             </Box>
         </DndContext>

@@ -7,15 +7,15 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 
-import { addList } from '../loaders';
+import { ItemType, updateItem } from '../loaders';
 import { SnackbarContextType } from '../routes/root';
 
-export function CreateListDialog({open, handleClose}: {open: boolean, handleClose: Function}) {
+export function UpdateItemDialog({open, handleClose, item}: {open: boolean, handleClose: Function, item: ItemType}) {
     const navigate = useNavigate();
     const context = useOutletContext() as SnackbarContextType;
 
-    const handleCreateList = async (name: string) => {
-        const APIResponse = await addList(name);
+    const handleUpdateItem = async (name: string) => {
+        const APIResponse = await updateItem(item.id, name);
         if ( APIResponse.success ) {
             navigate(0);
         } else {
@@ -34,11 +34,11 @@ export function CreateListDialog({open, handleClose}: {open: boolean, handleClos
                     event.preventDefault();
                     const formData = new FormData(event.currentTarget);
                     const formJson = Object.fromEntries((formData as any).entries());
-                    handleCreateList(formJson.name);
+                    handleUpdateItem(formJson.name);
                 },
             }}
         >
-            <DialogTitle>Create List</DialogTitle>
+            <DialogTitle>Update Item</DialogTitle>
             <DialogContent>
                 <TextField
                     autoFocus
@@ -46,15 +46,16 @@ export function CreateListDialog({open, handleClose}: {open: boolean, handleClos
                     margin="dense"
                     id="name"
                     name="name"
-                    label="List Name"
+                    label="Item Name"
                     type="text"
                     fullWidth
                     variant="standard"
+                    defaultValue={item.name}
                 />
             </DialogContent>
             <DialogActions>
                 <Button onClick={() => handleClose()}>Cancel</Button>
-                <Button type="submit">Create</Button>
+                <Button type="submit">Update</Button>
             </DialogActions>
         </Dialog>
     );

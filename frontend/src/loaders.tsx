@@ -106,6 +106,12 @@ export async function addList(name: string): Promise<APIResponse<void>> {
         name: name
     }));
 }
+export async function updateList(listId: number, name: string): Promise<APIResponse<void>> {
+    const listURL = `${API_URL}/lists/${listId}/`;
+    return await makeAPIRequest(listURL, 'PATCH', JSON.stringify({
+        name: name
+    }));
+}
 export async function updateListDisplayOrder(listId: number, displayOrder: number): Promise<APIResponse<void>> {
     const listURL = `${API_URL}/lists/${listId}/`;
     return await makeAPIRequest(listURL, 'PATCH', JSON.stringify({
@@ -129,6 +135,12 @@ export async function addCategory(listId: number, name: string): Promise<APIResp
         name: name
     }));
 }
+export async function updateCategory(categoryId: number, name: string): Promise<APIResponse<void>> {
+    const categoryURL = `${API_URL}/categories/${categoryId}/`;
+    return await makeAPIRequest(categoryURL, 'PATCH', JSON.stringify({
+        name: name
+    }));
+}
 export async function updateCategoryDisplayOrder(categoryId: number, displayOrder: number): Promise<APIResponse<void>> {
     const categoryURL = `${API_URL}/categories/${categoryId}/`;
     return await makeAPIRequest(categoryURL, 'PATCH', JSON.stringify({
@@ -148,6 +160,12 @@ export async function addItem(categoryId: number, name: string): Promise<APIResp
     const itemURL = `${API_URL}/items/`;
     return await makeAPIRequest(itemURL, 'POST', JSON.stringify({
         category: categoryId,
+        name: name
+    }));
+}
+export async function updateItem(itemId: number, name: string): Promise<APIResponse<void>> {
+    const itemURL = `${API_URL}/items/${itemId}/`;
+    return await makeAPIRequest(itemURL, 'PATCH', JSON.stringify({
         name: name
     }));
 }

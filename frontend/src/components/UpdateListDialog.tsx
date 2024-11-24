@@ -7,15 +7,15 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 
-import { addList } from '../loaders';
+import { ListType, updateList } from '../loaders';
 import { SnackbarContextType } from '../routes/root';
 
-export function CreateListDialog({open, handleClose}: {open: boolean, handleClose: Function}) {
+export function UpdateListDialog({open, handleClose, list}: {open: boolean, handleClose: Function, list: ListType}) {
     const navigate = useNavigate();
     const context = useOutletContext() as SnackbarContextType;
 
     const handleCreateList = async (name: string) => {
-        const APIResponse = await addList(name);
+        const APIResponse = await updateList(list.id, name);
         if ( APIResponse.success ) {
             navigate(0);
         } else {
@@ -38,7 +38,7 @@ export function CreateListDialog({open, handleClose}: {open: boolean, handleClos
                 },
             }}
         >
-            <DialogTitle>Create List</DialogTitle>
+            <DialogTitle>Update List</DialogTitle>
             <DialogContent>
                 <TextField
                     autoFocus
@@ -50,11 +50,12 @@ export function CreateListDialog({open, handleClose}: {open: boolean, handleClos
                     type="text"
                     fullWidth
                     variant="standard"
+                    defaultValue={list.name}
                 />
             </DialogContent>
             <DialogActions>
                 <Button onClick={() => handleClose()}>Cancel</Button>
-                <Button type="submit">Create</Button>
+                <Button type="submit">Update</Button>
             </DialogActions>
         </Dialog>
     );

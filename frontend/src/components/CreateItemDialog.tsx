@@ -5,7 +5,6 @@ import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 
 import { addItem } from '../loaders';
@@ -41,9 +40,6 @@ export function CreateItemDialog({open, handleClose, category}: {open: boolean, 
         >
             <DialogTitle>Create Item</DialogTitle>
             <DialogContent>
-                <DialogContentText>
-                    Enter a name for the item
-                </DialogContentText>
                 <TextField
                     autoFocus
                     required

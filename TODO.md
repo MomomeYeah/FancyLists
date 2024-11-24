@@ -28,11 +28,10 @@
 
 ## Frontend
 * Auto-update / live-sync via e.g. web sockets?
-* Update Lists / Categories / Items
 * Search within list - show matching categories or categories with matching items
 * UUID or similar for URLs
 * Nicer styles
-    * Modal windows
+    * Modal windows - can these be combined somehow?
     * Categories
 * CSRF tokens
 * make sure all errors from APIs are handled

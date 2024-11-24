@@ -3,7 +3,7 @@
 import { createContext, useContext, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLocalStorage } from "./useLocalStorage";
-import { APIResponse, login as doLogin } from '../loaders';
+import { APIResponse, login as doLogin, register as doRegister } from '../loaders';
 
 const AuthContext = createContext({});
 
@@ -25,6 +25,16 @@ export const AuthProvider = ({children }: {children: React.ReactNode}) => {
         }
     };
     
+    // call this function to register a new user
+    const register = async (username: string, password: string) => {
+        const registerResponse = await doRegister(username, password) as APIResponse<any>;
+        if ( registerResponse.success ) {
+            return login(username, password);
+        } else {
+            return registerResponse.error;
+        }
+    };
+    
     // call this function to sign out logged in user
     const logout = () => {
         setUser(null);
@@ -34,6 +44,7 @@ export const AuthProvider = ({children }: {children: React.ReactNode}) => {
         () => ({
             user,
             login,
+            register,
             logout,
         }),
         [user]

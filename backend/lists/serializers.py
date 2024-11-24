@@ -3,8 +3,18 @@ from django.db.models import F, Max
 from django.utils import timezone
 
 from lists.models import FancyList, Category, Item
+from dj_rest_auth.registration.serializers import RegisterSerializer as DJRegisterSerializer
 from rest_framework import serializers
+from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import PermissionDenied, ValidationError
+
+
+
+class RegisterSerializer(DJRegisterSerializer):
+    def custom_signup(self, request, user):
+        user.is_superuser = True
+        user.save()
+        token = Token.objects.create(user=user)
 
 
 class ReorderableSerializer(serializers.ModelSerializer):
@@ -46,7 +56,7 @@ class ReorderableSerializer(serializers.ModelSerializer):
 class ItemSerializer(ReorderableSerializer):
     def create(self, validated_data):
         display_order = Item.objects.\
-            filter(category__id = validated_data.get("category").id).\
+            filter(category = validated_data.get("category")).\
             aggregate(Max('display_order', default=0)).\
             get("display_order__max") + 1
         
@@ -89,7 +99,7 @@ class CategorySerializer(ReorderableSerializer):
 
     def create(self, validated_data):
         display_order = Category.objects.\
-            filter(list__id = validated_data.get("list").id).\
+            filter(list = validated_data.get("list")).\
             aggregate(Max('display_order', default=0)).\
             get("display_order__max") + 1
         
@@ -125,6 +135,7 @@ class FancyListListSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         display_order = FancyList.objects.\
+            filter(owner = validated_data.get("owner")).\
             aggregate(Max('display_order', default=0)).\
             get("display_order__max") + 1
         

@@ -16,8 +16,13 @@ import Typography from '@mui/material/Typography';
 import { useAuth } from '../hooks/useAuth';
 
 
-export function Login() {
+export function Login({mode}: {mode: string}) {
     const auth = useAuth() as any;
+    
+    let login = true;
+    if ( mode === "signup" ) {
+        login = false;
+    }
     
     const [usernameError, setUsernameError] = React.useState(false);
     const [usernameErrorMessage, setUsernameErrorMessage] = React.useState('');
@@ -35,7 +40,9 @@ export function Login() {
         const password = data.get('password');
 
         if ( username && password) {
-            const error = await auth.login(username as string, password as string);
+            const authFunc = login ? auth.login : auth.register;
+
+            const error = await authFunc(username as string, password as string);
             setLoginError(error);
         }
     };
@@ -66,6 +73,27 @@ export function Login() {
         
         return isValid;
     };
+
+    let modeSwitch = 
+    <Typography sx={{ textAlign: 'center' }}>
+        Don&apos;t have an account?{' '}
+        <span>
+            <Link href='/signup' sx={{ alignSelf: 'center' }}>
+                Sign up
+            </Link>
+        </span>
+    </Typography>;
+    if ( ! login ) {
+        modeSwitch = 
+        <Typography sx={{ textAlign: 'center' }}>
+            Already have an account?{' '}
+            <span>
+                <Link href='/login' sx={{ alignSelf: 'center' }}>
+                    Login
+                </Link>
+            </span>
+        </Typography>;
+    }
     
     if ( auth.user ) {
         // user is already authenticated
@@ -79,7 +107,7 @@ export function Login() {
                     variant="h4"
                     sx={{ width: '100%', fontSize: 'clamp(2rem, 10vw, 2.15rem)' }}
                 >
-                    Sign in
+                    {login ? 'Sign In' : 'Sign Up'}
                 </Typography>
                 {loginError &&
                     <Alert variant="filled" severity="error" sx={{mt: '1em', mb: '2em'}}>
@@ -130,30 +158,15 @@ export function Login() {
                             color={passwordError ? 'error' : 'primary'}
                             />
                     </FormControl>
-                    <FormControlLabel
-                        control={<Checkbox value="remember" color="primary" />}
-                        label="Remember me"
-                    />
                     <Button
                         type="submit"
                         fullWidth
                         variant="contained"
                         onClick={validateInputs}
                     >
-                        Sign in
+                        {login ? 'Sign In' : 'Sign Up'}
                     </Button>
-                    <Typography sx={{ textAlign: 'center' }}>
-                        Don&apos;t have an account?{' '}
-                        <span>
-                            <Link
-                                href="/material-ui/getting-started/templates/sign-in/"
-                                variant="body2"
-                                sx={{ alignSelf: 'center' }}
-                            >
-                                Sign up
-                            </Link>
-                        </span>
-                    </Typography>
+                    {modeSwitch}
                 </Box>
             </Card>
         </Container>

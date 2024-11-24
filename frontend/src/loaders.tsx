@@ -1,4 +1,4 @@
-const AUTH_URL = "http://localhost:8000/auth/login/";
+const AUTH_URL = "http://localhost:8000/auth";
 const API_URL = "http://localhost:8000/api";
 
 type APISuccessResponse<T> = {
@@ -76,9 +76,18 @@ async function makeAPIRequest<T>(URL: string, method: string, body?: string): Pr
 }
 
 export async function login(username: string, password: string): Promise<APIResponse<void>> {
-    return await makeAPIRequest(AUTH_URL, 'POST', JSON.stringify({
+    const loginURL = `${AUTH_URL}/login/`;
+    return await makeAPIRequest(loginURL, 'POST', JSON.stringify({
         username: username,
         password: password
+    }));
+}
+export async function register(username: string, password: string): Promise<APIResponse<void>> {
+    const registrationURL = `${AUTH_URL}/registration/`;
+    return await makeAPIRequest(registrationURL, 'POST', JSON.stringify({
+        username: username,
+        password1: password,
+        password2: password
     }));
 }
 

@@ -14,12 +14,6 @@
     * allow items to be moved to categories within the same list
 * social auth
     * should be able to do this via df-rest-auth, so should be able to remove social-auth-app-django
-* provide a method of creating a user
-    * DRF create Token
-        * https://dj-rest-auth.readthedocs.io/en/latest/api_endpoints.html
-        * https://www.django-rest-framework.org/api-guide/authentication/#tokenauthentication
-        * https://stackoverflow.com/questions/34114427/django-upgrading-to-1-9-error-appregistrynotready-apps-arent-loaded-yet
-        * https://www.django-rest-framework.org/api-guide/permissions/#isauthenticated
 * tests
     * permissions
     * reordering
@@ -36,6 +30,7 @@
 * CSRF tokens
 * make sure all errors from APIs are handled
     * handle API errors with a specific key other than "non_field_errors", such as adding list with bad category
+    * pass error key to loader function?
 * consider using e.g. React Query to handle API calls
     * https://tanstack.com/query/latest/docs/framework/react/overview
 * do not refresh page when not necessary, e.g. just remove items from DOM on successful delete

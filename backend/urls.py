@@ -10,5 +10,6 @@ urlpatterns = [
     # add login / logout to the browseable API
     re_path(r'api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     # API auth
-    re_path(r'auth/', include('dj_rest_auth.urls'))
+    re_path(r'auth/', include('dj_rest_auth.urls')),
+    re_path(r'auth/registration/', include('dj_rest_auth.registration.urls')),
 ]

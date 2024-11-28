@@ -14,11 +14,9 @@
     * allow items to be moved to categories within the same list
 * social auth
     * should be able to do this via df-rest-auth, so should be able to remove social-auth-app-django
-* tests
-    * permissions
-    * reordering
 * CI
     * mypy
+* add lists, categories, and items to django admin
 
 ## Frontend
 * Auto-update / live-sync via e.g. web sockets?

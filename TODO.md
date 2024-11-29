@@ -16,7 +16,6 @@
     * should be able to do this via df-rest-auth, so should be able to remove social-auth-app-django
 * CI
     * mypy
-* add lists, categories, and items to django admin
 
 ## Frontend
 * Auto-update / live-sync via e.g. web sockets?

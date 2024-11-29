@@ -32,6 +32,9 @@ class FancyList(AbstractReorderable):
     
     def get_siblings(self):
         return FancyList.objects.filter(owner=self.owner).order_by("display_order")
+    
+    class Meta:
+        verbose_name_plural = 'FancyLists'
 
 
 class Category(AbstractReorderable):
@@ -43,6 +46,9 @@ class Category(AbstractReorderable):
     
     def get_siblings(self):
         return Category.objects.filter(list=self.list).order_by("display_order")
+    
+    class Meta:
+        verbose_name_plural = 'Categories'
 
 
 class Item(AbstractReorderable):

@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { useNavigate, useOutletContext } from 'react-router-dom';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
@@ -7,22 +6,9 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 
-import { ListType, updateList } from '../loaders';
-import { SnackbarContextType } from '../routes/root';
+import { ListType } from '../loaders';
 
-export function UpdateListDialog({open, handleClose, list}: {open: boolean, handleClose: Function, list: ListType}) {
-    const navigate = useNavigate();
-    const context = useOutletContext() as SnackbarContextType;
-
-    const handleCreateList = async (name: string) => {
-        const APIResponse = await updateList(list.id, name);
-        if ( APIResponse.success ) {
-            navigate(0);
-        } else {
-            context.setSnackBarError(APIResponse.error);
-        }
-    }
-
+export function UpdateListDialog({open, handleClose, handleUpdate, list}: {open: boolean, handleClose: Function, handleUpdate: Function, list: ListType}) {
     return (
         <Dialog
             open={open}
@@ -34,7 +20,7 @@ export function UpdateListDialog({open, handleClose, list}: {open: boolean, hand
                     event.preventDefault();
                     const formData = new FormData(event.currentTarget);
                     const formJson = Object.fromEntries((formData as any).entries());
-                    handleCreateList(formJson.name);
+                    handleUpdate(formJson.name);
                 },
             }}
         >

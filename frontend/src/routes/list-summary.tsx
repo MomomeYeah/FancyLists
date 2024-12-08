@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useLoaderData, Link, useNavigate, useOutletContext } from 'react-router-dom';
+import { useLoaderData, Link, useOutletContext } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -11,7 +11,7 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 
-import { ListType, getLists, deleteList, APIResponse, updateListDisplayOrder } from '../loaders';
+import { ListType, getLists, deleteList, APIResponse, updateListDisplayOrder, addList, updateList } from '../loaders';
 import { CreateListDialog } from '../components/CreateListDialog';
 import '../App.css';
 import { SnackbarContextType } from './root';
@@ -19,14 +19,14 @@ import { DndContext, DraggableAttributes, DragOverlay } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { DragIndicator } from '@mui/icons-material';
 import { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
-import { getDraggableData, getDraggableTransform, useReorderable } from '../hooks/useReorderable';
+import { getDraggableData, getDraggableTransform, ReorderableUtils, useReorderable } from '../hooks/useReorderable';
 import { UpdateListDialog } from '../components/UpdateListDialog';
 
 export async function loader() {
     return await getLists();
 }
 
-function SortableList({list}: {list: ListType}) {
+function SortableList({list, reorderableUtils}: ListProps) {
     const {
         attributes,
         listeners,
@@ -40,15 +40,19 @@ function SortableList({list}: {list: ListType}) {
     
     return (
         <Box ref={setNodeRef} style={getDraggableTransform(transform, transition)}>
-            <List list={list} listeners={listeners} attributes={attributes} />
+            <List list={list} reorderableUtils={reorderableUtils} listeners={listeners} attributes={attributes} />
         </Box>
     );
 }
 
-function List({list, listeners, attributes}: {list: ListType, listeners?: SyntheticListenerMap, attributes?: DraggableAttributes}) {
-    const navigate = useNavigate();
-    const context = useOutletContext() as SnackbarContextType;
-
+type ListProps = {
+    list: ListType,
+    reorderableUtils: ReorderableUtils<ListType>,
+    listeners?: SyntheticListenerMap,
+    attributes?: DraggableAttributes
+}
+function List({list, reorderableUtils, listeners, attributes}: ListProps) {
+    const outletContext = useOutletContext() as SnackbarContextType;
     const [updateListDialogOpen, setUpdateListDialogOpen] = React.useState(false);
     const handleClickUpdateListOpen = () => {
         setUpdateListDialogOpen(true);
@@ -57,15 +61,25 @@ function List({list, listeners, attributes}: {list: ListType, listeners?: Synthe
         setUpdateListDialogOpen(false);
     };
 
-    const handleClickDelete = async (listId: number) => {
-        const APIResponse = await deleteList(listId);
+    const handleUpdateList = async (name: string) => {
+        const APIResponse = await updateList(list.id, name);
         if ( APIResponse.success ) {
-            navigate(0);
+            reorderableUtils.updateElement(APIResponse.data);
+            handleClickUpdateListClose();
         } else {
-            context.setSnackBarError(APIResponse.error);
+            outletContext.setSnackBarError(APIResponse.error);
         }
-    };
+    }
 
+    const handleDeleteList = async () => {
+        const APIResponse = await deleteList(list.id);
+        if ( APIResponse.success ) {
+            reorderableUtils.deleteElement(list);
+        } else {
+            outletContext.setSnackBarError(APIResponse.error);
+        }
+    }
+    
     const targetURL = `/lists/${list.id}`;
     const createdDate = new Date(list.created_date);
 
@@ -107,50 +121,76 @@ function List({list, listeners, attributes}: {list: ListType, listeners?: Synthe
                     color="inherit"
                     aria-label="menu"                           
                     sx={{ mr: 2 }}
-                    onClick={e => handleClickDelete(list.id)}
+                    onClick={e => handleDeleteList()}
                     ><DeleteIcon />
                 </IconButton>
             </Card>
-            <UpdateListDialog open={updateListDialogOpen} handleClose={handleClickUpdateListClose} list={list} />
+            <UpdateListDialog open={updateListDialogOpen} handleClose={handleClickUpdateListClose} handleUpdate={handleUpdateList} list={list} />
         </React.Fragment>
     );
 }
 
 export function ListSummary() {
     const APIResponse = useLoaderData() as APIResponse<Array<ListType>>;
-    const lists = APIResponse.success ? APIResponse.data as Array<ListType> : [];
-    const [activeList, handleDragStart, handleDragEnd] = useReorderable(lists, updateListDisplayOrder);
-    const context = useOutletContext() as SnackbarContextType;
+    const APIResponseLists = APIResponse.success ? APIResponse.data as Array<ListType> : [];
+    const onReorder = async (listId: number, newDisplayOrder: number) => {
+        handleReorderList(listId, newDisplayOrder);
+    }
+    const {
+        reorderables,
+        setReorderables,
+        activeElement,
+        draggableProps,
+        reorderableUtils
+    } = useReorderable(APIResponseLists, onReorder);
+    const lists = reorderables;
+    const outletContext = useOutletContext() as SnackbarContextType;
 
     const [createListDialogOpen, setCreateListDialogOpen] = React.useState(false);
-    const handleClickOpen = () => {
+    const handleClickCreateListOpen = () => {
         setCreateListDialogOpen(true);
     };
-    const handleClose = () => {
+    const handleClickCreateListClose = () => {
         setCreateListDialogOpen(false);
     };
+    const handleCreateList = async (name: string) => {
+        const APIResponse = await addList(name);
+        if ( APIResponse.success ) {
+            reorderableUtils.createElement(APIResponse.data);
+            handleClickCreateListClose();
+        } else {
+            outletContext.setSnackBarError(APIResponse.error);
+        }
+    }
+
+    const handleReorderList = async (listId: number, newDisplayOrder: number) => {
+        const oldElements = [...reorderables];
+        reorderableUtils.reorderElement(listId, newDisplayOrder);
+        const APIResponse = await updateListDisplayOrder(listId, newDisplayOrder);
+        if ( ! APIResponse.success ) {
+            outletContext.setSnackBarError(APIResponse.error);
+            setReorderables(oldElements);
+        }
+    }
     
     useEffect(() => {
         if ( ! APIResponse.success ) {
-            context.setSnackBarError(APIResponse.error);
+            outletContext.setSnackBarError(APIResponse.error);
         }
     });
         
-    const appLists = lists.map(list => <SortableList key={list.id} list={list} />);
+    const appLists = lists.map(list => <SortableList key={list.id} list={list} reorderableUtils={reorderableUtils} />);
     return (
-        <DndContext
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-        >
+        <DndContext {...draggableProps}>
             <SortableContext items={lists} strategy={verticalListSortingStrategy}>
                 {appLists}
             </SortableContext>
             <DragOverlay>
-                {activeList ? <List list={activeList} /> : null}
+                {activeElement ? <List list={activeElement} reorderableUtils={reorderableUtils} /> : null}
             </DragOverlay>
             <Box key="Add List" sx={{ minWidth: 275 }}>
                 <Card variant="outlined" sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                    <CardActionArea onClick={() => handleClickOpen()}>
+                    <CardActionArea onClick={() => handleClickCreateListOpen()}>
                     <CardContent sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                             <Typography variant="h5" component="div">
                                 Add List
@@ -158,7 +198,7 @@ export function ListSummary() {
                             <AddIcon />
                         </CardContent>
                     </CardActionArea>
-                    <CreateListDialog open={createListDialogOpen} handleClose={handleClose} />
+                    <CreateListDialog open={createListDialogOpen} handleClose={handleClickCreateListClose} handleCreate={handleCreateList} />
                 </Card>
             </Box>
         </DndContext>

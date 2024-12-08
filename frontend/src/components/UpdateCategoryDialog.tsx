@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { useNavigate, useOutletContext } from 'react-router-dom';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
@@ -7,22 +6,9 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 
-import { CategoryType, updateCategory } from '../loaders';
-import { SnackbarContextType } from '../routes/root';
+import { CategoryType } from '../loaders';
 
-export function UpdateCategoryDialog({open, handleClose, category}: {open: boolean, handleClose: Function, category: CategoryType}) {
-    const navigate = useNavigate();
-    const context = useOutletContext() as SnackbarContextType;
-
-    const handleCreateCategory = async (name: string) => {
-        const APIResponse = await updateCategory(category.id, name);
-        if ( APIResponse.success ) {
-            navigate(0);
-        } else {
-            context.setSnackBarError(APIResponse.error);
-        }
-    }
-
+export function UpdateCategoryDialog({open, handleClose, handleUpdate, category}: {open: boolean, handleClose: Function, handleUpdate: Function, category: CategoryType}) {
     return (
         <Dialog
             open={open}
@@ -34,7 +20,7 @@ export function UpdateCategoryDialog({open, handleClose, category}: {open: boole
                     event.preventDefault();
                     const formData = new FormData(event.currentTarget);
                     const formJson = Object.fromEntries((formData as any).entries());
-                    handleCreateCategory(formJson.name);
+                    handleUpdate(formJson.name);
                 },
             }}
         >

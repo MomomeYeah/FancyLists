@@ -126,8 +126,8 @@ class CategorySerializer(ReorderableSerializer):
 class UpdateCategorySerializer(CategorySerializer):
     class Meta:
         model = Category
-        fields = ["id", "name", "list", "display_order", "item_set"]
-        read_only_fields = ["id", "list", "item_set"]
+        fields = ["id", "name", "list", "display_order", "items"]
+        read_only_fields = ["id", "list", "items"]
 
 
 class FancyListListSerializer(serializers.ModelSerializer):

@@ -2,8 +2,6 @@ import { Reorderable } from "../loaders";
 import { useState } from "react";
 import { DragEndEvent, DragStartEvent, UniqueIdentifier } from "@dnd-kit/core";
 import { Transform } from "@dnd-kit/utilities";
-import { useNavigate, useOutletContext } from "react-router-dom";
-import { SnackbarContextType } from "../routes/root";
 
 export const getDraggableData = (reorderable: Reorderable) => {
     return {
@@ -19,25 +17,62 @@ export const getDraggableTransform = (transform: Transform | null, transition: s
     } : undefined;
 }
 
-export const useReorderable = <T extends Reorderable>(elements: Array<T>, updateFn: Function) => {
-    const navigate = useNavigate();
-    const context = useOutletContext() as SnackbarContextType;
+export class ReorderableUtils<T extends Reorderable> {
+    reorderables: Array<T>;
+    setReorderables: Function;
 
-    const [activeElement, setActiveElement] = useState(null as T | null);
-    const getElementFromID = (id: UniqueIdentifier | null): T | null => {
-        let elementRet = null;
-        elements.forEach(element => {
-            if (element.id === id) {
-                elementRet = element;
-            }
-        });
-
-        return elementRet;
+    constructor(reorderables: Array<T>, setReorderables: Function) {
+        this.reorderables = reorderables;
+        this.setReorderables = setReorderables;
     }
 
+    getElementById = (id: UniqueIdentifier | null): T | null => {
+        return this.reorderables.find(element => element.id === id) || null;
+    };
+
+    createElement = async (newElement: T) => {
+        this.setReorderables([...this.reorderables, newElement]);
+    }
+
+    deleteElement = async (deletedElement: T) => {
+        const newElements = this.reorderables.filter(element => element.id !== deletedElement.id);
+        this.setReorderables(newElements);
+    }
+
+    updateElement = async (updatedElement: T) => {
+        const newElements = this.reorderables.map(element =>
+            element.id === updatedElement.id ? updatedElement : element
+        );
+        this.setReorderables(newElements);
+    }
+
+    reorderElement = (movedElementID: number, newDisplayOrder: number) => {
+        const movedElement = this.getElementById(movedElementID);
+        if ( ! movedElement ) {
+            return;
+        }
+
+        const unmovedElements = this.reorderables.filter(element => element.id !== movedElementID);
+        const elementsBeforeMovePosition = unmovedElements.slice(0, newDisplayOrder - 1);
+        const elementsAfterMovePosition = unmovedElements.slice(newDisplayOrder - 1);
+
+        const newElements = [...elementsBeforeMovePosition, movedElement, ...elementsAfterMovePosition];
+        newElements.forEach((element, idx) => {
+            element.display_order = idx + 1;
+        });
+
+        this.setReorderables(newElements);
+    };
+}
+
+export const useReorderable = <T extends Reorderable>(elements: Array<T>, onReorder: Function) => {
+    const [reorderables, setReorderables] = useState(elements);
+    const reorderableUtils = new ReorderableUtils(reorderables, setReorderables);
+
+    const [activeElement, setActiveElement] = useState(null as T | null);
     const handleDragStart = (event: DragStartEvent): void => {
         const {active} = event;
-        setActiveElement(getElementFromID(active.id));
+        setActiveElement(reorderableUtils.getElementById(active.id));
     }
     
     const handleDragEnd = async (event: DragEndEvent): Promise<void> => {
@@ -46,13 +81,19 @@ export const useReorderable = <T extends Reorderable>(elements: Array<T>, update
             return;
         }
         
-        const APIResponse = await updateFn(active.data.current.id, over.data.current.displayOrder);
-        if ( APIResponse.success ) {
-            navigate(0);
-        } else {
-            context.setSnackBarError(APIResponse.error);
-        }
+        onReorder(active.data.current.id, over.data.current.displayOrder);
     };
 
-    return [activeElement, handleDragStart, handleDragEnd] as const;
+    const draggableProps = {
+        onDragStart: handleDragStart,
+        onDragEnd: handleDragEnd
+    }
+
+    return {
+        reorderables,
+        setReorderables,
+        activeElement,
+        draggableProps,
+        reorderableUtils
+    } as const;
 }

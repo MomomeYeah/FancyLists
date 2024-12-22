@@ -9,7 +9,6 @@ from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
 
-
 class RegisterSerializer(DJRegisterSerializer):
     def custom_signup(self, request, user):
         user.is_superuser = True
@@ -18,42 +17,37 @@ class RegisterSerializer(DJRegisterSerializer):
 
 
 class ReorderableSerializer(serializers.ModelSerializer):
+    def get_parent(self, instance, validated_data):
+        raise NotImplementedError
+
     @transaction.atomic
     def update(self, instance, validated_data):
-        siblings = instance.get_siblings()
+        # get all siblings, accounting for whether the parent has changed
+        parent = self.get_parent(instance, validated_data)
+        siblings = self.Meta.model.get_siblings(parent=parent)
+        # remove the element being updated from the set of siblings
+        siblings_excluding_self = [s for s in siblings if s.id != instance.id]
+        # put the element being updated in the correct position
+        reordered_siblings =\
+            siblings_excluding_self[:validated_data["display_order"]] +\
+            [instance] +\
+            siblings_excluding_self[validated_data["display_order"]:]
+        
+        # re-normalise display orders
+        for idx, sibling in enumerate(reordered_siblings):
+            sibling.display_order = idx + 1
+            sibling.save()
 
-        # recalculate display order for items between the old and new positions
-        if "display_order" in validated_data and instance.display_order != validated_data["display_order"]:
-            if instance.display_order < validated_data["display_order"]:
-                siblings\
-                    .filter(display_order__gte=instance.display_order)\
-                    .filter(display_order__lte=validated_data["display_order"])\
-                    .exclude(id=instance.id)\
-                    .update(display_order=F("display_order") - 1)
-            else:
-                siblings\
-                    .filter(display_order__gte=validated_data["display_order"])\
-                    .filter(display_order__lte=instance.display_order)\
-                    .exclude(id=instance.id)\
-                    .update(display_order=F("display_order") + 1)
-
+        # update the display order of the element being updated to be 1-indexed
+        # rather than 0-indexed
+        validated_data["display_order"] += 1
         return super().update(instance, validated_data)
-                
-    def validate_display_order(self, display_order):
-        # model validation ensures display_order is a valid integer
-        instance = getattr(self, "instance", None)
-        if instance:
-            if display_order < 1:
-                raise ValidationError("Display order must be greater than zero")
-
-            siblings = instance.get_siblings()
-            if display_order > len(siblings):
-                raise ValidationError("Display order must be less than or equal to the number of siblings")
-
-        return display_order
 
 
 class ItemSerializer(ReorderableSerializer):
+    def get_parent(self, instance, validated_data):
+        return validated_data.get("category") or instance.category
+
     def create(self, validated_data):
         display_order = Item.objects.\
             filter(category = validated_data.get("category")).\
@@ -84,7 +78,7 @@ class UpdateItemSerializer(ItemSerializer):
     class Meta:
         model = Item
         fields = ["id", "name", "category", "display_order"]
-        read_only_fields = ["id", "category"]
+        read_only_fields = ["id"]
 
 
 class CategorySerializer(ReorderableSerializer):
@@ -96,6 +90,9 @@ class CategorySerializer(ReorderableSerializer):
                 .filter(category=instance)
                 .order_by('display_order'),
             many=True).data
+    
+    def get_parent(self, instance, validated_data):
+        return validated_data.get("list") or instance.list
 
     def create(self, validated_data):
         display_order = Category.objects.\
@@ -154,6 +151,7 @@ class FancyListListSerializer(serializers.ModelSerializer):
 class FancyListSerializer(ReorderableSerializer):
     owner = serializers.StringRelatedField()
     categories = serializers.SerializerMethodField("get_categories")
+    items = serializers.SerializerMethodField("get_items")
 
     def get_categories(self, instance):
         return CategorySerializer(
@@ -161,8 +159,18 @@ class FancyListSerializer(ReorderableSerializer):
                 .filter(list=instance)
                 .order_by('display_order'),
             many=True).data
+    
+    def get_items(self, instance):
+        return ItemSerializer(
+            Item.objects
+                .filter(category__list=instance)
+                .order_by('display_order'),
+            many=True).data
+    
+    def get_parent(self, instance, validated_data):
+        return validated_data.get("owner") or instance.owner
 
     class Meta:
         model = FancyList
-        fields = ["id", "name", "created_date", "owner", "display_order", "categories"]
-        read_only_fields = ["id", "created_date", "owner", "categories"]
+        fields = ["id", "name", "created_date", "owner", "display_order", "categories", "items"]
+        read_only_fields = ["id", "created_date", "owner", "categories", "items"]

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Params, redirect, useLoaderData, useOutletContext } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
@@ -12,16 +12,15 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 import { CreateCategoryDialog } from '../components/CreateCategoryDialog';
 import { CreateItemDialog } from '../components/CreateItemDialog';
-import { ListType, CategoryType, getList, deleteCategory, updateItemDisplayOrder, deleteItem, updateCategoryDisplayOrder, ItemType, updateCategory, addCategory, addItem, updateItem } from '../loaders';
+import { ListType, CategoryType, getList, deleteCategory, moveItem, deleteItem, moveCategory, ItemType, updateCategory, addCategory, addItem, updateItem } from '../loaders';
 import { SnackbarContextType } from './root';
 import './list.css';
-import { DndContext, DraggableAttributes, DragOverlay } from '@dnd-kit/core';
+import { DndContext, DragEndEvent, DragOverEvent, DragOverlay, DragStartEvent } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { DragIndicator } from '@mui/icons-material';
-import { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
 import { getDraggableData, getDraggableTransform, ReorderableUtils, useReorderable } from '../hooks/useReorderable';
 import { UpdateItemDialog } from '../components/UpdateItemDialog';
 import { UpdateCategoryDialog } from '../components/UpdateCategoryDialog';
+import classNames from 'classnames';
 
 export async function loader({ params }: {params: Params<"listId">}) {
     if ( params.hasOwnProperty("listId") ) {
@@ -46,14 +45,15 @@ function SortableItem({item, reorderableUtils}: ItemProps) {
         setNodeRef,
         transform,
         transition,
+        isDragging
     } = useSortable({
         id: item.id,
-        data: getDraggableData(item)
+        data: getDraggableData(item, "Item")
     });
     
     return (
-        <Box ref={setNodeRef} style={getDraggableTransform(transform, transition)}>
-            <Item item={item} reorderableUtils={reorderableUtils} listeners={listeners} attributes={attributes} />
+        <Box ref={setNodeRef} style={getDraggableTransform(transform, transition, isDragging)} {...listeners} {...attributes}>
+            <Item item={item} reorderableUtils={reorderableUtils} />
         </Box>
     );
 }
@@ -61,13 +61,12 @@ function SortableItem({item, reorderableUtils}: ItemProps) {
 type ItemProps = {
     item: ItemType,
     reorderableUtils: ReorderableUtils<ItemType>,
-    listeners?: SyntheticListenerMap,
-    attributes?: DraggableAttributes    
+    isDragOverlay?: boolean
 }
-function Item({item, reorderableUtils, listeners, attributes}: ItemProps) {
+function Item({item, reorderableUtils, isDragOverlay = false}: ItemProps) {
     const outletContext = useOutletContext() as SnackbarContextType;
     
-    const [updateItemDialogOpen, setUpdateItemDialogOpen] = React.useState(false);
+    const [updateItemDialogOpen, setUpdateItemDialogOpen] = useState(false);
     const handleClickOpen = () => {
         setUpdateItemDialogOpen(true);
       };
@@ -76,7 +75,7 @@ function Item({item, reorderableUtils, listeners, attributes}: ItemProps) {
     };
 
     const handleUpdateItem = async (name: string) => {
-        const APIResponse = await updateItem(item.id, name);
+        const APIResponse = await updateItem(item, name);
         if ( APIResponse.success ) {
             reorderableUtils.updateElement(APIResponse.data);
             handleClose();
@@ -86,7 +85,7 @@ function Item({item, reorderableUtils, listeners, attributes}: ItemProps) {
     }
 
     const handleDeleteItem = async () => {
-        const APIResponse = await deleteItem(item.id);
+        const APIResponse = await deleteItem(item);
         if ( APIResponse.success ) {
             reorderableUtils.deleteElement(item);
         } else {
@@ -96,15 +95,11 @@ function Item({item, reorderableUtils, listeners, attributes}: ItemProps) {
 
     return (
         <React.Fragment>
-            <Card variant="elevation" elevation={6} className='item-card flex-parent'>
-                <IconButton {...attributes} {...listeners}
-                    size="large"
-                    edge="start"
-                    color="inherit"
-                    aria-label="menu"
-                    sx={{mr: "0.5em"}}
-                    ><DragIndicator />
-                </IconButton>
+            <Card
+                variant="elevation"
+                elevation={6}
+                sx={{pl: 0}}
+                className={classNames('item-card', 'flex-parent', { 'dragging': isDragOverlay })}>
                 <CardActionArea onClick={() => handleClickOpen()}>
                     <CardContent>
                         <Typography component="div">{item.name} ({item.display_order})</Typography>
@@ -125,47 +120,38 @@ function Item({item, reorderableUtils, listeners, attributes}: ItemProps) {
     );
 }
 
-function SortableCategory({category, reorderableUtils}: CategoryProps) {
+function SortableCategory({category, allItems, categoryReorderableUtils, itemReorderableUtils}: CategoryProps) {
     const {
         attributes,
+        isDragging,
         listeners,
         setNodeRef,
         transform,
-        transition,
+        transition
     } = useSortable({
         id: category.id,
-        data: getDraggableData(category)
+        data: getDraggableData(category, "Category")
     });
     
     return (
-        <Box ref={setNodeRef} style={getDraggableTransform(transform, transition)}>
-            <Category category={category} reorderableUtils={reorderableUtils} listeners={listeners} attributes={attributes} />
+        <Box ref={setNodeRef} style={getDraggableTransform(transform, transition, isDragging)} {...listeners} {...attributes}>
+            <Category category={category} allItems={allItems} categoryReorderableUtils={categoryReorderableUtils} itemReorderableUtils={itemReorderableUtils} />
         </Box>
     );
 }
 
 type CategoryProps = {
     category: CategoryType,
-    reorderableUtils: ReorderableUtils<CategoryType>,
-    listeners?: SyntheticListenerMap,
-    attributes?: DraggableAttributes
+    allItems: Array<ItemType>,
+    categoryReorderableUtils: ReorderableUtils<CategoryType>,
+    itemReorderableUtils: ReorderableUtils<ItemType>,
+    isDragOverlay?: boolean
 }
-function Category({category, reorderableUtils, listeners, attributes}: CategoryProps) {
-    const onReorder = async (itemId: number, newDisplayOrder: number) => {
-        handleReorderItem(itemId, newDisplayOrder);
-    }
-    const {
-        reorderables,
-        setReorderables,
-        activeElement,
-        draggableProps,
-        reorderableUtils: itemReorderableUtils
-    } = useReorderable(category.items, onReorder);
-    const items = reorderables;
-    // const context = useContext(ReorderableContext);
+function Category({category, allItems, categoryReorderableUtils, itemReorderableUtils, isDragOverlay = false}: CategoryProps) {
+    const items = allItems.filter(item => item.category === category.id);
     const outletContext = useOutletContext() as SnackbarContextType;
     
-    const [createItemDialogOpen, setCreateItemDialogOpen] = React.useState(false);
+    const [createItemDialogOpen, setCreateItemDialogOpen] = useState(false);
     const handleClickCreateItemOpen = () => {
         setCreateItemDialogOpen(true);
       };
@@ -173,7 +159,7 @@ function Category({category, reorderableUtils, listeners, attributes}: CategoryP
         setCreateItemDialogOpen(false);
     };
 
-    const [updateCategoryDialogOpen, setUpdateCategoryDialogOpen] = React.useState(false);
+    const [updateCategoryDialogOpen, setUpdateCategoryDialogOpen] = useState(false);
     const handleClickUpdateCategoryOpen = () => {
         setUpdateCategoryDialogOpen(true);
       };
@@ -182,9 +168,9 @@ function Category({category, reorderableUtils, listeners, attributes}: CategoryP
     };
 
     const handleUpdateCategory = async (name: string) => {
-        const APIResponse = await updateCategory(category.id, name);
+        const APIResponse = await updateCategory(category, name);
         if ( APIResponse.success ) {
-            reorderableUtils.updateElement(APIResponse.data);
+            categoryReorderableUtils.updateElement(APIResponse.data);
             handleClickUpdateCategoryClose();
         } else {
             outletContext.setSnackBarError(APIResponse.error);
@@ -192,16 +178,16 @@ function Category({category, reorderableUtils, listeners, attributes}: CategoryP
     }
 
     const handleClickDeleteCategory = async () => {
-        const APIResponse = await deleteCategory(category.id);
+        const APIResponse = await deleteCategory(category);
         if ( APIResponse.success ) {
-            reorderableUtils.deleteElement(category);
+            categoryReorderableUtils.deleteElement(category);
         } else {
             outletContext.setSnackBarError(APIResponse.error);
         }
     };
 
     const handleCreateItem = async (name: string) => {
-        const APIResponse = await addItem(category.id, name);
+        const APIResponse = await addItem(category, name);
         if ( APIResponse.success ) {
             itemReorderableUtils.createElement(APIResponse.data);
             handleClickCreateItemClose();
@@ -210,85 +196,69 @@ function Category({category, reorderableUtils, listeners, attributes}: CategoryP
         }
     }
 
-    const handleReorderItem = async (itemId: number, newDisplayOrder: number) => {
-        const oldElements = [...reorderables];
-        itemReorderableUtils.reorderElement(itemId, newDisplayOrder);
-        const APIResponse = await updateItemDisplayOrder(itemId, newDisplayOrder);
-        if ( ! APIResponse.success ) {
-            outletContext.setSnackBarError(APIResponse.error);
-            setReorderables(oldElements);
-        }
-    }
-
     const categoryItems = items.map(item => <SortableItem key={item.id} item={item} reorderableUtils={itemReorderableUtils} />);
     return (
-        <DndContext {...draggableProps}>
-            <Box sx={{ minWidth: 275 }}>
-                <Card variant="outlined" className='category-container'>
-                    <Box className='flex-parent' sx={{padding: '0'}}>
-                        <IconButton {...attributes} {...listeners}
-                            size="large"
-                            edge="start"
-                            color="inherit"
-                            aria-label="menu"
-                            ><DragIndicator />
-                        </IconButton>
-                        <CardActionArea onClick={() => handleClickUpdateCategoryOpen()}>
-                            <CardContent>    
-                                <Typography variant="h5" component="div">
-                                    {category.name} ({category.display_order})
-                                </Typography>
-                            </CardContent>
-                        </CardActionArea>
-                        <IconButton
-                            size="large"
-                            edge="start"
-                            color="inherit"
-                            aria-label="menu"
-                            onClick={e => handleClickDeleteCategory()}
-                            ><DeleteIcon/>
-                        </IconButton>
-                    </Box>
-                    <UpdateCategoryDialog open={updateCategoryDialogOpen} handleClose={handleClickUpdateCategoryClose} handleUpdate={handleUpdateCategory} category={category} />
-                    <SortableContext items={items} strategy={verticalListSortingStrategy}>
-                        {categoryItems}
-                    </SortableContext>
-                    <DragOverlay>
-                        {activeElement ? <Item item={activeElement} reorderableUtils={itemReorderableUtils} /> : null}
-                    </DragOverlay>
-                    <Card variant="elevation" elevation={6} className='item-card'>
-                        <CardActionArea onClick={() => handleClickCreateItemOpen()}>
-                            <CardContent className='flex-parent'>
-                                <Typography component="div">
-                                    Add Item
-                                </Typography>
-                                <AddIcon />
-                            </CardContent>
-                        </CardActionArea>
-                    </Card>
-                    <CreateItemDialog open={createItemDialogOpen} handleClose={handleClickCreateItemClose} handleCreate={handleCreateItem} />
+        <Box sx={{ minWidth: 275 }}>
+            <Card variant="outlined" className={classNames('category-container', { 'dragging': isDragOverlay })}>
+                <Box className='flex-parent' sx={{padding: '0'}}>
+                    <CardActionArea onClick={() => handleClickUpdateCategoryOpen()}>
+                        <CardContent>    
+                            <Typography variant="h5" component="div">
+                                {category.name} ({category.display_order})
+                            </Typography>
+                        </CardContent>
+                    </CardActionArea>
+                    <IconButton
+                        size="large"
+                        edge="start"
+                        color="inherit"
+                        aria-label="menu"
+                        sx={{ ml: 2 }}
+                        onClick={e => handleClickDeleteCategory()}
+                        ><DeleteIcon/>
+                    </IconButton>
+                </Box>
+                <UpdateCategoryDialog open={updateCategoryDialogOpen} handleClose={handleClickUpdateCategoryClose} handleUpdate={handleUpdateCategory} category={category} />
+                <SortableContext items={items} strategy={verticalListSortingStrategy}>
+                    {categoryItems}
+                </SortableContext>
+                <Card variant="elevation" elevation={6} className='item-card'>
+                    <CardActionArea onClick={() => handleClickCreateItemOpen()}>
+                        <CardContent className='flex-parent'>
+                            <Typography component="div">
+                                Add Item
+                            </Typography>
+                            <AddIcon />
+                        </CardContent>
+                    </CardActionArea>
                 </Card>
-            </Box>
-        </DndContext>
+                <CreateItemDialog open={createItemDialogOpen} handleClose={handleClickCreateItemClose} handleCreate={handleCreateItem} />
+            </Card>
+        </Box>
     );
 }
 
 export function FancyList() {
     const list = useLoaderData() as ListType;
-    const onReorder = async (categoryId: number, newDisplayOrder: number) => {
-        handleReorderCategory(categoryId, newDisplayOrder);
-    }
     const {
-        reorderables,
-        setReorderables,
-        activeElement,
+        reorderables: categories,
+        setReorderables: setCategories,
+        activeElement: activeCategory,
+        setActiveElement: setActiveCategory,
         draggableProps,
-        reorderableUtils
-    } = useReorderable(list.categories, onReorder);
-    const categories = reorderables;
+        reorderableUtils: categoryReorderableUtils
+    } = useReorderable(list.categories);
+    // may need to e.g. remove items corresponding to deleted categories
+    const {
+        reorderables: items,
+        setReorderables: setItems,
+        activeElement: activeItem,
+        setActiveElement: setActiveItem,
+        reorderableUtils: itemReorderableUtils
+    } = useReorderable(list.items);
     const outletContext = useOutletContext() as SnackbarContextType;
     
-    const [createCategoryDialogOpen, setCreateCategoryDialogOpen] = React.useState(false);
+    const [createCategoryDialogOpen, setCreateCategoryDialogOpen] = useState(false);
     const handleClickOpen = () => {
         setCreateCategoryDialogOpen(true);
       };
@@ -297,42 +267,117 @@ export function FancyList() {
     };
 
     const handleCreateCategory = async (name: string) => {
-        const APIResponse = await addCategory(list.id, name);
+        const APIResponse = await addCategory(list, name);
         if ( APIResponse.success ) {
-            reorderableUtils.createElement(APIResponse.data);
+            categoryReorderableUtils.createElement(APIResponse.data);
             handleClose();
         } else {
             outletContext.setSnackBarError(APIResponse.error);
         }
     }
 
-    const handleReorderCategory = async (categoryId: number, newDisplayOrder: number) => {
-        const oldElements = [...reorderables];
-        reorderableUtils.reorderElement(categoryId, newDisplayOrder);
-        const APIResponse = await updateCategoryDisplayOrder(categoryId, newDisplayOrder);
+    const handleReorderCategory = async (movedCategory: CategoryType, overCategory: CategoryType) => {
+        const oldElements = [...categories];
+        categoryReorderableUtils.reorderElement(movedCategory, overCategory);
+        
+        // calculate new display order based on the position of the category hovered over, as items
+        // will not have updated yet
+        const APIResponse = await moveCategory(movedCategory, categories.indexOf(overCategory));
         if ( ! APIResponse.success ) {
             outletContext.setSnackBarError(APIResponse.error);
-            setReorderables(oldElements);
+            setCategories(oldElements);
         }
     }
 
-    const listCategories = categories.map(category => <SortableCategory key={category.id} category={category} reorderableUtils={reorderableUtils} />);
+    const handleReorderItem = async (movedItem: ItemType, overItem: ItemType) => {
+        const oldElements = [...items];
+        itemReorderableUtils.reorderElement(movedItem, overItem);
+
+        // calculate new display order based on the position of the item hovered over, as items
+        // will not have updated yet
+        const display_order = items.filter(item => item.category === overItem.category).indexOf(overItem);
+        const APIResponse = await moveItem(movedItem, display_order);
+        if ( ! APIResponse.success ) {
+            outletContext.setSnackBarError(APIResponse.error);
+            setItems(oldElements);
+        }
+    }
+
+    const listCategories = categories.map(category => <SortableCategory key={category.id} category={category} allItems={items} categoryReorderableUtils={categoryReorderableUtils} itemReorderableUtils={itemReorderableUtils} />);
     return (
-        <DndContext {...draggableProps}>
-            <Box sx={{ minWidth: 275 }}>
-                <Card variant="outlined">
-                    <CardContent>
-                        <Typography variant="h5" component="div">
-                            {list.name}
-                        </Typography>
-                    </CardContent>
-                </Card>
-            </Box>
+        <DndContext
+            onDragStart={(event: DragStartEvent) => {
+                const {active} = event;
+
+                if ( ! active.data.current ) return;
+                
+                if ( active.data.current.type === "Item" ) {
+                    setActiveItem(active.data.current.element);
+                } else if ( active.data.current.type === "Category" ) {
+                    setActiveCategory(active.data.current.element);
+                }
+            }}
+
+            onDragEnd={(event: DragEndEvent) => {
+                setActiveItem(null);
+                setActiveCategory(null);
+                
+                const {active, over} = event;
+                if ( ! active.data.current || ! over?.data.current ) {
+                    return;
+                }
+
+                if ( active.data.current.type === "Item" ) {
+                    handleReorderItem(active.data.current.element, over.data.current.element);
+                } else if ( active.data.current.type === "Category" ) {
+                    handleReorderCategory(active.data.current.element, over.data.current.element);
+                }
+            }}
+
+            onDragOver={(event: DragOverEvent) => {
+                const {active, over} = event;
+                if ( ! active.data.current || ! over?.data.current ) {
+                    return;
+                }
+
+                if ( active.data.current.type !== "Item" ) return;
+
+                const current_item = active.data.current.element;
+
+                let new_category: CategoryType | undefined;
+                if ( over.data.current.type === "Category" ) {
+                    new_category = over.data.current.element;
+                } else {
+                    const category_id = over.data.current.element.category;
+                    new_category = categories.find(category => category.id === category_id);
+                }
+
+                if ( ! new_category ) return;
+
+                current_item.category = new_category.id;
+                const newItems = items.map(item => {
+                    return item.id === current_item.id ? current_item : item;
+                })
+                setItems(newItems);
+            }}
+
+            {...draggableProps}
+        >
+            <Card variant="outlined" sx={{ minWidth: 275 }}>
+                <CardContent>
+                    <Typography variant="h5" component="div">
+                        {list.name}
+                    </Typography>
+                </CardContent>
+                {/* Empty div here so that CardContent isn't the last-child, to remove additional padding */}
+                <div />
+            </Card>
             <SortableContext items={categories} strategy={verticalListSortingStrategy}>
                 {listCategories}
             </SortableContext>
             <DragOverlay>
-                {activeElement ? <Category category={activeElement} reorderableUtils={reorderableUtils} /> : null}
+                {activeCategory && <Category category={activeCategory} allItems={items} categoryReorderableUtils={categoryReorderableUtils} itemReorderableUtils={itemReorderableUtils} isDragOverlay={true} />}
+                {activeItem && <Item item={activeItem} reorderableUtils={itemReorderableUtils} isDragOverlay={true} />}
             </DragOverlay>
             <Box sx={{ minWidth: 275 }}>
                 <Card variant="outlined">

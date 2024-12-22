@@ -30,3 +30,28 @@
     margin: 5px;
 }
 
+/* Stolen shamelessly from:
+    - https://5fc05e08a4a65d0021ae0bf2-xkdjvdfnuz.chromatic.com/?path=/story/presets-sortable-multiple-containers--basic-setup
+    - https://github.com/clauderic/dnd-kit/blob/master/stories/components/Item/Item.module.css
+*/
+@keyframes pop {
+    0% {
+        transform: scale(1);
+        box-shadow: var(--box-shadow);
+    }
+    100% {
+        transform: scale(var(--scale));
+        box-shadow: var(--box-shadow-picked-up);
+    }
+}
+.dragging {
+    --scale: 1.05;
+    --box-shadow: none;
+    --box-shadow-picked-up: 0px 15px 15px 0 rgba(34, 33, 81, 0.5);
+
+    animation: pop 150ms cubic-bezier(0.18, 0.67, 0.6, 1.22);
+    /* Box shadow seems to be overridden for Items specifically, for some reason */
+    box-shadow: var(--box-shadow-picked-up) !important;
+    transform: scale(var(--scale));
+    z-index: 999;
+}

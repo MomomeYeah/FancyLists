@@ -99,7 +99,8 @@ export interface ListType extends Reorderable {
     name: string,
     created_date: string,
     owner: string,
-    categories: Array<CategoryType>
+    categories: Array<CategoryType>,
+    items: Array<ItemType>
 }
 export async function getLists(): Promise<APIResponse<Array<ListType>>> {
     const listsURL = `${API_URL}/lists`;
@@ -115,20 +116,20 @@ export async function addList(name: string): Promise<APIResponse<ListType>> {
         name: name
     }));
 }
-export async function updateList(listId: number, name: string): Promise<APIResponse<ListType>> {
-    const listURL = `${API_URL}/lists/${listId}/`;
+export async function updateList(list: ListType, name: string): Promise<APIResponse<ListType>> {
+    const listURL = `${API_URL}/lists/${list.id}/`;
     return await makeAPIRequest(listURL, 'PATCH', JSON.stringify({
         name: name
     }));
 }
-export async function updateListDisplayOrder(listId: number, displayOrder: number): Promise<APIResponse<ListType>> {
-    const listURL = `${API_URL}/lists/${listId}/`;
+export async function moveList(list: ListType, display_order: number): Promise<APIResponse<ListType>> {
+    const listURL = `${API_URL}/lists/${list.id}/`;
     return await makeAPIRequest(listURL, 'PATCH', JSON.stringify({
-        display_order: displayOrder
+        display_order: display_order
     }));
 }
-export async function deleteList(listId: number): Promise<APIResponse<void>> {
-    const listURL = `${API_URL}/lists/${listId}/`;
+export async function deleteList(list: ListType): Promise<APIResponse<void>> {
+    const listURL = `${API_URL}/lists/${list.id}/`;
     return await makeAPIRequest(listURL, 'DELETE');
 }
 
@@ -137,27 +138,27 @@ export interface CategoryType extends Reorderable {
     list: number,
     items: Array<ItemType>
 }
-export async function addCategory(listId: number, name: string): Promise<APIResponse<CategoryType>> {
+export async function addCategory(list: ListType, name: string): Promise<APIResponse<CategoryType>> {
     const categoryURL = `${API_URL}/categories/`;
     return await makeAPIRequest(categoryURL, 'POST', JSON.stringify({
-        list: listId,
+        list: list.id,
         name: name
     }));
 }
-export async function updateCategory(categoryId: number, name: string): Promise<APIResponse<CategoryType>> {
-    const categoryURL = `${API_URL}/categories/${categoryId}/`;
+export async function updateCategory(category: CategoryType, name: string): Promise<APIResponse<CategoryType>> {
+    const categoryURL = `${API_URL}/categories/${category.id}/`;
     return await makeAPIRequest(categoryURL, 'PATCH', JSON.stringify({
         name: name
     }));
 }
-export async function updateCategoryDisplayOrder(categoryId: number, displayOrder: number): Promise<APIResponse<CategoryType>> {
-    const categoryURL = `${API_URL}/categories/${categoryId}/`;
+export async function moveCategory(category: CategoryType, display_order: number): Promise<APIResponse<CategoryType>> {
+    const categoryURL = `${API_URL}/categories/${category.id}/`;
     return await makeAPIRequest(categoryURL, 'PATCH', JSON.stringify({
-        display_order: displayOrder
+        display_order: display_order
     }));
 }
-export async function deleteCategory(categoryId: number): Promise<APIResponse<void>> {
-    const categoryURL = `${API_URL}/categories/${categoryId}/`;
+export async function deleteCategory(category: CategoryType): Promise<APIResponse<void>> {
+    const categoryURL = `${API_URL}/categories/${category.id}/`;
     return await makeAPIRequest(categoryURL, 'DELETE');
 }
 
@@ -165,26 +166,27 @@ export interface ItemType extends Reorderable {
     name: string,
     category: number
 }
-export async function addItem(categoryId: number, name: string): Promise<APIResponse<ItemType>> {
+export async function addItem(category: CategoryType, name: string): Promise<APIResponse<ItemType>> {
     const itemURL = `${API_URL}/items/`;
     return await makeAPIRequest(itemURL, 'POST', JSON.stringify({
-        category: categoryId,
+        category: category.id,
         name: name
     }));
 }
-export async function updateItem(itemId: number, name: string): Promise<APIResponse<ItemType>> {
-    const itemURL = `${API_URL}/items/${itemId}/`;
+export async function updateItem(item: ItemType, name: string): Promise<APIResponse<ItemType>> {
+    const itemURL = `${API_URL}/items/${item.id}/`;
     return await makeAPIRequest(itemURL, 'PATCH', JSON.stringify({
         name: name
     }));
 }
-export async function updateItemDisplayOrder(itemId: number, displayOrder: number): Promise<APIResponse<ItemType>> {
-    const itemURL = `${API_URL}/items/${itemId}/`;
+export async function moveItem(item: ItemType, display_order: number): Promise<APIResponse<ItemType>> {
+    const itemURL = `${API_URL}/items/${item.id}/`;
     return await makeAPIRequest(itemURL, 'PATCH', JSON.stringify({
-        display_order: displayOrder
+        category: item.category,
+        display_order: display_order
     }));
 }
-export async function deleteItem(itemId: number): Promise<APIResponse<void>> {
-    const itemURL = `${API_URL}/items/${itemId}/`;
+export async function deleteItem(item: ItemType): Promise<APIResponse<void>> {
+    const itemURL = `${API_URL}/items/${item.id}/`;
     return await makeAPIRequest(itemURL, 'DELETE');
 }

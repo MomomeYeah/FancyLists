@@ -1,19 +1,21 @@
 import { Reorderable } from "../loaders";
 import { useState } from "react";
-import { DragEndEvent, DragStartEvent, UniqueIdentifier } from "@dnd-kit/core";
+import { MouseSensor, UniqueIdentifier, useSensor, useSensors } from "@dnd-kit/core";
 import { Transform } from "@dnd-kit/utilities";
+import { arrayMove } from "@dnd-kit/sortable";
 
-export const getDraggableData = (reorderable: Reorderable) => {
+export const getDraggableData = (reorderable: Reorderable, type: string) => {
     return {
-        id: reorderable.id,
-        displayOrder: reorderable.display_order
+        element: reorderable,
+        type: type
     }
 }
 
-export const getDraggableTransform = (transform: Transform | null, transition: string | undefined) => {
+export const getDraggableTransform = (transform: Transform | null, transition: string | undefined, isDragging: boolean) => {
     return transform ? {
         transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
         transition,
+        opacity: isDragging ? 0.25 : 1
     } : undefined;
 }
 
@@ -46,53 +48,35 @@ export class ReorderableUtils<T extends Reorderable> {
         this.setReorderables(newElements);
     }
 
-    reorderElement = (movedElementID: number, newDisplayOrder: number) => {
-        const movedElement = this.getElementById(movedElementID);
-        if ( ! movedElement ) {
-            return;
-        }
-
-        const unmovedElements = this.reorderables.filter(element => element.id !== movedElementID);
-        const elementsBeforeMovePosition = unmovedElements.slice(0, newDisplayOrder - 1);
-        const elementsAfterMovePosition = unmovedElements.slice(newDisplayOrder - 1);
-
-        const newElements = [...elementsBeforeMovePosition, movedElement, ...elementsAfterMovePosition];
-        newElements.forEach((element, idx) => {
-            element.display_order = idx + 1;
-        });
-
+    reorderElement = (movedElement: T, overElement: T) => {
+        const newElements = arrayMove(
+                this.reorderables,
+                this.reorderables.indexOf(movedElement),
+                this.reorderables.indexOf(overElement)
+        );
         this.setReorderables(newElements);
     };
 }
 
-export const useReorderable = <T extends Reorderable>(elements: Array<T>, onReorder: Function) => {
+export const useReorderable = <T extends Reorderable>(elements: Array<T>) => {
     const [reorderables, setReorderables] = useState(elements);
     const reorderableUtils = new ReorderableUtils(reorderables, setReorderables);
 
-    const [activeElement, setActiveElement] = useState(null as T | null);
-    const handleDragStart = (event: DragStartEvent): void => {
-        const {active} = event;
-        setActiveElement(reorderableUtils.getElementById(active.id));
-    }
-    
-    const handleDragEnd = async (event: DragEndEvent): Promise<void> => {
-        const {active, over} = event;
-        if ( ! active.data.current || ! over?.data.current ) {
-            return;
-        }
-        
-        onReorder(active.data.current.id, over.data.current.displayOrder);
-    };
+    const [activeElement, setActiveElement] = useState<T | null>(null);
+
+    const sensors = useSensors(
+        useSensor(MouseSensor, {activationConstraint: { delay: 100, tolerance: 5 }})
+    );
 
     const draggableProps = {
-        onDragStart: handleDragStart,
-        onDragEnd: handleDragEnd
+        sensors: sensors
     }
 
     return {
         reorderables,
         setReorderables,
         activeElement,
+        setActiveElement,
         draggableProps,
         reorderableUtils
     } as const;

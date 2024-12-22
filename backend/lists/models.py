@@ -5,18 +5,9 @@ from django.contrib.auth.models import User
 class AbstractReorderable(models.Model):
     display_order = models.IntegerField()
 
-    def get_siblings(self):
-        return User.objects.none()
-
-    def normalize_display_orders(self):
-        for idx, sibling in enumerate(self.get_siblings()):
-            sibling.display_order = idx + 1
-            sibling.save()
-
-    def delete(self):
-        with transaction.atomic():
-            super().delete()
-            self.normalize_display_orders()
+    @staticmethod
+    def get_siblings(parent):
+        raise NotImplementedError
 
     class Meta:
         abstract = True
@@ -30,8 +21,9 @@ class FancyList(AbstractReorderable):
     def __str__(self):
         return self.name
     
-    def get_siblings(self):
-        return FancyList.objects.filter(owner=self.owner).order_by("display_order")
+    @staticmethod
+    def get_siblings(parent):
+        return FancyList.objects.filter(owner=parent).order_by("display_order")
     
     class Meta:
         verbose_name_plural = 'FancyLists'
@@ -44,8 +36,9 @@ class Category(AbstractReorderable):
     def __str__(self):
         return self.name
     
-    def get_siblings(self):
-        return Category.objects.filter(list=self.list).order_by("display_order")
+    @staticmethod
+    def get_siblings(parent):
+        return Category.objects.filter(list=parent).order_by("display_order")
     
     class Meta:
         verbose_name_plural = 'Categories'
@@ -58,5 +51,6 @@ class Item(AbstractReorderable):
     def __str__(self):
         return self.name
     
-    def get_siblings(self):
-        return Item.objects.filter(category=self.category).order_by("display_order")
+    @staticmethod
+    def get_siblings(parent):
+        return Item.objects.filter(category=parent).order_by("display_order")

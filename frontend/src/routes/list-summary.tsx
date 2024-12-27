@@ -2,24 +2,21 @@ import React, { useEffect, useState } from 'react';
 import { useLoaderData, Link, useOutletContext } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
-import CardActionArea from '@mui/material/CardActionArea';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 
 import { ListType, getLists, deleteList, APIResponse, moveList, addList, updateList } from '../loaders';
 import { CreateListDialog } from '../components/CreateListDialog';
-import './list.css';
 import { SnackbarContextType } from './root';
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent } from '@dnd-kit/core';
+import { closestCenter, DndContext, DragEndEvent, DragOverlay, DragStartEvent } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { getDraggableData, getDraggableTransform, ReorderableUtils, useReorderable } from '../hooks/useReorderable';
 import { UpdateListDialog } from '../components/UpdateListDialog';
 import classNames from 'classnames';
+import { Container } from '@mui/material';
 
 export async function loader() {
     return await getLists();
@@ -84,42 +81,40 @@ function List({list, reorderableUtils, isDragOverlay = false}: ListProps) {
 
     return (
         <React.Fragment>
-            <Card
-                variant="outlined"
+            <Box
+                className={classNames('fancylist', { 'dragging': isDragOverlay })}
                 sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}
-                className={classNames({ 'dragging': isDragOverlay })}
             >
-                <CardActionArea component={Link} to={targetURL}>
-                    <CardContent>
-                        <Typography gutterBottom sx={{ color: 'text.secondary', fontSize: 14 }}>
-                            Created {createdDate.toLocaleDateString()} at {createdDate.toLocaleTimeString()}
+                <Box
+                    component={Link}
+                    to={targetURL}
+                    className="fancylist-header"
+                    sx={{flexGrow: 1}}
+                >
+                    <Typography gutterBottom>
+                        Created {createdDate.toLocaleDateString()} at {createdDate.toLocaleTimeString()}
+                    </Typography>
+                    <Box>
+                        <Typography variant="h5" component="div">
+                            {list.name}
                         </Typography>
-                        <Box>
-                            <Typography variant="h5" component="div">
-                                {list.name} ({list.display_order})
-                            </Typography>
-                        </Box>
-                    </CardContent>
-                </CardActionArea>
+                    </Box>
+                </Box>
                 <IconButton 
                     size="large"
                     edge="start"
-                    color="inherit"
                     aria-label="menu"
-                    sx={{ mr: 2, ml: 2 }}
                     onClick={e => handleClickUpdateListOpen()}
                     ><EditIcon />
                 </IconButton>
                 <IconButton 
                     size="large"
                     edge="start"
-                    color="inherit"
-                    aria-label="menu"                           
-                    sx={{ mr: 2 }}
+                    aria-label="menu"
                     onClick={e => handleDeleteList()}
                     ><DeleteIcon />
                 </IconButton>
-            </Card>
+            </Box>
             <UpdateListDialog open={updateListDialogOpen} handleClose={handleClickUpdateListClose} handleUpdate={handleUpdateList} list={list} />
         </React.Fragment>
     );
@@ -176,46 +171,47 @@ export function ListSummary() {
         
     const appLists = lists.map(list => <SortableList key={list.id} list={list} reorderableUtils={reorderableUtils} />);
     return (
-        <DndContext
-            onDragStart={(event: DragStartEvent) => {
-                const {active} = event;
-                if ( ! active.data.current ) return;
+        <Container maxWidth="md">
+            <DndContext
+                collisionDetection={closestCenter}
+                onDragStart={(event: DragStartEvent) => {
+                    const {active} = event;
+                    if ( ! active.data.current ) return;
 
-                setActiveList(active.data.current.element);
-            }}
+                    setActiveList(active.data.current.element);
+                }}
 
-            onDragEnd={(event: DragEndEvent) => {
-                setActiveList(null);
-                
-                const {active, over} = event;
-                if ( ! active.data.current || ! over?.data.current ) {
-                    return;
-                }
+                onDragEnd={(event: DragEndEvent) => {
+                    setActiveList(null);
+                    
+                    const {active, over} = event;
+                    if ( ! active.data.current || ! over?.data.current ) {
+                        return;
+                    }
 
-                handleReorderList(active.data.current.element, over.data.current.element);
-            }}
+                    handleReorderList(active.data.current.element, over.data.current.element);
+                }}
 
-            {...draggableProps}
-        >
-            <SortableContext items={lists} strategy={verticalListSortingStrategy}>
-                {appLists}
-            </SortableContext>
-            <DragOverlay>
-                {activeList && <List list={activeList} reorderableUtils={reorderableUtils} isDragOverlay={true} />}
-            </DragOverlay>
-            <Box key="Add List" sx={{ minWidth: 275 }}>
-                <Card variant="outlined" sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                    <CardActionArea onClick={() => handleClickCreateListOpen()}>
-                    <CardContent sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                            <Typography variant="h5" component="div">
-                                Add List
-                            </Typography>
-                            <AddIcon />
-                        </CardContent>
-                    </CardActionArea>
-                    <CreateListDialog open={createListDialogOpen} handleClose={handleClickCreateListClose} handleCreate={handleCreateList} />
-                </Card>
-            </Box>
-        </DndContext>
+                {...draggableProps}
+            >
+                <SortableContext items={lists} strategy={verticalListSortingStrategy}>
+                    {appLists}
+                </SortableContext>
+                <DragOverlay>
+                    {activeList && <List list={activeList} reorderableUtils={reorderableUtils} isDragOverlay={true} />}
+                </DragOverlay>
+                <Box
+                    className="fancylist"
+                    sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}
+                    onClick={() => handleClickCreateListOpen()}
+                >
+                    <Typography variant="h5" component="div">
+                        Add List
+                    </Typography>
+                    <AddIcon />
+                </Box>
+                <CreateListDialog open={createListDialogOpen} handleClose={handleClickCreateListClose} handleCreate={handleCreateList} />
+            </DndContext>
+        </Container>
     )
 }

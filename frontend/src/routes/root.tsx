@@ -3,7 +3,6 @@ import { Link, Navigate, Outlet, useSearchParams } from 'react-router-dom';
 import Alert from '@mui/material/Alert';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
-import Container from '@mui/material/Container';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
@@ -12,7 +11,6 @@ import MenuIcon from '@mui/icons-material/Menu';
 import Snackbar from '@mui/material/Snackbar';
 
 import { useAuth } from "../hooks/useAuth";
-import '../App.css';
 
 export type SnackbarContextType = {
     setSnackBarSuccess: Function,
@@ -50,7 +48,7 @@ export function Root() {
     }
 
     return (
-        <Container maxWidth="md">
+        <>
             <Snackbar
                 anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
                 open={snackbarOpen}
@@ -66,11 +64,10 @@ export function Root() {
                     {snackbarMessage}
                 </Alert>
             </Snackbar>
-            <Box sx={{ flexGrow: 1 }}>
+            <Box sx={{display: 'flex', flexDirection: 'column', height: '100vh'}}>
                 <AppBar position="static">
                     <Toolbar>
                         <IconButton 
-                            id="demo-positioned-button"
                             size="large"
                             edge="start"
                             color="inherit"
@@ -78,13 +75,17 @@ export function Root() {
                             sx={{ mr: 2 }}
                             ><MenuIcon />
                         </IconButton>
-                        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>Fancy Lists</Typography>
-                        <Button color="inherit" component={Link} to="/">Home</Button>
+                        <Typography
+                            variant="h6"
+                            component={Link}
+                            to="/"
+                            sx={{ flexGrow: 1, color: 'inherit', textDecoration: 'none' }}
+                        >Fancy Lists</Typography>
                         <Button color="inherit" onClick={() => auth.logout()}>Logout ({auth.user.username})</Button>
                     </Toolbar>
                 </AppBar>
+                <Outlet context={outletContext satisfies SnackbarContextType } />
             </Box>
-            <Outlet context={outletContext satisfies SnackbarContextType } />
-        </Container>
+        </>
     );
 }

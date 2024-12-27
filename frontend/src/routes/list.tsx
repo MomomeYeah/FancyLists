@@ -1,10 +1,7 @@
-import React, { useState } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
 import { Params, redirect, useLoaderData, useOutletContext } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import CardActionArea from '@mui/material/CardActionArea';
-import CardContent from '@mui/material/CardContent';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import AddIcon from '@mui/icons-material/Add';
@@ -14,9 +11,8 @@ import { CreateCategoryDialog } from '../components/CreateCategoryDialog';
 import { CreateItemDialog } from '../components/CreateItemDialog';
 import { ListType, CategoryType, getList, deleteCategory, moveItem, deleteItem, moveCategory, ItemType, updateCategory, addCategory, addItem, updateItem } from '../loaders';
 import { SnackbarContextType } from './root';
-import './list.css';
-import { DndContext, DragEndEvent, DragOverEvent, DragOverlay, DragStartEvent } from '@dnd-kit/core';
-import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { closestCenter, CollisionDetection, DndContext, DragEndEvent, DragOverEvent, DragOverlay, DragStartEvent, getFirstCollision, pointerWithin, rectIntersection } from '@dnd-kit/core';
+import { horizontalListSortingStrategy, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { getDraggableData, getDraggableTransform, ReorderableUtils, useReorderable } from '../hooks/useReorderable';
 import { UpdateItemDialog } from '../components/UpdateItemDialog';
 import { UpdateCategoryDialog } from '../components/UpdateCategoryDialog';
@@ -63,7 +59,7 @@ type ItemProps = {
     reorderableUtils: ReorderableUtils<ItemType>,
     isDragOverlay?: boolean
 }
-function Item({item, reorderableUtils, isDragOverlay = false}: ItemProps) {
+const Item = memo(({item, reorderableUtils, isDragOverlay = false}: ItemProps) => {
     const outletContext = useOutletContext() as SnackbarContextType;
     
     const [updateItemDialogOpen, setUpdateItemDialogOpen] = useState(false);
@@ -94,31 +90,27 @@ function Item({item, reorderableUtils, isDragOverlay = false}: ItemProps) {
     }
 
     return (
-        <React.Fragment>
-            <Card
-                variant="elevation"
-                elevation={6}
-                sx={{pl: 0}}
-                className={classNames('item-card', 'flex-parent', { 'dragging': isDragOverlay })}>
-                <CardActionArea onClick={() => handleClickOpen()}>
-                    <CardContent>
-                        <Typography component="div">{item.name} ({item.display_order})</Typography>
-                    </CardContent>
-                </CardActionArea>
+        <Box className={classNames('item-card', { 'dragging': isDragOverlay })}>
+            <Box sx={{display: "flex", alignItems: "center", justifyContent: "space-between"}}>
+                <Box
+                    sx={{flexGrow: 1}}
+                    onClick={() => handleClickOpen()}>
+                    <Typography component="div">{item.name}</Typography>
+                </Box>
                 <IconButton 
                     size="large"
                     edge="start"
                     color="inherit"
                     aria-label="menu"
-                    sx={{ml: "0.5em"}}
+                    className="menu-button"
                     onClick={e => handleDeleteItem()}
                     ><DeleteIcon/>
                 </IconButton>
-            </Card>
+            </Box>
             <UpdateItemDialog open={updateItemDialogOpen} handleClose={handleClose} handleUpdate={handleUpdateItem} item={item} />
-        </React.Fragment>
+        </Box>
     );
-}
+});
 
 function SortableCategory({category, allItems, categoryReorderableUtils, itemReorderableUtils}: CategoryProps) {
     const {
@@ -147,8 +139,19 @@ type CategoryProps = {
     itemReorderableUtils: ReorderableUtils<ItemType>,
     isDragOverlay?: boolean
 }
-function Category({category, allItems, categoryReorderableUtils, itemReorderableUtils, isDragOverlay = false}: CategoryProps) {
-    const items = allItems.filter(item => item.category === category.id);
+const Category = memo(({category, allItems, categoryReorderableUtils, itemReorderableUtils, isDragOverlay = false}: CategoryProps) => {
+    const items = useMemo(() => 
+        allItems.filter(item => item.category === category.id),
+        [allItems, category]
+    );
+    const sortableItems = useMemo(() =>
+        items.map(item =>
+            <SortableItem key={item.id} item={item} reorderableUtils={itemReorderableUtils} />
+        ),
+        [items, itemReorderableUtils]
+    );
+    
+
     const outletContext = useOutletContext() as SnackbarContextType;
     
     const [createItemDialogOpen, setCreateItemDialogOpen] = useState(false);
@@ -196,47 +199,46 @@ function Category({category, allItems, categoryReorderableUtils, itemReorderable
         }
     }
 
-    const categoryItems = items.map(item => <SortableItem key={item.id} item={item} reorderableUtils={itemReorderableUtils} />);
     return (
-        <Box sx={{ minWidth: 275 }}>
-            <Card variant="outlined" className={classNames('category-container', { 'dragging': isDragOverlay })}>
-                <Box className='flex-parent' sx={{padding: '0'}}>
-                    <CardActionArea onClick={() => handleClickUpdateCategoryOpen()}>
-                        <CardContent>    
-                            <Typography variant="h5" component="div">
-                                {category.name} ({category.display_order})
-                            </Typography>
-                        </CardContent>
-                    </CardActionArea>
-                    <IconButton
-                        size="large"
-                        edge="start"
-                        color="inherit"
-                        aria-label="menu"
-                        sx={{ ml: 2 }}
-                        onClick={e => handleClickDeleteCategory()}
-                        ><DeleteIcon/>
-                    </IconButton>
+        <Box className={classNames('category-container', { 'dragging dragging-category': isDragOverlay })}>
+            <Box className="category-header" sx={{display: "flex", alignItems: "center", justifyContent: "space-between"}}>
+                <Box sx={{flexGrow: 1}} onClick={() => handleClickUpdateCategoryOpen()}>
+                    <Typography variant="h6" component="div">{category.name}</Typography>
                 </Box>
-                <UpdateCategoryDialog open={updateCategoryDialogOpen} handleClose={handleClickUpdateCategoryClose} handleUpdate={handleUpdateCategory} category={category} />
+                <IconButton 
+                    size="large"
+                    edge="start"
+                    color="inherit"
+                    aria-label="menu"
+                    className="menu-button"
+                    onClick={e => handleClickDeleteCategory()}
+                    ><DeleteIcon/>
+                </IconButton>
+            </Box>
+            <UpdateCategoryDialog open={updateCategoryDialogOpen} handleClose={handleClickUpdateCategoryClose} handleUpdate={handleUpdateCategory} category={category} />
+            <Box className="category-items">
                 <SortableContext items={items} strategy={verticalListSortingStrategy}>
-                    {categoryItems}
+                    {sortableItems}
                 </SortableContext>
-                <Card variant="elevation" elevation={6} className='item-card'>
-                    <CardActionArea onClick={() => handleClickCreateItemOpen()}>
-                        <CardContent className='flex-parent'>
-                            <Typography component="div">
-                                Add Item
-                            </Typography>
-                            <AddIcon />
-                        </CardContent>
-                    </CardActionArea>
-                </Card>
-                <CreateItemDialog open={createItemDialogOpen} handleClose={handleClickCreateItemClose} handleCreate={handleCreateItem} />
-            </Card>
+            </Box>
+            <Box
+                className="add-item-card"
+                onClick={() => handleClickCreateItemOpen()}
+            >
+                <IconButton
+                    size="large"
+                    edge="start"
+                    color="inherit"
+                    aria-label="menu"
+                    sx={{mr: 2}}
+                    ><AddIcon/>
+                </IconButton>
+                <Typography component="div">Add Item...</Typography>
+            </Box>
+            <CreateItemDialog open={createItemDialogOpen} handleClose={handleClickCreateItemClose} handleCreate={handleCreateItem} />
         </Box>
     );
-}
+});
 
 export function FancyList() {
     const list = useLoaderData() as ListType;
@@ -303,9 +305,71 @@ export function FancyList() {
         }
     }
 
-    const listCategories = categories.map(category => <SortableCategory key={category.id} category={category} allItems={items} categoryReorderableUtils={categoryReorderableUtils} itemReorderableUtils={itemReorderableUtils} />);
+    // Droppable algorithms courtesy of
+    // https://github.com/clauderic/dnd-kit/blob/master/stories/2%20-%20Presets/Sortable/MultipleContainers.tsx
+    const category_ids = categories.map(category => category.id);
+    const collisionDetectionStrategy: CollisionDetection = useCallback(
+        (args) => {
+            // If dragging a category, only allow it to be dropped on top of another category
+            if ( activeCategory ) {
+                const filteredDroppables = args.droppableContainers.filter(
+                    (container) => category_ids.includes(Number(container.id))
+                );
+
+                return closestCenter({
+                    ...args,
+                    droppableContainers: filteredDroppables
+                });
+            }
+    
+            // Start by finding any intersecting droppable
+            const pointerIntersections = pointerWithin(args);
+            const intersections =
+                pointerIntersections.length > 0
+                ? // If there are droppables intersecting with the pointer, return those
+                    pointerIntersections
+                : rectIntersection(args);
+            let overId = getFirstCollision(intersections, 'id');
+    
+            if (overId != null) {
+                // If drop target is a category
+                if (category_ids.includes(Number(overId))) {
+                    const category_items = items.filter(item => item.category === Number(overId)).map(item => item.id);
+        
+                    // If matching category contains items
+                    if (category_items.length > 0) {
+                        // Return the closest droppable within that container
+                        overId = closestCenter({
+                            ...args,
+                            droppableContainers: args.droppableContainers.filter(
+                                (container) =>
+                                container.id !== overId &&
+                                category_items.includes(Number(container.id))
+                            ),
+                        })[0]?.id;
+                    }
+                }
+        
+                return [{id: overId}];
+            }
+
+            return [];
+        },
+        [activeCategory, category_ids, items]
+    );
+
+    const listCategories = useMemo(() =>
+        categories.map(category => 
+            <SortableCategory
+                key={category.id}
+                category={category}
+                allItems={items}
+                categoryReorderableUtils={categoryReorderableUtils}
+                itemReorderableUtils={itemReorderableUtils} />
+        ), [categoryReorderableUtils, itemReorderableUtils, categories, items]);
     return (
         <DndContext
+            collisionDetection={collisionDetectionStrategy}
             onDragStart={(event: DragStartEvent) => {
                 const {active} = event;
 
@@ -334,6 +398,7 @@ export function FancyList() {
                 }
             }}
 
+            // handle case where an item is dragged between categories
             onDragOver={(event: DragOverEvent) => {
                 const {active, over} = event;
                 if ( ! active.data.current || ! over?.data.current ) {
@@ -353,7 +418,10 @@ export function FancyList() {
                 }
 
                 if ( ! new_category ) return;
+                if ( current_item.category === new_category.id ) return;
 
+                // if an item is being dragged, is hovered over a category, and the category
+                // is not the item's parent, move the item to the new parent
                 current_item.category = new_category.id;
                 const newItems = items.map(item => {
                     return item.id === current_item.id ? current_item : item;
@@ -363,37 +431,36 @@ export function FancyList() {
 
             {...draggableProps}
         >
-            <Card variant="outlined" sx={{ minWidth: 275 }}>
-                <CardContent>
-                    <Typography variant="h5" component="div">
-                        {list.name}
-                    </Typography>
-                </CardContent>
-                {/* Empty div here so that CardContent isn't the last-child, to remove additional padding */}
-                <div />
-            </Card>
-            <SortableContext items={categories} strategy={verticalListSortingStrategy}>
-                {listCategories}
-            </SortableContext>
+            <Box className="list-header">
+                <Typography variant="h5" component="div">
+                    {list.name}
+                </Typography>
+            </Box>
+            <Box className="category-list">
+                <SortableContext items={categories} strategy={horizontalListSortingStrategy}>
+                    {listCategories}
+                </SortableContext>
+                <Box>
+                    <Box className="category-container">
+                        <Box className="category-header" sx={{display: "flex", alignItems: "center"}} onClick={() => handleClickOpen()}>
+                            <IconButton
+                                size="large"
+                                edge="start"
+                                color="inherit"
+                                aria-label="menu"
+                                sx={{mr: 2}}
+                                ><AddIcon/>
+                            </IconButton>
+                            <Typography variant="h6" component="div">Add Category...</Typography>
+                        </Box>
+                        <CreateCategoryDialog open={createCategoryDialogOpen} handleClose={handleClose} handleCreate={handleCreateCategory} />
+                    </Box>
+                </Box>
+            </Box>
             <DragOverlay>
                 {activeCategory && <Category category={activeCategory} allItems={items} categoryReorderableUtils={categoryReorderableUtils} itemReorderableUtils={itemReorderableUtils} isDragOverlay={true} />}
                 {activeItem && <Item item={activeItem} reorderableUtils={itemReorderableUtils} isDragOverlay={true} />}
             </DragOverlay>
-            <Box sx={{ minWidth: 275 }}>
-                <Card variant="outlined">
-                    <CardActionArea onClick={() => handleClickOpen()}>
-                        <CardContent>
-                            <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                                <Typography variant="h5" component="div">
-                                    Add Category
-                                </Typography>
-                                <AddIcon />
-                            </Box>
-                        </CardContent>
-                    </CardActionArea>
-                    <CreateCategoryDialog open={createCategoryDialogOpen} handleClose={handleClose} handleCreate={handleCreateCategory} />
-                </Card>
-            </Box>
         </DndContext>
     );
 }

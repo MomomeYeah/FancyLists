@@ -23,13 +23,15 @@
 * Nicer styles
     * Modal windows - can these be combined somehow?
         * Get rid of them entirely for list / column and just edit in place?
+        * Combine all create modals and all update modals, or all into a single type?
     * Update / reordering
-    *   Update snackbar to allow brief transient success message
-    *   https://mui.com/material-ui/transitions/
-    * Categories
-        * Highlight to edit is too wide
-    * Combine all create modals and all update modals, or all into a single type 
+        * Update snackbar to allow brief transient success message
+        * https://mui.com/material-ui/transitions/
     * delete via "drop here to delete"
+    * drag and drop is laggy when moving items between categories and when picking up items / categories
+        * much better using memoised components, just brief lag when dragging between categories
+    * nicer styles for login screen
+    * styles via MUI, e.g. CSSBaseLine
 * make sure all errors from APIs are handled
     * handle API errors with a specific key other than "non_field_errors", such as adding list with bad category
     * pass error key to loader function?

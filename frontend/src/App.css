@@ -1,6 +1,185 @@
-html * {
-  box-sizing: border-box;
+:root {
+  /* https://coolors.co/393d3f-d5d5d8-6d9dc5-346083-c1666b-b84a62 */
+  --padding-multiplier: 0.6em;
+  --border-radius: 10px;
+  --border-width: 4px;
+
+  --item-height: 50px;
+
+  --color-highlight-bold: #B84A62;
+  --color-highlight-muted: #C1666B;
+  --color-accent: #6D9DC5;
+  --color-accent-dark: #346083;
+  --color-dark: #393D3F;
+  --color-light: #D5D5D8;
 }
-body {
-  background-color: lightgrey;
+
+/* MUI overrides */
+.MuiButtonBase-root.MuiIconButton-root {
+    margin-left: 0;
+    padding: 0;
+}
+
+.MuiAppBar-root.MuiAppBar-colorPrimary {
+    background-color: var(--color-accent-dark);
+}
+
+/* Global styles */
+html * {
+    box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+    height: 100%;
+    margin: 0;
+}
+
+#root {
+    background-color: var(--color-accent);
+}
+
+/* List summary styles */
+.fancylist {
+    background-color: var(--color-dark);
+    border: var(--border-width) solid var(--color-light);
+    border-radius: var(--border-radius);
+    text-decoration: none;
+    margin: calc(1.2 * var(--padding-multiplier));
+    padding: calc(2 * var(--padding-multiplier));
+}
+.fancylist, .fancylist-header {
+    color: var(--color-light);
+    text-decoration: none;
+}
+.fancylist:hover {
+    border-color: var(--color-highlight-bold);
+}
+.fancylist .MuiButtonBase-root.MuiIconButton-root {
+    color: var(--color-light);
+    padding: var(--padding-multiplier);
+}
+.fancylist .MuiButtonBase-root.MuiIconButton-root:hover {
+    color: var(--color-highlight-bold);
+}
+
+/* List detail styles */
+.list-header {
+    background-color: var(--color-light);
+    color: var(--color-dark);
+    padding: calc(2 * var(--padding-multiplier));
+}
+
+.category-list {
+    background-color: var(--color-accent);
+    display: flex;
+    flex-direction: row;
+    flex-grow: 1;
+    padding: var(--padding-multiplier) calc(0.5 * var(--padding-multiplier));
+
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-highlight-bold) var(--color-dark);
+}
+
+.category-container {
+    background-color: var(--color-dark);
+    border: var(--border-width) solid var(--color-dark);
+    border-radius: var(--border-radius);
+    color: var(--color-light);
+    margin: 0 calc(0.5 * var(--padding-multiplier));
+    width: 350px;
+    min-width: 350px;
+
+    display: flex;
+    flex-direction: column;
+
+    max-height: 100%;
+}
+.category-container:hover {
+    border-color: var(--color-light);
+}
+.category-container .menu-button:hover {
+    color: var(--color-highlight-bold);
+}
+.category-header {
+    padding: var(--padding-multiplier) calc(var(--padding-multiplier));
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+.category-title {
+    flex-grow: 1;
+}
+.category-items {
+    flex-grow: 1;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-highlight-bold) var(--color-dark);
+
+    padding: 0 calc(0.5 * var(--padding-multiplier) + var(--border-width));
+    padding-top: var(--border-width);
+    margin-right: calc(0.5 * var(--padding-multiplier));
+}
+
+.item-card {
+    background-color: var(--color-light);
+    border: var(--border-width) solid var(--color-light);
+    border-radius: var(--border-radius);
+    color: var(--color-dark);
+    height: var(--item-height);
+    line-height: var(--item-height);
+    margin-bottom: calc(1.2 * var(--padding-multiplier));
+    padding: 0 calc(1.2 * var(--padding-multiplier));
+    width: 100%;
+}
+.item-card:hover {
+    border-color: var(--color-highlight-bold);
+}
+.item-card .menu-button:hover {
+    color: var(--color-highlight-bold);
+}
+.item-card > * {
+    height: 100%;
+}
+.add-item-card {
+    display: flex;
+    align-items: center;
+    padding: var(--padding-multiplier);
+    width: 100%;
+}
+.add-item-card:hover > * {
+    color: var(--color-highlight-muted);
+}
+
+/* Stolen shamelessly from:
+    - https://5fc05e08a4a65d0021ae0bf2-xkdjvdfnuz.chromatic.com/?path=/story/presets-sortable-multiple-containers--basic-setup
+    - https://github.com/clauderic/dnd-kit/blob/master/stories/components/Item/Item.module.css
+*/
+@keyframes pop {
+    0% {
+        transform: scale(1);
+        box-shadow: var(--box-shadow);
+    }
+    100% {
+        transform: scale(var(--scale));
+        box-shadow: var(--box-shadow-picked-up);
+    }
+}
+.dragging {
+    --scale: 1.05;
+    --box-shadow: none;
+    --box-shadow-color: var(--color-highlight-muted);
+    --box-shadow-picked-up: 0px 0px 15px 5px var(--box-shadow-color);
+
+    animation: pop 150ms cubic-bezier(0.18, 0.67, 0.6, 1.22);
+    box-shadow: var(--box-shadow-picked-up);
+    transform: scale(var(--scale));
+    z-index: 999;
+}
+.dragging-category {
+    --box-shadow-color: var(--color-light);
 }

@@ -22,25 +22,28 @@ class ReorderableSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def update(self, instance, validated_data):
-        # get all siblings, accounting for whether the parent has changed
-        parent = self.get_parent(instance, validated_data)
-        siblings = self.Meta.model.get_siblings(parent=parent)
-        # remove the element being updated from the set of siblings
-        siblings_excluding_self = [s for s in siblings if s.id != instance.id]
-        # put the element being updated in the correct position
-        reordered_siblings =\
-            siblings_excluding_self[:validated_data["display_order"]] +\
-            [instance] +\
-            siblings_excluding_self[validated_data["display_order"]:]
-        
-        # re-normalise display orders
-        for idx, sibling in enumerate(reordered_siblings):
-            sibling.display_order = idx + 1
-            sibling.save()
 
-        # update the display order of the element being updated to be 1-indexed
-        # rather than 0-indexed
-        validated_data["display_order"] += 1
+        if "display_order" in validated_data:
+            # get all siblings, accounting for whether the parent has changed
+            parent = self.get_parent(instance, validated_data)
+            siblings = self.Meta.model.get_siblings(parent=parent)
+            # remove the element being updated from the set of siblings
+            siblings_excluding_self = [s for s in siblings if s.id != instance.id]
+            # put the element being updated in the correct position
+            reordered_siblings =\
+                siblings_excluding_self[:validated_data["display_order"]] +\
+                [instance] +\
+                siblings_excluding_self[validated_data["display_order"]:]
+            
+            # re-normalise display orders
+            for idx, sibling in enumerate(reordered_siblings):
+                sibling.display_order = idx + 1
+                sibling.save()
+
+            # update the display order of the element being updated to be 1-indexed
+            # rather than 0-indexed
+            validated_data["display_order"] += 1
+            
         return super().update(instance, validated_data)
 
 

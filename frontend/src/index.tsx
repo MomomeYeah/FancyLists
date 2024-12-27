@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import './index.css';
 import { AuthRoot } from './routes/auth-root';
 import { Root } from './routes/root';
 import { ListSummary, loader as listSummaryLoader } from './routes/list-summary';
@@ -9,6 +8,7 @@ import { FancyList, loader as listLoader } from './routes/list';
 import { Login } from './routes/login';
 import { ErrorPage } from './components/ErrorPage';
 import reportWebVitals from './reportWebVitals';
+import './App.css';
 
 const router = createBrowserRouter([
     {

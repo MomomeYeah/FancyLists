@@ -1,6 +1,6 @@
 import { Reorderable } from "../loaders";
 import { useState } from "react";
-import { MouseSensor, UniqueIdentifier, useSensor, useSensors } from "@dnd-kit/core";
+import { PointerSensor, UniqueIdentifier, useSensor, useSensors } from "@dnd-kit/core";
 import { Transform } from "@dnd-kit/utilities";
 import { arrayMove } from "@dnd-kit/sortable";
 
@@ -65,7 +65,7 @@ export const useReorderable = <T extends Reorderable>(elements: Array<T>) => {
     const [activeElement, setActiveElement] = useState<T | null>(null);
 
     const sensors = useSensors(
-        useSensor(MouseSensor, {activationConstraint: { delay: 100, tolerance: 5 }})
+        useSensor(PointerSensor, {activationConstraint: { delay: 100, tolerance: 5 }})
     );
 
     const draggableProps = {

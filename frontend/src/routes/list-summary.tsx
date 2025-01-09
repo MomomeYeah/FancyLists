@@ -13,7 +13,7 @@ import { CreateListDialog } from '../components/CreateListDialog';
 import { SnackbarContextType } from './root';
 import { closestCenter, DndContext, DragEndEvent, DragOverlay, DragStartEvent } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { getDraggableData, getDraggableTransform, ReorderableUtils, useReorderable } from '../hooks/useReorderable';
+import { getDraggableData, getDraggableTransform, reorderElement, useReorderable } from '../hooks/useReorderable';
 import { UpdateListDialog } from '../components/UpdateListDialog';
 import classNames from 'classnames';
 import { Container } from '@mui/material';
@@ -22,7 +22,8 @@ export async function loader() {
     return await getLists();
 }
 
-function SortableList({list, reorderableUtils}: ListProps) {
+function SortableList(props: ListProps) {
+    const list = props.list;
     const {
         attributes,
         listeners,
@@ -37,17 +38,18 @@ function SortableList({list, reorderableUtils}: ListProps) {
     
     return (
         <Box ref={setNodeRef} style={getDraggableTransform(transform, transition, isDragging)} {...listeners} {...attributes}>
-            <List list={list} reorderableUtils={reorderableUtils} />
+            <List {...props} />
         </Box>
     );
 }
 
 type ListProps = {
     list: ListType,
-    reorderableUtils: ReorderableUtils<ListType>,
+    updateLists: Function,
+    deleteLists: Function,
     isDragOverlay?: boolean
 }
-function List({list, reorderableUtils, isDragOverlay = false}: ListProps) {
+function List({list, updateLists, deleteLists, isDragOverlay = false}: ListProps) {
     const outletContext = useOutletContext() as SnackbarContextType;
     const [updateListDialogOpen, setUpdateListDialogOpen] = useState(false);
     const handleClickUpdateListOpen = () => {
@@ -60,7 +62,7 @@ function List({list, reorderableUtils, isDragOverlay = false}: ListProps) {
     const handleUpdateList = async (name: string) => {
         const APIResponse = await updateList(list, name);
         if ( APIResponse.success ) {
-            reorderableUtils.updateElement(APIResponse.data);
+            updateLists(APIResponse.data);
             handleClickUpdateListClose();
         } else {
             outletContext.setSnackBarError(APIResponse.error);
@@ -70,7 +72,7 @@ function List({list, reorderableUtils, isDragOverlay = false}: ListProps) {
     const handleDeleteList = async () => {
         const APIResponse = await deleteList(list);
         if ( APIResponse.success ) {
-            reorderableUtils.deleteElement(list);
+            deleteLists(list);
         } else {
             outletContext.setSnackBarError(APIResponse.error);
         }
@@ -123,14 +125,9 @@ function List({list, reorderableUtils, isDragOverlay = false}: ListProps) {
 export function ListSummary() {
     const APIResponse = useLoaderData() as APIResponse<Array<ListType>>;
     const APIResponseLists = APIResponse.success ? APIResponse.data as Array<ListType> : [];
-    const {
-        reorderables: lists,
-        setReorderables: setLists,
-        activeElement: activeList,
-        setActiveElement: setActiveList,
-        draggableProps,
-        reorderableUtils
-    } = useReorderable(APIResponseLists);
+    const [lists, setLists] = useState<ListType[]>(APIResponseLists);
+    const [activeList, setActiveList] = useState<ListType | null>(null);
+    const {draggableProps} = useReorderable();
     const outletContext = useOutletContext() as SnackbarContextType;
 
     const [createListDialogOpen, setCreateListDialogOpen] = useState(false);
@@ -140,19 +137,28 @@ export function ListSummary() {
     const handleClickCreateListClose = () => {
         setCreateListDialogOpen(false);
     };
+    
     const handleCreateList = async (name: string) => {
         const APIResponse = await addList(name);
         if ( APIResponse.success ) {
-            reorderableUtils.createElement(APIResponse.data);
+            setLists([...lists, APIResponse.data]);
             handleClickCreateListClose();
         } else {
             outletContext.setSnackBarError(APIResponse.error);
         }
     }
 
+    const handleUpdateLists = (list: ListType) => {
+        setLists(lists.map(l => l.id === list.id ? list : l));
+    }
+
+    const handleDeleteLists = (list: ListType) => {
+        setLists(lists.filter(l => l.id !== list.id));
+    }
+
     const handleReorderList = async (movedList: ListType, overList: ListType) => {
         const oldElements = [...lists];
-        reorderableUtils.reorderElement(movedList, overList);
+        setLists(reorderElement(lists, movedList, overList));
         
         // calculate new display order based on the position of the list hovered over, as items
         // will not have updated yet
@@ -169,7 +175,13 @@ export function ListSummary() {
         }
     });
         
-    const appLists = lists.map(list => <SortableList key={list.id} list={list} reorderableUtils={reorderableUtils} />);
+    const appLists = lists.map(list => 
+        <SortableList
+            key={list.id}
+            list={list}
+            updateLists={handleUpdateLists}
+            deleteLists={handleDeleteLists} />
+    );
     return (
         <Container maxWidth="md">
             <DndContext
@@ -198,7 +210,7 @@ export function ListSummary() {
                     {appLists}
                 </SortableContext>
                 <DragOverlay>
-                    {activeList && <List list={activeList} reorderableUtils={reorderableUtils} isDragOverlay={true} />}
+                    {activeList && <List list={activeList} updateLists={handleUpdateLists} deleteLists={handleDeleteLists} isDragOverlay={true} />}
                 </DragOverlay>
                 <Box
                     className="fancylist"

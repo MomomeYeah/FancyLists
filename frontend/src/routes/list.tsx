@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo, useState } from 'react';
+import { memo, useCallback, useState } from 'react';
 import { Params, redirect, useLoaderData, useOutletContext } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
@@ -13,7 +13,7 @@ import { ListType, CategoryType, getList, deleteCategory, moveItem, deleteItem, 
 import { SnackbarContextType } from './root';
 import { closestCenter, CollisionDetection, DndContext, DragEndEvent, DragOverEvent, DragOverlay, DragStartEvent, getFirstCollision, pointerWithin, rectIntersection } from '@dnd-kit/core';
 import { horizontalListSortingStrategy, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { getDraggableData, getDraggableTransform, ReorderableUtils, useReorderable } from '../hooks/useReorderable';
+import { getDraggableData, getDraggableTransform, reorderElement, useReorderable } from '../hooks/useReorderable';
 import { UpdateItemDialog } from '../components/UpdateItemDialog';
 import { UpdateCategoryDialog } from '../components/UpdateCategoryDialog';
 import classNames from 'classnames';
@@ -34,7 +34,8 @@ export async function loader({ params }: {params: Params<"listId">}) {
     throw new Error("Unable to parse route param");
 }
 
-function SortableItem({item, reorderableUtils}: ItemProps) {
+function SortableItem(props: ItemProps) {
+    const item = props.item;
     const {
         attributes,
         listeners,
@@ -49,19 +50,19 @@ function SortableItem({item, reorderableUtils}: ItemProps) {
     
     return (
         <Box ref={setNodeRef} style={getDraggableTransform(transform, transition, isDragging)} {...listeners} {...attributes}>
-            <Item item={item} reorderableUtils={reorderableUtils} />
+            <Item {...props} />
         </Box>
     );
 }
 
 type ItemProps = {
     item: ItemType,
-    reorderableUtils: ReorderableUtils<ItemType>,
+    updateItems: Function,
+    deleteItems: Function,
     isDragOverlay?: boolean
 }
-const Item = memo(({item, reorderableUtils, isDragOverlay = false}: ItemProps) => {
+const Item = memo(({item, updateItems, deleteItems, isDragOverlay = false}: ItemProps) => {
     const outletContext = useOutletContext() as SnackbarContextType;
-    
     const [updateItemDialogOpen, setUpdateItemDialogOpen] = useState(false);
     const handleClickOpen = () => {
         setUpdateItemDialogOpen(true);
@@ -73,7 +74,7 @@ const Item = memo(({item, reorderableUtils, isDragOverlay = false}: ItemProps) =
     const handleUpdateItem = async (name: string) => {
         const APIResponse = await updateItem(item, name);
         if ( APIResponse.success ) {
-            reorderableUtils.updateElement(APIResponse.data);
+            updateItems(APIResponse.data);
             handleClose();
         } else {
             outletContext.setSnackBarError(APIResponse.error);
@@ -83,7 +84,7 @@ const Item = memo(({item, reorderableUtils, isDragOverlay = false}: ItemProps) =
     const handleDeleteItem = async () => {
         const APIResponse = await deleteItem(item);
         if ( APIResponse.success ) {
-            reorderableUtils.deleteElement(item);
+            deleteItems(item);
         } else {
             outletContext.setSnackBarError(APIResponse.error);
         }
@@ -112,22 +113,23 @@ const Item = memo(({item, reorderableUtils, isDragOverlay = false}: ItemProps) =
     );
 });
 
-function SortableCategory({category, allItems, categoryReorderableUtils, itemReorderableUtils}: CategoryProps) {
+function SortableCategory(props: CategoryProps) {
+    const category = props.category
     const {
         attributes,
-        isDragging,
         listeners,
         setNodeRef,
         transform,
-        transition
+        transition,
+        isDragging
     } = useSortable({
         id: category.id,
         data: getDraggableData(category, "Category")
     });
-    
+
     return (
         <Box ref={setNodeRef} style={getDraggableTransform(transform, transition, isDragging)} {...listeners} {...attributes}>
-            <Category category={category} allItems={allItems} categoryReorderableUtils={categoryReorderableUtils} itemReorderableUtils={itemReorderableUtils} />
+            <Category {...props} />
         </Box>
     );
 }
@@ -135,24 +137,19 @@ function SortableCategory({category, allItems, categoryReorderableUtils, itemReo
 type CategoryProps = {
     category: CategoryType,
     allItems: Array<ItemType>,
-    categoryReorderableUtils: ReorderableUtils<CategoryType>,
-    itemReorderableUtils: ReorderableUtils<ItemType>,
+    updateCategories: Function,
+    deleteCategories: Function,
+    createItems: Function,
+    updateItems: Function,
+    deleteItems: Function,
     isDragOverlay?: boolean
 }
-const Category = memo(({category, allItems, categoryReorderableUtils, itemReorderableUtils, isDragOverlay = false}: CategoryProps) => {
-    const items = useMemo(() => 
-        allItems.filter(item => item.category === category.id),
-        [allItems, category]
-    );
-    const sortableItems = useMemo(() =>
-        items.map(item =>
-            <SortableItem key={item.id} item={item} reorderableUtils={itemReorderableUtils} />
-        ),
-        [items, itemReorderableUtils]
-    );
-    
-
+const Category = memo(({category, allItems, updateCategories, deleteCategories, createItems, updateItems, deleteItems, isDragOverlay = false}: CategoryProps) => {
     const outletContext = useOutletContext() as SnackbarContextType;
+    const items = allItems.filter(item => item.category === category.id);
+    const sortableItems = items.map(item =>
+        <SortableItem key={item.id} item={item} updateItems={updateItems} deleteItems={deleteItems} />
+    );
     
     const [createItemDialogOpen, setCreateItemDialogOpen] = useState(false);
     const handleClickCreateItemOpen = () => {
@@ -173,7 +170,7 @@ const Category = memo(({category, allItems, categoryReorderableUtils, itemReorde
     const handleUpdateCategory = async (name: string) => {
         const APIResponse = await updateCategory(category, name);
         if ( APIResponse.success ) {
-            categoryReorderableUtils.updateElement(APIResponse.data);
+            updateCategories(APIResponse.data);
             handleClickUpdateCategoryClose();
         } else {
             outletContext.setSnackBarError(APIResponse.error);
@@ -183,7 +180,7 @@ const Category = memo(({category, allItems, categoryReorderableUtils, itemReorde
     const handleClickDeleteCategory = async () => {
         const APIResponse = await deleteCategory(category);
         if ( APIResponse.success ) {
-            categoryReorderableUtils.deleteElement(category);
+            deleteCategories(category);
         } else {
             outletContext.setSnackBarError(APIResponse.error);
         }
@@ -192,7 +189,7 @@ const Category = memo(({category, allItems, categoryReorderableUtils, itemReorde
     const handleCreateItem = async (name: string) => {
         const APIResponse = await addItem(category, name);
         if ( APIResponse.success ) {
-            itemReorderableUtils.createElement(APIResponse.data);
+            createItems(category, APIResponse.data);
             handleClickCreateItemClose();
         } else {
             outletContext.setSnackBarError(APIResponse.error);
@@ -242,22 +239,11 @@ const Category = memo(({category, allItems, categoryReorderableUtils, itemReorde
 
 export function FancyList() {
     const list = useLoaderData() as ListType;
-    const {
-        reorderables: categories,
-        setReorderables: setCategories,
-        activeElement: activeCategory,
-        setActiveElement: setActiveCategory,
-        draggableProps,
-        reorderableUtils: categoryReorderableUtils
-    } = useReorderable(list.categories);
-    // may need to e.g. remove items corresponding to deleted categories
-    const {
-        reorderables: items,
-        setReorderables: setItems,
-        activeElement: activeItem,
-        setActiveElement: setActiveItem,
-        reorderableUtils: itemReorderableUtils
-    } = useReorderable(list.items);
+    const [items, setItems] = useState<ItemType[]>(list.items);
+    const [activeItem, setActiveItem] = useState<ItemType | null>(null);
+    const [categories, setCategories] = useState<CategoryType[]>(list.categories);
+    const [activeCategory, setActiveCategory] = useState<CategoryType | null>(null);
+    const {draggableProps} = useReorderable();
     const outletContext = useOutletContext() as SnackbarContextType;
     
     const [createCategoryDialogOpen, setCreateCategoryDialogOpen] = useState(false);
@@ -271,16 +257,24 @@ export function FancyList() {
     const handleCreateCategory = async (name: string) => {
         const APIResponse = await addCategory(list, name);
         if ( APIResponse.success ) {
-            categoryReorderableUtils.createElement(APIResponse.data);
+            setCategories([...categories, APIResponse.data]);
             handleClose();
         } else {
             outletContext.setSnackBarError(APIResponse.error);
         }
     }
 
+    const handleUpdateCategories = useCallback((category: CategoryType) => {
+        setCategories(categories.map(c => c.id === category.id ? category : c));
+    }, [categories]);
+
+    const handleDeleteCategories = useCallback((category: CategoryType) => {
+        setCategories(categories.filter(c => c.id !== category.id));
+    }, [categories]);
+
     const handleReorderCategory = async (movedCategory: CategoryType, overCategory: CategoryType) => {
         const oldElements = [...categories];
-        categoryReorderableUtils.reorderElement(movedCategory, overCategory);
+        setCategories(reorderElement(categories, movedCategory, overCategory));
         
         // calculate new display order based on the position of the category hovered over, as items
         // will not have updated yet
@@ -291,9 +285,21 @@ export function FancyList() {
         }
     }
 
+    const handleCreateItems = (category: CategoryType, item: ItemType) => {
+        setItems([...items, item]);
+    };
+
+    const handleUpdateItems = (item: ItemType) => {
+        setItems(items.map(i => i.id === item.id ? item : i));
+    };
+
+    const handleDeleteItems = (item: ItemType) => {
+        setItems(items.filter(i => i.id !== item.id));
+    };
+
     const handleReorderItem = async (movedItem: ItemType, overItem: ItemType) => {
         const oldElements = [...items];
-        itemReorderableUtils.reorderElement(movedItem, overItem);
+        setItems(reorderElement(items, movedItem, overItem));
 
         // calculate new display order based on the position of the item hovered over, as items
         // will not have updated yet
@@ -307,13 +313,13 @@ export function FancyList() {
 
     // Droppable algorithms courtesy of
     // https://github.com/clauderic/dnd-kit/blob/master/stories/2%20-%20Presets/Sortable/MultipleContainers.tsx
-    const category_ids = categories.map(category => category.id);
+    const categoryIds = categories.map(category => category.id);
     const collisionDetectionStrategy: CollisionDetection = useCallback(
         (args) => {
             // If dragging a category, only allow it to be dropped on top of another category
             if ( activeCategory ) {
                 const filteredDroppables = args.droppableContainers.filter(
-                    (container) => category_ids.includes(Number(container.id))
+                    container => categoryIds.includes(Number(container.id))
                 );
 
                 return closestCenter({
@@ -333,8 +339,8 @@ export function FancyList() {
     
             if (overId != null) {
                 // If drop target is a category
-                if (category_ids.includes(Number(overId))) {
-                    const category_items = items.filter(item => item.category === Number(overId)).map(item => item.id);
+                if (categoryIds.includes(Number(overId))) {
+                    const category_items = items.filter(item => item.category === overId).map(item => item.id);
         
                     // If matching category contains items
                     if (category_items.length > 0) {
@@ -355,18 +361,20 @@ export function FancyList() {
 
             return [];
         },
-        [activeCategory, category_ids, items]
+        [activeCategory, categoryIds, items]
     );
 
-    const listCategories = useMemo(() =>
-        categories.map(category => 
-            <SortableCategory
-                key={category.id}
-                category={category}
-                allItems={items}
-                categoryReorderableUtils={categoryReorderableUtils}
-                itemReorderableUtils={itemReorderableUtils} />
-        ), [categoryReorderableUtils, itemReorderableUtils, categories, items]);
+    const listCategories = categories.map(category => 
+        <SortableCategory
+            key={category.id}
+            category={category}
+            allItems={items}
+            updateCategories={handleUpdateCategories}
+            deleteCategories={handleDeleteCategories}
+            createItems={handleCreateItems}
+            updateItems={handleUpdateItems}
+            deleteItems={handleDeleteItems} />
+    );
     return (
         <DndContext
             collisionDetection={collisionDetectionStrategy}
@@ -408,21 +416,18 @@ export function FancyList() {
                 if ( active.data.current.type !== "Item" ) return;
 
                 const current_item = active.data.current.element;
+                const current_category = current_item.category;
 
-                let new_category: CategoryType | undefined;
-                if ( over.data.current.type === "Category" ) {
-                    new_category = over.data.current.element;
-                } else {
-                    const category_id = over.data.current.element.category;
-                    new_category = categories.find(category => category.id === category_id);
-                }
+                const new_category = over.data.current.type === "Category" ?
+                    over.data.current.element.id :
+                    over.data.current?.element.category;
 
                 if ( ! new_category ) return;
-                if ( current_item.category === new_category.id ) return;
+                if ( current_category === new_category ) return;
 
                 // if an item is being dragged, is hovered over a category, and the category
                 // is not the item's parent, move the item to the new parent
-                current_item.category = new_category.id;
+                current_item.category = new_category;
                 const newItems = items.map(item => {
                     return item.id === current_item.id ? current_item : item;
                 })
@@ -458,8 +463,8 @@ export function FancyList() {
                 </Box>
             </Box>
             <DragOverlay>
-                {activeCategory && <Category category={activeCategory} allItems={items} categoryReorderableUtils={categoryReorderableUtils} itemReorderableUtils={itemReorderableUtils} isDragOverlay={true} />}
-                {activeItem && <Item item={activeItem} reorderableUtils={itemReorderableUtils} isDragOverlay={true} />}
+                {activeCategory && <Category category={activeCategory} allItems={items} updateCategories={handleUpdateCategories} deleteCategories={handleDeleteCategories} createItems={handleCreateItems} updateItems={handleUpdateItems} deleteItems={handleDeleteItems} isDragOverlay={true} />}
+                {activeItem && <Item item={activeItem} updateItems={handleUpdateItems} deleteItems={handleDeleteItems} isDragOverlay={true} />}
             </DragOverlay>
         </DndContext>
     );

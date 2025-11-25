@@ -22,11 +22,17 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
 
+    environment:
+      - PORT=${FRONTEND_PORT}
+      - WATCHPACK_POLLING=true
+
     ports:
-      - '3001:3001'
+      - '${FRONTEND_PORT}:${FRONTEND_PORT}'
 
     volumes:
       - ./frontend:/app/frontend
+      # node_modules gets its own volume, so local node_modules doesn't override
+      - /app/frontend/node_modules
 
     depends_on:
       - backend

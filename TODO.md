@@ -33,6 +33,10 @@
 * Auto-update / live-sync via e.g. web sockets?
 
 ### UI Enhancements
+* Drag and Drop very buggy in some cases, but not in others - not sure how to replicate
+    * Attempting to drag item picks up category instead
+    * Unable to drag certain items to certain categories
+    * Unable to drag certain items to certain spots in the list
 * Consider tweaking e.g. .category-container:hover style, as it makes item reordering look jumpy
 * When reordering lists, drag overlay is offset downwards
 * When on lists page with an error, remove it from query string so refresh doesn't re-show the error
@@ -58,6 +62,8 @@
 
 ## Dev Infrastructure
 * Address warnings on DB container startup
+* Address warnings on Frontend container startup
+* Fully dockerise backend port - currently hard-coded to 8000
 
 ## Production Release
 * Ensure values in wsgi.py / manage.py / production settings / etc. are set appropriately

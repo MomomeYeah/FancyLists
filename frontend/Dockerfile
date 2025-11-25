@@ -17,7 +17,7 @@ RUN npm install
 COPY . .
 
 # Expose the port the app runs on
-EXPOSE 3001
+EXPOSE $FRONTEND_PORT
 
 # Start the app
-CMD ["npm", "start", "--port", "3001"]
+CMD ["npm", "start"]

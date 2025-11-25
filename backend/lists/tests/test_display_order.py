@@ -138,6 +138,10 @@ def get_test_objects(create_user):
 @pytest.mark.django_db
 @pytest.mark.parametrize("fixture", ["list_manager", "category_manager", "item_manager"])
 def test_decrement_on_delete(fixture, request, get_test_objects):
+    """
+    Verifies that list, category, and item display orders remain unchanged when a member of 
+    the set is removed
+    """
     manager = request.getfixturevalue(fixture)
     token, obj_id1, obj_id2, obj_id3 = get_test_objects(manager)
 
@@ -145,23 +149,29 @@ def test_decrement_on_delete(fixture, request, get_test_objects):
     response = manager.delete(token=token, id=obj_id1)
     assert response.status_code == 204
 
-    # check that display_order decrements for first two lists
+    # check that display_order remains unchanged for first two lists
     response = manager.get(token=token, id=obj_id2)
     assert response.status_code == 200
-    assert response.json().get("display_order") == 1
+    assert response.json().get("display_order") == 2
 
     response = manager.get(token=token, id=obj_id3)
     assert response.status_code == 200
-    assert response.json().get("display_order") == 2
+    assert response.json().get("display_order") == 3
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("fixture", ["list_manager", "category_manager", "item_manager"])
 def test_reorder_upwards(fixture, request, get_test_objects):
+    """
+    Verifies that, when reordering a lists, categories, or items by moving an element upwards,
+    display orders of other elements are updated appropriately.
+
+    Note that display orders are stored in the DB 1-indexed, but are written 0-indexed
+    """
     manager = request.getfixturevalue(fixture)
     token, obj_id1, obj_id2, obj_id3 = get_test_objects(manager)
 
     # update display_order of object 3 to position 2
-    response = manager.update(token=token, id=obj_id3, data={"display_order": 2})
+    response = manager.update(token=token, id=obj_id3, data={"display_order": 1})
     assert response.status_code == 200
     assert response.json().get("display_order") == 2
 
@@ -178,11 +188,17 @@ def test_reorder_upwards(fixture, request, get_test_objects):
 @pytest.mark.django_db
 @pytest.mark.parametrize("fixture", ["list_manager", "category_manager", "item_manager"])
 def test_reorder_downwards(fixture, request, get_test_objects):
+    """
+    Verifies that, when reordering a lists, categories, or items by moving an element downwards,
+    display orders of other elements are updated appropriately.
+
+    Note that display orders are stored in the DB 1-indexed, but are written 0-indexed
+    """
     manager = request.getfixturevalue(fixture)
     token, obj_id1, obj_id2, obj_id3 = get_test_objects(manager)
 
     # update display_order of object 1 to position 2
-    response = manager.update(token=token, id=obj_id1, data={"display_order": 2})
+    response = manager.update(token=token, id=obj_id1, data={"display_order": 1})
     assert response.status_code == 200
     assert response.json().get("display_order") == 2
 

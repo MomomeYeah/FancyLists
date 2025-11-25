@@ -64,6 +64,7 @@
 * Address warnings on DB container startup
 * Address warnings on Frontend container startup
 * Fully dockerise backend port - currently hard-coded to 8000
+* Solve issue where backend/entrypoint.sh converts to CRLF on checkout
 
 ## Production Release
 * Ensure values in wsgi.py / manage.py / production settings / etc. are set appropriately

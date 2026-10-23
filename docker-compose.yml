@@ -18,6 +18,8 @@ services:
       - postgres_data:/var/lib/postgresql/data/
 
   frontend:
+    profiles:
+      - full
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -38,6 +40,8 @@ services:
       - backend
 
   backend: 
+    profiles:
+      - full
     build: 
       context: ./backend
       dockerfile: Dockerfile

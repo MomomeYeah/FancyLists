@@ -26,7 +26,7 @@ class ReorderableSerializer(serializers.ModelSerializer):
         if "display_order" in validated_data:
             # get all siblings, accounting for whether the parent has changed
             parent = self.get_parent(instance, validated_data)
-            siblings = self.Meta.model.get_siblings(parent=parent)
+            siblings = instance.get_siblings(parent=parent)
             # remove the element being updated from the set of siblings
             siblings_excluding_self = [s for s in siblings if s.id != instance.id]
             # put the element being updated in the correct position
@@ -54,8 +54,8 @@ class ItemSerializer(ReorderableSerializer):
     def create(self, validated_data):
         display_order = Item.objects.\
             filter(category = validated_data.get("category")).\
-            aggregate(Max('display_order', default=0)).\
-            get("display_order__max") + 1
+            aggregate(Max('display_order', default=0))\
+            ["display_order__max"] + 1
         
         return Item.objects.create(
             name=validated_data.get("name"),
@@ -100,8 +100,8 @@ class CategorySerializer(ReorderableSerializer):
     def create(self, validated_data):
         display_order = Category.objects.\
             filter(list = validated_data.get("list")).\
-            aggregate(Max('display_order', default=0)).\
-            get("display_order__max") + 1
+            aggregate(Max('display_order', default=0))\
+            ["display_order__max"] + 1
         
         return Category.objects.create(
             name=validated_data.get("name"),
@@ -136,8 +136,8 @@ class FancyListListSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         display_order = FancyList.objects.\
             filter(owner = validated_data.get("owner")).\
-            aggregate(Max('display_order', default=0)).\
-            get("display_order__max") + 1
+            aggregate(Max('display_order', default=0))\
+            ["display_order__max"] + 1
         
         return FancyList.objects.create(
             name=validated_data.get("name"),

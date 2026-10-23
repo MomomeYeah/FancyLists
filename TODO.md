@@ -68,7 +68,6 @@
 
 ## Production Release
 * Ensure values in wsgi.py / manage.py / production settings / etc. are set appropriately
-* Can we remove files such as Procfile, runtime.txt?
 
 # Notes
 * [DND-Kit Demo](https://5fc05e08a4a65d0021ae0bf2-xkdjvdfnuz.chromatic.com/?path=/story/presets-sortable-multiple-containers--many-items)

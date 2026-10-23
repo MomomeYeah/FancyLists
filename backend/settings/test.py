@@ -1,3 +1,3 @@
-"""Development settings and globals."""
+"""Test settings and globals."""
 
-from .base import *
+from .local import *

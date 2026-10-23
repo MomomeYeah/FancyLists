@@ -1,6 +1,7 @@
 import pytest
 import random
 import string
+from collections.abc import Iterator
 
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
@@ -8,7 +9,7 @@ from rest_framework.test import APIClient
   
   
 @pytest.fixture(scope="function")
-def api_client() -> APIClient:  
+def api_client() -> Iterator[APIClient]:  
     """  
     Fixture to provide an API client  
     :return: APIClient  

@@ -34,6 +34,11 @@ export async function loader({ params }: {params: Params<"listId">}) {
     throw new Error("Unable to parse route param");
 }
 
+// Categories and items share a DndContext but have independent database ids, so prefix
+// their sortable ids to stop e.g. category 1 and item 1 being treated as the same element
+const categorySortableId = (category: CategoryType) => `category-${category.id}`;
+const itemSortableId = (item: ItemType) => `item-${item.id}`;
+
 function SortableItem(props: ItemProps) {
     const item = props.item;
     const {
@@ -44,7 +49,7 @@ function SortableItem(props: ItemProps) {
         transition,
         isDragging
     } = useSortable({
-        id: item.id,
+        id: itemSortableId(item),
         data: getDraggableData(item, "Item")
     });
     
@@ -123,7 +128,7 @@ function SortableCategory(props: CategoryProps) {
         transition,
         isDragging
     } = useSortable({
-        id: category.id,
+        id: categorySortableId(category),
         data: getDraggableData(category, "Category")
     });
 
@@ -214,7 +219,7 @@ const Category = memo(({category, allItems, updateCategories, deleteCategories, 
             </Box>
             <UpdateCategoryDialog open={updateCategoryDialogOpen} handleClose={handleClickUpdateCategoryClose} handleUpdate={handleUpdateCategory} category={category} />
             <Box className="category-items">
-                <SortableContext items={items} strategy={verticalListSortingStrategy}>
+                <SortableContext items={items.map(itemSortableId)} strategy={verticalListSortingStrategy}>
                     {sortableItems}
                 </SortableContext>
             </Box>
@@ -313,13 +318,12 @@ export function FancyList() {
 
     // Droppable algorithms courtesy of
     // https://github.com/clauderic/dnd-kit/blob/master/stories/2%20-%20Presets/Sortable/MultipleContainers.tsx
-    const categoryIds = categories.map(category => category.id);
     const collisionDetectionStrategy: CollisionDetection = useCallback(
         (args) => {
             // If dragging a category, only allow it to be dropped on top of another category
             if ( activeCategory ) {
                 const filteredDroppables = args.droppableContainers.filter(
-                    container => categoryIds.includes(Number(container.id))
+                    container => container.data.current?.type === "Category"
                 );
 
                 return closestCenter({
@@ -339,9 +343,10 @@ export function FancyList() {
     
             if (overId != null) {
                 // If drop target is a category
-                if (categoryIds.includes(Number(overId))) {
-                    const category_items = items.filter(item => item.category === overId).map(item => item.id);
-        
+                const overData = args.droppableContainers.find(container => container.id === overId)?.data.current;
+                if (overData?.type === "Category") {
+                    const category_items = items.filter(item => item.category === overData.element.id).map(itemSortableId);
+
                     // If matching category contains items
                     if (category_items.length > 0) {
                         // Return the closest droppable within that container
@@ -350,18 +355,18 @@ export function FancyList() {
                             droppableContainers: args.droppableContainers.filter(
                                 (container) =>
                                 container.id !== overId &&
-                                category_items.includes(Number(container.id))
+                                category_items.includes(String(container.id))
                             ),
                         })[0]?.id;
                     }
                 }
-        
+
                 return [{id: overId}];
             }
 
             return [];
         },
-        [activeCategory, categoryIds, items]
+        [activeCategory, items]
     );
 
     const listCategories = categories.map(category => 
@@ -442,7 +447,7 @@ export function FancyList() {
                 </Typography>
             </Box>
             <Box className="category-list">
-                <SortableContext items={categories} strategy={horizontalListSortingStrategy}>
+                <SortableContext items={categories.map(categorySortableId)} strategy={horizontalListSortingStrategy}>
                     {listCategories}
                 </SortableContext>
                 <Box>

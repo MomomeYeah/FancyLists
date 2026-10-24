@@ -23,6 +23,7 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET=<Your Google OAuth secret>
 * Google OAuth Key and Secret can be generated / retrieved from https://console.cloud.google.com/apis/dashboard
 * Build containers via `docker compose --profile full up -d`
 * Build just the database via `docker compose up -d`
+* Clear all Docker artifacts via `docker compose down -v --rmi all --remove-orphans`
 * access the frontend at `http://localhost:<FRONTEND_PORT>`
 * access the backend at `http://localhost:8000/api/` and `http://localhost:8000/admin/`
 * access the database via e.g. Docker Desktop, `psql -U <POSTGRES_USER>`

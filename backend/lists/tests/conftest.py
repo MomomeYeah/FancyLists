@@ -1,42 +1,42 @@
-import pytest
 import random
 import string
 from collections.abc import Iterator
 
+import pytest
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
-  
-  
+
+
 @pytest.fixture(scope="function")
-def api_client() -> Iterator[APIClient]:  
-    """  
-    Fixture to provide an API client  
-    :return: APIClient  
-    """  
+def api_client() -> Iterator[APIClient]:
+    """
+    Fixture to provide an API client
+    :return: APIClient
+    """
     yield APIClient()
+
 
 @pytest.fixture
 def create_user():
     def create_user_fn():
-        username = ''.join(random.choice(string.ascii_uppercase) for _ in range(10))
+        username = "".join(random.choice(string.ascii_uppercase) for _ in range(10))
         user = User(username=username, is_superuser=True)
         user.save()
         token = Token.objects.create(user=user)
 
         return user, token.key
-    
+
     return create_user_fn
 
-class ReorderableManager(object):
+
+class ReorderableManager:
     def __init__(self, api_client, api_path):
         self.api_client = api_client
         self.api_path = api_path
 
     def api_headers(self, token):
-        return {
-            "Authorization": f"Token {token}"
-        }
+        return {"Authorization": f"Token {token}"}
 
     def get_list(self, token):
         return self.api_client.get(f"/api/{self.api_path}/", headers=self.api_headers(token))
@@ -45,24 +45,31 @@ class ReorderableManager(object):
         return self.api_client.get(f"/api/{self.api_path}/{id}/", headers=self.api_headers(token))
 
     def create(self, token, **kwargs):
-        data = {
-            "name": ''.join(random.choice(string.ascii_uppercase) for _ in range(10))
-        } | kwargs
-        return self.api_client.post(f"/api/{self.api_path}/", headers=self.api_headers(token), data=data)
+        data = {"name": "".join(random.choice(string.ascii_uppercase) for _ in range(10))} | kwargs
+        return self.api_client.post(
+            f"/api/{self.api_path}/", headers=self.api_headers(token), data=data
+        )
 
     def update(self, token, id, data):
-        return self.api_client.patch(f"/api/{self.api_path}/{id}/", headers=self.api_headers(token), data=data)
+        return self.api_client.patch(
+            f"/api/{self.api_path}/{id}/", headers=self.api_headers(token), data=data
+        )
 
     def delete(self, token, id):
-        return self.api_client.delete(f"/api/{self.api_path}/{id}/", headers=self.api_headers(token))
+        return self.api_client.delete(
+            f"/api/{self.api_path}/{id}/", headers=self.api_headers(token)
+        )
+
 
 class ListManager(ReorderableManager):
     def __init__(self, api_client):
         super().__init__(api_client, "lists")
 
+
 @pytest.fixture
 def list_manager(api_client):
     return ListManager(api_client)
+
 
 class CategoryManager(ReorderableManager):
     def __init__(self, api_client):
@@ -81,9 +88,11 @@ class CategoryManager(ReorderableManager):
         kwargs["list"] = list_parent
         return super().create(token, **kwargs)
 
+
 @pytest.fixture
 def category_manager(api_client):
     return CategoryManager(api_client)
+
 
 class ItemManager(ReorderableManager):
     def __init__(self, api_client):
@@ -101,6 +110,7 @@ class ItemManager(ReorderableManager):
 
         kwargs["category"] = category_parent
         return super().create(token, **kwargs)
+
 
 @pytest.fixture
 def item_manager(api_client):

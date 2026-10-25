@@ -49,7 +49,7 @@ check = { sequence = ["lint", "format-check", "typecheck", "test"], ignore_fail 
 fix = { sequence = [
     { cmd = "ruff check --fix" },
     { cmd = "ruff format" },
-], help = "Apply Ruff autofixes and formatting" }
+], ignore_fail = "return_non_zero", help = "Apply Ruff autofixes and formatting" }
 
 migrate = { cmd = "python backend/manage.py migrate", help = "Apply database migrations" }
 serve = { cmd = "uvicorn lists.asgi:application --app-dir backend --reload --reload-dir backend --port 8000", help = "Run the dev server locally" }

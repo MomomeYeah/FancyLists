@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from lists.models import FancyList, Category, Item
+from lists.models import Category, FancyList, Item
 
 
 @admin.register(FancyList)
@@ -15,17 +15,8 @@ class FancyListAdmin(admin.ModelAdmin):
 class CategoryAdmin(admin.ModelAdmin):
     fields = ["name", "list", "display_order"]
 
-    list_display = [
-        "name",
-        "category_owner",
-        "list",
-        "display_order"
-        ]
-    ordering = [
-        "list__owner",
-        "list__display_order",
-        "display_order"
-        ]
+    list_display = ["name", "category_owner", "list", "display_order"]
+    ordering = ["list__owner", "list__display_order", "display_order"]
 
     @admin.display(description="Owner")
     def category_owner(self, category):
@@ -36,19 +27,13 @@ class CategoryAdmin(admin.ModelAdmin):
 class ItemAdmin(admin.ModelAdmin):
     fields = ["name", "category", "display_order"]
 
-    list_display = [
-        "name",
-        "item_owner",
-        "item_list",
-        "category",
-        "display_order"
-        ]
+    list_display = ["name", "item_owner", "item_list", "category", "display_order"]
     ordering = [
         "category__list__owner",
         "category__list__display_order",
         "category__display_order",
-        "display_order"
-        ]
+        "display_order",
+    ]
 
     @admin.display(description="Owner")
     def item_owner(self, item):

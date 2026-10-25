@@ -1,5 +1,5 @@
-from django.db import models, transaction
 from django.contrib.auth.models import User
+from django.db import models
 
 
 class AbstractReorderable(models.Model):
@@ -20,13 +20,13 @@ class FancyList(AbstractReorderable):
 
     def __str__(self):
         return self.name
-    
+
     @staticmethod
     def get_siblings(parent):
         return FancyList.objects.filter(owner=parent).order_by("display_order")
-    
+
     class Meta:
-        verbose_name_plural = 'FancyLists'
+        verbose_name_plural = "FancyLists"
 
 
 class Category(AbstractReorderable):
@@ -35,13 +35,13 @@ class Category(AbstractReorderable):
 
     def __str__(self):
         return self.name
-    
+
     @staticmethod
     def get_siblings(parent):
         return Category.objects.filter(list=parent).order_by("display_order")
-    
+
     class Meta:
-        verbose_name_plural = 'Categories'
+        verbose_name_plural = "Categories"
 
 
 class Item(AbstractReorderable):
@@ -50,7 +50,7 @@ class Item(AbstractReorderable):
 
     def __str__(self):
         return self.name
-    
+
     @staticmethod
     def get_siblings(parent):
         return Item.objects.filter(category=parent).order_by("display_order")

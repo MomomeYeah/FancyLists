@@ -1,5 +1,6 @@
 import pytest
 
+
 @pytest.mark.django_db
 def test_list_increment_on_create(create_user, list_manager):
     user1, token1 = create_user()
@@ -22,6 +23,7 @@ def test_list_increment_on_create(create_user, list_manager):
     assert response.status_code == 201
     assert "display_order" in response.json()
     assert response.json().get("display_order") == 1
+
 
 @pytest.mark.django_db
 def test_category_increment_on_create(create_user, list_manager, category_manager):
@@ -63,6 +65,7 @@ def test_category_increment_on_create(create_user, list_manager, category_manage
     assert response.status_code == 201
     assert "display_order" in response.json()
     assert response.json().get("display_order") == 1
+
 
 @pytest.mark.django_db
 def test_item_increment_on_create(create_user, list_manager, category_manager, item_manager):
@@ -108,6 +111,7 @@ def test_item_increment_on_create(create_user, list_manager, category_manager, i
     assert "display_order" in response.json()
     assert response.json().get("display_order") == 1
 
+
 @pytest.fixture
 def get_test_objects(create_user):
     def get_test_objects_fn(manager):
@@ -132,14 +136,15 @@ def get_test_objects(create_user):
         assert response.json().get("display_order") == 3
 
         return token, list_id1, list_id2, list_id3
-    
+
     return get_test_objects_fn
- 
+
+
 @pytest.mark.django_db
 @pytest.mark.parametrize("fixture", ["list_manager", "category_manager", "item_manager"])
 def test_decrement_on_delete(fixture, request, get_test_objects):
     """
-    Verifies that list, category, and item display orders remain unchanged when a member of 
+    Verifies that list, category, and item display orders remain unchanged when a member of
     the set is removed
     """
     manager = request.getfixturevalue(fixture)
@@ -157,6 +162,7 @@ def test_decrement_on_delete(fixture, request, get_test_objects):
     response = manager.get(token=token, id=obj_id3)
     assert response.status_code == 200
     assert response.json().get("display_order") == 3
+
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("fixture", ["list_manager", "category_manager", "item_manager"])
@@ -179,11 +185,12 @@ def test_reorder_upwards(fixture, request, get_test_objects):
     response = manager.get(token=token, id=obj_id1)
     assert response.status_code == 200
     assert response.json().get("display_order") == 1
- 
+
     # check that display_order increments for object 2
     response = manager.get(token=token, id=obj_id2)
     assert response.status_code == 200
     assert response.json().get("display_order") == 3
+
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("fixture", ["list_manager", "category_manager", "item_manager"])
@@ -206,7 +213,7 @@ def test_reorder_downwards(fixture, request, get_test_objects):
     response = manager.get(token=token, id=obj_id2)
     assert response.status_code == 200
     assert response.json().get("display_order") == 1
- 
+
     # check that display_order increments for object 3
     response = manager.get(token=token, id=obj_id3)
     assert response.status_code == 200

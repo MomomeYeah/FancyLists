@@ -5,7 +5,8 @@ from lists import views
 app_name = "api"
 
 urlpatterns = [
-    path("", views.api_root),
+    # ty can't call DRF's AsView protocol, whose `__call__` is declared as an attribute
+    path("", views.api_root),  # ty: ignore[no-matching-overload]
     path("lists/", views.FancyListList.as_view(), name="list-list"),
     path("lists/<int:pk>/", views.FancyListDetail.as_view(), name="list-detail"),
     path("categories/", views.CategoryList.as_view(), name="category-list"),

@@ -18,7 +18,7 @@ from lists.serializers import (
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def api_root(request, format=None):
+def api_root(request, format=None) -> Response:
     return Response(
         {
             "lists": reverse("api:list-list", request=request, format=format),

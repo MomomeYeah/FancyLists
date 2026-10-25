@@ -86,6 +86,14 @@ root = ["backend"]
 include = ["backend"]
 exclude = ["backend/*/migrations"]
 
+[[tool.ty.overrides]]
+# Django models and DRF serializers redefine the nested `class Meta` in every
+# subclass by design; ty reports each one as an incompatible attribute override.
+include = ["backend/**/models.py", "backend/**/serializers.py"]
+
+[tool.ty.overrides.rules]
+invalid-attribute-override = "ignore"
+
 [tool.ty.terminal]
 # Warnings shown in the editor must also fail CI
 error-on-warning = true

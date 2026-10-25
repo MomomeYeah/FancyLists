@@ -13,7 +13,7 @@ class RegisterSerializer(DJRegisterSerializer):
     def custom_signup(self, request, user):
         user.is_superuser = True
         user.save()
-        token = Token.objects.create(user=user)
+        Token.objects.create(user=user)
 
 
 class ReorderableSerializer(serializers.ModelSerializer):

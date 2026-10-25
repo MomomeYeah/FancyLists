@@ -34,7 +34,7 @@ The backend is managed with [uv](https://docs.astral.sh/uv/). From the repo root
 
 From the `frontend/` directory:
 
-* `npm start`
+* `npm install` then `npm run dev` (Vite)
 * Access the UI at `http://localhost:3000`
 
 ### Checks

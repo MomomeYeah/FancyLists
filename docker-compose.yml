@@ -16,53 +16,6 @@ services:
 
     volumes:
       - postgres_data:/var/lib/postgresql/data/
-
-  frontend:
-    profiles:
-      - full
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-
-    environment:
-      - PORT=${FRONTEND_PORT}
-      - WATCHPACK_POLLING=true
-
-    ports:
-      - '${FRONTEND_PORT}:${FRONTEND_PORT}'
-
-    volumes:
-      - ./frontend:/app/frontend
-      # node_modules gets its own volume, so local node_modules doesn't override
-      - /app/frontend/node_modules
-
-    depends_on:
-      - backend
-
-  backend: 
-    profiles:
-      - full
-    build:
-      context: .
-      dockerfile: backend/Dockerfile
-
-    env_file:
-      - .env
-    environment:
-      - POSTGRES_HOST=db
-      # File change events don't cross Windows bind mounts; poll for --reload
-      - WATCHFILES_FORCE_POLLING=true
-
-    ports:
-      - '8000:8000'
-
-    volumes:
-      - ./backend:/app/backend
-
-    depends_on:
-      db:
-        condition: service_healthy
-        restart: true
-
+      
 volumes:
   postgres_data:

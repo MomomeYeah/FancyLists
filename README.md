@@ -13,7 +13,6 @@ POSTGRES_USER=<POSTGRES_USER>
 POSTGRES_DB=<POSTGRES_DB>
 
 DEBUG=<True|False>
-FRONTEND_PORT=<Port number for UI>
 
 SECRET_KEY=<Django secret key - django.core.management.utils.get_random_secret_key()>
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY=<***-***.apps.googleusercontent.com>
@@ -21,20 +20,22 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET=<Your Google OAuth secret>
 ```
 
 * Google OAuth Key and Secret can be generated / retrieved from https://console.cloud.google.com/apis/dashboard
-* Build containers via `docker compose --profile full up -d`
-* Build just the database via `docker compose up -d`
-* Clear all Docker artifacts via `docker compose down -v --rmi all --remove-orphans`
-* access the frontend at `http://localhost:<FRONTEND_PORT>`
-* access the backend at `http://localhost:8000/api/` and `http://localhost:8000/admin/`
-* access the database via e.g. Docker Desktop, `psql -U <POSTGRES_USER>`
 
-### Running the backend locally (outside Docker)
+### Running the backend locally
 
 The backend is managed with [uv](https://docs.astral.sh/uv/). From the repo root:
 
 * `uv sync` to create `.venv` and install dependencies
 * `docker compose up -d` to start just the database
 * `uv run poe migrate` then `uv run poe serve` to run the API on `http://localhost:8000`
+* Access the backend at `http://localhost:8000/api/` and `http://localhost:8000/admin/`
+
+### Running the frontend locally
+
+From the `frontend/` directory:
+
+* `npm start`
+* Access the UI at `http://localhost:3000`
 
 ### Checks
 
@@ -48,4 +49,6 @@ In VS Code, install the recommended extensions (Ruff, ty) and select `.venv` as 
 
 ## Troubleshooting
 
-- Ensure line endings on `/backend/entrypoint/sh` are set to `LF`, not `CRLF`
+* Ensure line endings on `/backend/entrypoint/sh` are set to `LF`, not `CRLF`
+* Clear all Docker artifacts via `docker compose down -v --rmi all --remove-orphans`
+* Access the database via e.g. Docker Desktop, `psql -U <POSTGRES_USER>`

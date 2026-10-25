@@ -80,7 +80,7 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get("SOCIAL_AUTH_GOOGLE_OAUTH2_SEC
 # Enable DRF to serve static files
 STATIC_URL = "/static/"
 
-FRONTEND_PORT = os.environ.get("FRONTEND_PORT")
+FRONTEND_PORT = 3000
 CORS_ALLOWED_ORIGINS = [f"http://localhost:{FRONTEND_PORT}"]
 
 TEMPLATES = [

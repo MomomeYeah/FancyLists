@@ -30,7 +30,6 @@ jobs:
       POSTGRES_DB: fancylists
       POSTGRES_HOST: localhost
       SECRET_KEY: ci-only-not-secret
-      FRONTEND_PORT: "3000"
 
     steps:
       - uses: actions/checkout@v7

@@ -28,6 +28,24 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET=<Your Google OAuth secret>
 * access the backend at `http://localhost:8000/api/` and `http://localhost:8000/admin/`
 * access the database via e.g. Docker Desktop, `psql -U <POSTGRES_USER>`
 
+### Running the backend locally (outside Docker)
+
+The backend is managed with [uv](https://docs.astral.sh/uv/). From the repo root:
+
+* `uv sync` to create `.venv` and install dependencies
+* `docker compose up -d` to start just the database
+* `uv run poe migrate` then `uv run poe serve` to run the API on `http://localhost:8000`
+
+### Checks
+
+* `uv run poe check` runs Ruff lint, Ruff format check, ty and pytest - the same as CI
+* `uv run poe static` runs everything except the tests (no database needed)
+* `uv run poe fix` applies Ruff autofixes and formatting
+* `uv run pre-commit install` installs the git hooks
+* `uv run poe` lists all tasks
+
+In VS Code, install the recommended extensions (Ruff, ty) and select `.venv` as the interpreter. They use the same tool versions and config as the commands above.
+
 ## Troubleshooting
 
 - Ensure line endings on `/backend/entrypoint/sh` are set to `LF`, not `CRLF`

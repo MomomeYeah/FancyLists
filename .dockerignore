@@ -1,0 +1,12 @@
+# Backend image is built from the repo root; keep the context small and secret-free
+.git
+.github
+.claude
+.vscode
+.env*
+.venv
+**/.venv
+**/__pycache__
+**/.pytest_cache
+.ruff_cache
+frontend

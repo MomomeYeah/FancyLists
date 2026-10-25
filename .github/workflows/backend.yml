@@ -1,0 +1,45 @@
+name: Backend
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    services:
+      db:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: fancylists
+          POSTGRES_PASSWORD: fancylists
+          POSTGRES_DB: fancylists
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U fancylists -d fancylists"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      POSTGRES_USER: fancylists
+      POSTGRES_PASSWORD: fancylists
+      POSTGRES_DB: fancylists
+      POSTGRES_HOST: localhost
+      SECRET_KEY: ci-only-not-secret
+      FRONTEND_PORT: "3000"
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: true
+
+      - run: uv sync --locked
+
+      # Same command developers and agents run locally
+      - run: uv run poe check

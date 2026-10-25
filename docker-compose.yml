@@ -42,14 +42,16 @@ services:
   backend: 
     profiles:
       - full
-    build: 
-      context: ./backend
-      dockerfile: Dockerfile
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
 
     env_file:
       - .env
     environment:
       - POSTGRES_HOST=db
+      # File change events don't cross Windows bind mounts; poll for --reload
+      - WATCHFILES_FORCE_POLLING=true
 
     ports:
       - '8000:8000'

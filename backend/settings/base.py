@@ -108,6 +108,7 @@ TEMPLATES = [
 ROOT_URLCONF = 'urls'
 
 WSGI_APPLICATION = 'lists.wsgi.application'
+ASGI_APPLICATION = 'lists.asgi.application'
 
 
 # Database

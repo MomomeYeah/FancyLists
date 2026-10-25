@@ -1,7 +1,8 @@
-from django.urls import include, re_path
+from django.urls import URLPattern, URLResolver, include, re_path
 from django.contrib import admin
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
-urlpatterns = [
+urlpatterns: list[URLPattern | URLResolver] = [
     # Django admin site
     re_path(r'^admin/', admin.site.urls),
     re_path('', include('social_django.urls', namespace="social")),
@@ -13,3 +14,7 @@ urlpatterns = [
     re_path(r'auth/', include('dj_rest_auth.urls')),
     re_path(r'auth/registration/', include('dj_rest_auth.registration.urls')),
 ]
+
+# Serve static files (admin, browsable API) in development; empty unless DEBUG.
+# runserver did this automatically, uvicorn does not.
+urlpatterns += staticfiles_urlpatterns()

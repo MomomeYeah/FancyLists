@@ -1,3 +1,27 @@
 {
-    "python.analysis.typeCheckingMode": "basic"
+    // Use the uv-managed project environment
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv",
+
+    // ty provides language services and type checking; disable Pylance so
+    // there is no second type checker reporting errors CI never sees.
+    "python.languageServer": "None",
+
+    // Use the ruff/ty versions pinned in uv.lock rather than the copies
+    // bundled with the extensions, so editor and CLI always agree.
+    "ruff.importStrategy": "fromEnvironment",
+    "ty.importStrategy": "fromEnvironment",
+
+    // Report diagnostics for the whole project, as `uv run poe check` does
+    "ty.diagnosticMode": "workspace",
+
+    "[python]": {
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.fixAll.ruff": "explicit",
+            "source.organizeImports.ruff": "explicit"
+        }
+    },
+
+    "python.testing.pytestEnabled": true
 }

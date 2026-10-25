@@ -1,13 +1,23 @@
-name: Backend
+name: Python backend
 
 on:
   push:
     branches: [master]
+    paths:
+      - backends/python/**
+      - .github/workflows/backend-python.yml
   pull_request:
+    paths:
+      - backends/python/**
+      - .github/workflows/backend-python.yml
 
 jobs:
   check:
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backends/python
 
     services:
       db:
@@ -37,6 +47,7 @@ jobs:
       - uses: astral-sh/setup-uv@v10.3.2
         with:
           enable-cache: true
+          working-directory: backends/python
 
       - run: uv sync --locked
 

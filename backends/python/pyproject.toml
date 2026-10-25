@@ -35,7 +35,7 @@ package = false
 
 # --- Tasks ---------------------------------------------------------------
 # Single entry points shared by humans, agents, pre-commit and CI.
-# Run from the repo root, e.g. `uv run poe check`.
+# Run from this directory (backends/python), e.g. `uv run poe check`.
 
 [tool.poe.tasks]
 lint = { cmd = "ruff check", help = "Lint with Ruff" }
@@ -51,15 +51,15 @@ fix = { sequence = [
     { cmd = "ruff format" },
 ], ignore_fail = "return_non_zero", help = "Apply Ruff autofixes and formatting" }
 
-migrate = { cmd = "python backend/manage.py migrate", help = "Apply database migrations" }
-serve = { cmd = "uvicorn lists.asgi:application --app-dir backend --reload --reload-dir backend --port 8000", help = "Run the dev server locally" }
+migrate = { cmd = "python manage.py migrate", help = "Apply database migrations" }
+serve = { cmd = "uvicorn lists.asgi:application --reload --port 8000", help = "Run the dev server locally" }
 
 # --- Ruff ----------------------------------------------------------------
 
 [tool.ruff]
 line-length = 100
-src = ["backend"]
-extend-exclude = [".claude", "backend/*/migrations"]
+src = ["."]
+extend-exclude = ["*/migrations"]
 
 [tool.ruff.lint]
 select = [
@@ -75,21 +75,20 @@ select = [
 
 [tool.ruff.lint.per-file-ignores]
 # Django settings modules layer on each other via star imports
-"backend/settings/*.py" = ["F403", "F405"]
+"settings/*.py" = ["F403", "F405"]
 
 # --- ty ------------------------------------------------------------------
 
 [tool.ty.environment]
-root = ["backend"]
+root = ["."]
 
 [tool.ty.src]
-include = ["backend"]
-exclude = ["backend/*/migrations"]
+exclude = ["*/migrations"]
 
 [[tool.ty.overrides]]
 # Django models and DRF serializers redefine the nested `class Meta` in every
 # subclass by design; ty reports each one as an incompatible attribute override.
-include = ["backend/**/models.py", "backend/**/serializers.py"]
+include = ["**/models.py", "**/serializers.py"]
 
 [tool.ty.overrides.rules]
 invalid-attribute-override = "ignore"
@@ -101,6 +100,6 @@ error-on-warning = true
 # --- pytest --------------------------------------------------------------
 
 [tool.pytest.ini_options]
-pythonpath = ["backend"]
-testpaths = ["backend"]
+pythonpath = ["."]
+testpaths = ["."]
 DJANGO_SETTINGS_MODULE = "settings.test"

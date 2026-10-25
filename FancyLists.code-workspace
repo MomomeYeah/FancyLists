@@ -1,0 +1,23 @@
+{
+    // Open this file (File > Open Workspace from File...) rather than the repo
+    // folder, so each backend gets its own interpreter, settings and tooling.
+    "folders": [
+        { "name": "repo root", "path": "." },
+        { "name": "frontend", "path": "frontend" },
+        { "name": "backend: python", "path": "backends/python" },
+        { "name": "backend: go", "path": "backends/go" },
+        { "name": "backend: rust", "path": "backends/rust" }
+    ],
+    "settings": {
+        // Each subproject is its own folder above; hide its duplicate from the
+        // repo root folder. Patterns without ** only match at a folder's root.
+        "files.exclude": {
+            "frontend": true,
+            "backends": true
+        }
+
+        // Don't set python.terminal.activateEnvironment here: the Python
+        // Environments extension reads it workspace-wide, ignoring folder
+        // overrides. Only backends/python has a venv to activate anyway.
+    }
+}

@@ -23,10 +23,15 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET=<Your Google OAuth secret>
 
 ### Running the backend locally
 
-The backend is managed with [uv](https://docs.astral.sh/uv/). From the repo root:
+Backends live under `backends/`, one directory per language; each serves the same API on port 8000. All of them use the Postgres database from `docker-compose.yml`:
+
+* `docker compose up -d` from the repo root to start just the database
+
+#### Python (`backends/python/`)
+
+The Python backend is managed with [uv](https://docs.astral.sh/uv/). From `backends/python/`:
 
 * `uv sync` to create `.venv` and install dependencies
-* `docker compose up -d` to start just the database
 * `uv run poe migrate` then `uv run poe serve` to run the API on `http://localhost:8000`
 * Access the backend at `http://localhost:8000/api/` and `http://localhost:8000/admin/`
 
@@ -39,16 +44,19 @@ From the `frontend/` directory:
 
 ### Checks
 
+For the Python backend, from `backends/python/`:
+
 * `uv run poe check` runs Ruff lint, Ruff format check, ty and pytest - the same as CI
 * `uv run poe static` runs everything except the tests (no database needed)
 * `uv run poe fix` applies Ruff autofixes and formatting
-* `uv run pre-commit install` installs the git hooks
+* `uv run pre-commit install` installs the git hooks (they cover the whole repo)
 * `uv run poe` lists all tasks
 
-In VS Code, install the recommended extensions (Ruff, ty) and select `.venv` as the interpreter. They use the same tool versions and config as the commands above.
+### VS Code
+
+Open `FancyLists.code-workspace` (File > Open Workspace from File...) rather than the repo folder. Each backend and the frontend is a separate workspace folder with its own settings, so the Python backend's `.venv` is used as its interpreter and activated in its terminals, without affecting the others. Install the recommended extensions (Ruff, ty); they use the same tool versions and config as the commands above.
 
 ## Troubleshooting
 
-* Ensure line endings on `/backend/entrypoint/sh` are set to `LF`, not `CRLF`
 * Clear all Docker artifacts via `docker compose down -v --rmi all --remove-orphans`
 * Access the database via e.g. Docker Desktop, `psql -U <POSTGRES_USER>`

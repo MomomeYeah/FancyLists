@@ -39,3 +39,9 @@ Scripts
 *~
 *.db
 *.sqlite3
+
+# Python tooling
+.venv/
+.ruff_cache/
+.pytest_cache/
+__pycache__/

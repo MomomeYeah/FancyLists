@@ -1,21 +1,29 @@
-# Hooks run the tool versions pinned in uv.lock, so results match the
-# editor and CI. Install with: uv run pre-commit install
+# Hooks run the tool versions pinned in each backend's lockfile, so results
+# match the editor and CI. Install with: uv run --project backends/python pre-commit install
 repos:
   - repo: local
     hooks:
+      # Python backend. pre-commit runs from the repo root and passes
+      # root-relative paths; Ruff finds backends/python/pyproject.toml itself
+      # for its rules, but not its excludes, so migrations are excluded here.
       - id: ruff-check
-        name: ruff check
-        entry: uv run ruff check --fix
+        name: ruff check (python backend)
+        entry: uv run --project backends/python ruff check --fix
         language: system
         types_or: [python, pyi]
+        files: ^backends/python/
+        exclude: ^backends/python/.*/migrations/
       - id: ruff-format
-        name: ruff format
-        entry: uv run ruff format
+        name: ruff format (python backend)
+        entry: uv run --project backends/python ruff format
         language: system
         types_or: [python, pyi]
+        files: ^backends/python/
+        exclude: ^backends/python/.*/migrations/
       - id: ty
-        name: ty check
-        entry: uv run ty check
+        name: ty check (python backend)
+        entry: uv run --directory backends/python ty check
         language: system
         types_or: [python, pyi]
+        files: ^backends/python/
         pass_filenames: false

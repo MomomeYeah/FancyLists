@@ -35,6 +35,14 @@ The Python backend is managed with [uv](https://docs.astral.sh/uv/). From `backe
 * `uv run poe migrate` then `uv run poe serve` to run the API on `http://localhost:8000`
 * Access the backend at `http://localhost:8000/api/` and `http://localhost:8000/admin/`
 
+#### Go (`backends/go/`)
+
+The Go backend runs on [Gin](https://gin-gonic.com/). From `backends/go/`:
+
+* Install dependencies: `go mod tidy`
+* Install Air: `go install github.com/air-verse/air@latest`
+* `air` to run the API on `http://localhost:8000`
+
 ### Running the frontend locally
 
 From the `frontend/` directory:

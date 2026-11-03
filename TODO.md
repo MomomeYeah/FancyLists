@@ -20,6 +20,22 @@
     * start / due dates
     * owner / members?
 
+## Backend - Go
+* Auth
+    * Get key from request Authorization header
+    * Correspond to user
+    * Middleware?
+* Best way to structure the project?
+    * Models
+        * Create / Edit versions of model?
+    * Validation rules
+    * Database logic
+    * Controllers
+    * Routes
+* General
+    * Full object owner details returned in JSON, including e.g. API key
+    * Need error handling for PATCH list item DNE
+
 ## Frontend
 
 ### Functionality

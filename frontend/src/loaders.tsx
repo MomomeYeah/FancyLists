@@ -107,7 +107,7 @@ export async function getLists(): Promise<APIResponse<Array<ListType>>> {
     return await makeAPIRequest(listsURL, 'GET');
 }
 export async function getList(listId: number): Promise<APIResponse<ListType>> {
-    const listURL = `${API_URL}/lists/${listId}`;
+    const listURL = `${API_URL}/lists/${listId}/`;
     return await makeAPIRequest(listURL, 'GET');
 }
 export async function addList(name: string): Promise<APIResponse<ListType>> {

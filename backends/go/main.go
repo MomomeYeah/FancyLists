@@ -3,11 +3,11 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 func getAuthToken(c *gin.Context) *User {
@@ -25,6 +25,7 @@ func main() {
 	// - logger and recovery (crash-free) middleware
 
 	router := gin.Default()
+
 	// Apply CORS middleware
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:3000"},
@@ -58,6 +59,113 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"key": requestUser.Key})
 	})
 
+	// TODO: GET single list
+	// {
+	// 	"id": 1,
+	// 	"name": "asda",
+	// 	"created_date": "2026-10-24T23:15:52.112316+11:00",
+	// 	"owner": "admin",
+	// 	"display_order": 1,
+	// 	"categories": [
+	// 		{
+	// 			"id": 1,
+	// 			"name": "asda",
+	// 			"list": 1,
+	// 			"display_order": 1,
+	// 			"items": [
+	// 				{
+	// 					"id": 1,
+	// 					"name": "qweq",
+	// 					"category": 1,
+	// 					"display_order": 1
+	// 				},
+	// 				{
+	// 					"id": 2,
+	// 					"name": "werw",
+	// 					"category": 1,
+	// 					"display_order": 2
+	// 				},
+	// 				{
+	// 					"id": 3,
+	// 					"name": "erte",
+	// 					"category": 1,
+	// 					"display_order": 3
+	// 				}
+	// 			]
+	// 		},
+	// 		{
+	// 			"id": 2,
+	// 			"name": "sdfs",
+	// 			"list": 1,
+	// 			"display_order": 2,
+	// 			"items": [
+	// 				{
+	// 					"id": 5,
+	// 					"name": "xcvx",
+	// 					"category": 2,
+	// 					"display_order": 1
+	// 				},
+	// 				{
+	// 					"id": 4,
+	// 					"name": "zxcz",
+	// 					"category": 2,
+	// 					"display_order": 2
+	// 				},
+	// 				{
+	// 					"id": 6,
+	// 					"name": "cvbc",
+	// 					"category": 2,
+	// 					"display_order": 3
+	// 				}
+	// 			]
+	// 		},
+	// 		{
+	// 			"id": 3,
+	// 			"name": "dfgd",
+	// 			"list": 1,
+	// 			"display_order": 3,
+	// 			"items": []
+	// 		}
+	// 	],
+	// 	"items": [
+	// 		{
+	// 			"id": 5,
+	// 			"name": "xcvx",
+	// 			"category": 2,
+	// 			"display_order": 1
+	// 		},
+	// 		{
+	// 			"id": 1,
+	// 			"name": "qweq",
+	// 			"category": 1,
+	// 			"display_order": 1
+	// 		},
+	// 		{
+	// 			"id": 4,
+	// 			"name": "zxcz",
+	// 			"category": 2,
+	// 			"display_order": 2
+	// 		},
+	// 		{
+	// 			"id": 2,
+	// 			"name": "werw",
+	// 			"category": 1,
+	// 			"display_order": 2
+	// 		},
+	// 		{
+	// 			"id": 6,
+	// 			"name": "cvbc",
+	// 			"category": 2,
+	// 			"display_order": 3
+	// 		},
+	// 		{
+	// 			"id": 3,
+	// 			"name": "erte",
+	// 			"category": 1,
+	// 			"display_order": 3
+	// 		}
+	// 	]
+	// }
 	lists := router.Group("/api/lists")
 	lists.GET("", func(c *gin.Context) {
 		user := getAuthToken(c)
@@ -71,6 +179,28 @@ func main() {
 			userLists = []*FancyList{}
 		}
 		c.JSON(http.StatusOK, userLists)
+	})
+	lists.GET("/:id/", func(c *gin.Context) {
+		user := getAuthToken(c)
+		if user == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"non_field_errors": "Invalid authorization."})
+			return
+		}
+
+		id := c.Param("id")
+		parsedId, err := strconv.Atoi(id)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID."})
+			return
+		}
+
+		list := GetUserList(*user, parsedId)
+		if list == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Item does not belong to request user."})
+			return
+		}
+
+		c.JSON(http.StatusOK, list)
 	})
 	lists.POST("/", func(c *gin.Context) {
 		user := getAuthToken(c)
@@ -88,7 +218,7 @@ func main() {
 		}
 
 		FancyList := FancyList{
-			Id:           uuid.New(),
+			Id:           NextId(),
 			Name:         list.Name,
 			CreatedDate:  time.Now(),
 			Owner:        *user,
@@ -100,8 +230,6 @@ func main() {
 		}
 		c.JSON(http.StatusCreated, FancyList)
 	})
-	// TODO: If name provided, allow update
-	// TODO: Return the updated item
 	lists.PATCH("/:id/", func(c *gin.Context) {
 		user := getAuthToken(c)
 		if user == nil {
@@ -110,13 +238,13 @@ func main() {
 		}
 
 		id := c.Param("id")
-		parsedUUID, err := uuid.Parse(id)
+		parsedId, err := strconv.Atoi(id)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid UUID."})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID."})
 			return
 		}
 
-		list := GetUserReorderable(AppLists, *user, parsedUUID)
+		list := GetUserReorderable(AppLists, *user, parsedId)
 		if list == nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Item does not belong to request user."})
 			return
@@ -132,11 +260,11 @@ func main() {
 		}
 		UpdateReorderable(list, payload)
 
-		AppLists[*user] = MoveReorderable(AppLists[*user], parsedUUID, payload.DisplayOrder)
+		AppLists[*user] = MoveReorderable(AppLists[*user], parsedId, payload.DisplayOrder)
 		for _, list := range AppLists[*user] {
 			fmt.Println(list.Name, list.DisplayOrder)
 		}
-		c.JSON(http.StatusOK, gin.H{})
+		c.JSON(http.StatusOK, list)
 	})
 	lists.DELETE("/:id/", func(c *gin.Context) {
 		user := getAuthToken(c)
@@ -146,13 +274,13 @@ func main() {
 		}
 
 		id := c.Param("id")
-		parsedUUID, err := uuid.Parse(id)
+		parsedId, err := strconv.Atoi(id)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid UUID."})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID."})
 			return
 		}
 
-		AppLists[*user] = DeleteReorderable(AppLists[*user], parsedUUID)
+		AppLists[*user] = DeleteReorderable(AppLists[*user], parsedId)
 		for _, list := range AppLists[*user] {
 			fmt.Println(list.Name, list.DisplayOrder)
 		}

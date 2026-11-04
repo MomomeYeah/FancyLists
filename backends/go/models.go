@@ -125,21 +125,25 @@ type FancyList struct {
 	CreatedDate time.Time   `json:"created_date" validate:"required"`
 	Owner       User        `json:"owner" validate:"required"`
 	Categories  []*Category `json:"categories"`
+	Items       []*Item     `json:"items"`
 	BaseReorderable
 }
 
-// var Lists = map[int]*FancyList{}
 var AppLists = map[User][]*FancyList{}
 
 func GetUserList(user User, id int) *FancyList {
+	items := []*Item{}
 	for _, list := range AppLists[user] {
 		if list.Id == id {
 			categories := []*Category{}
-			for _, category := range GetListCategories(list) {
-				categories = append(categories, GetCategory(category))
+			for _, listCategory := range GetListCategories(list) {
+				category := GetCategory(listCategory)
+				items = append(items, category.Items...)
+				categories = append(categories, category)
 			}
 
 			list.Categories = categories
+			list.Items = items
 			return list
 		}
 	}
@@ -148,11 +152,14 @@ func GetUserList(user User, id int) *FancyList {
 }
 
 type Category struct {
-	Name      string    `json:"name" validate:"required,max=100"`
-	FancyList FancyList `json:"list" validate:"required"`
-	Items     []*Item   `json:"items"`
+	Name      string  `json:"name" validate:"required,max=100"`
+	FancyList int     `json:"list" validate:"required"`
+	Items     []*Item `json:"items"`
 	BaseReorderable
 }
+
+// Map of category ID to its corresponding category
+var AllCategories = map[int]*Category{}
 
 // Map of list ID to its corresponding categories
 var ListCategories = map[int][]*Category{}
@@ -172,8 +179,8 @@ func GetListCategories(list *FancyList) []*Category {
 }
 
 type Item struct {
-	Name     string   `json:"name" validate:"required,max=100"`
-	Category Category `json:"category" validate:"required"`
+	Name     string `json:"name" validate:"required,max=100"`
+	Category int    `json:"category" validate:"required"`
 	BaseReorderable
 }
 

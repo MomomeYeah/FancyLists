@@ -59,113 +59,7 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"key": requestUser.Key})
 	})
 
-	// TODO: GET single list
-	// {
-	// 	"id": 1,
-	// 	"name": "asda",
-	// 	"created_date": "2026-10-24T23:15:52.112316+11:00",
-	// 	"owner": "admin",
-	// 	"display_order": 1,
-	// 	"categories": [
-	// 		{
-	// 			"id": 1,
-	// 			"name": "asda",
-	// 			"list": 1,
-	// 			"display_order": 1,
-	// 			"items": [
-	// 				{
-	// 					"id": 1,
-	// 					"name": "qweq",
-	// 					"category": 1,
-	// 					"display_order": 1
-	// 				},
-	// 				{
-	// 					"id": 2,
-	// 					"name": "werw",
-	// 					"category": 1,
-	// 					"display_order": 2
-	// 				},
-	// 				{
-	// 					"id": 3,
-	// 					"name": "erte",
-	// 					"category": 1,
-	// 					"display_order": 3
-	// 				}
-	// 			]
-	// 		},
-	// 		{
-	// 			"id": 2,
-	// 			"name": "sdfs",
-	// 			"list": 1,
-	// 			"display_order": 2,
-	// 			"items": [
-	// 				{
-	// 					"id": 5,
-	// 					"name": "xcvx",
-	// 					"category": 2,
-	// 					"display_order": 1
-	// 				},
-	// 				{
-	// 					"id": 4,
-	// 					"name": "zxcz",
-	// 					"category": 2,
-	// 					"display_order": 2
-	// 				},
-	// 				{
-	// 					"id": 6,
-	// 					"name": "cvbc",
-	// 					"category": 2,
-	// 					"display_order": 3
-	// 				}
-	// 			]
-	// 		},
-	// 		{
-	// 			"id": 3,
-	// 			"name": "dfgd",
-	// 			"list": 1,
-	// 			"display_order": 3,
-	// 			"items": []
-	// 		}
-	// 	],
-	// 	"items": [
-	// 		{
-	// 			"id": 5,
-	// 			"name": "xcvx",
-	// 			"category": 2,
-	// 			"display_order": 1
-	// 		},
-	// 		{
-	// 			"id": 1,
-	// 			"name": "qweq",
-	// 			"category": 1,
-	// 			"display_order": 1
-	// 		},
-	// 		{
-	// 			"id": 4,
-	// 			"name": "zxcz",
-	// 			"category": 2,
-	// 			"display_order": 2
-	// 		},
-	// 		{
-	// 			"id": 2,
-	// 			"name": "werw",
-	// 			"category": 1,
-	// 			"display_order": 2
-	// 		},
-	// 		{
-	// 			"id": 6,
-	// 			"name": "cvbc",
-	// 			"category": 2,
-	// 			"display_order": 3
-	// 		},
-	// 		{
-	// 			"id": 3,
-	// 			"name": "erte",
-	// 			"category": 1,
-	// 			"display_order": 3
-	// 		}
-	// 	]
-	// }
+	// List routes
 	lists := router.Group("/api/lists")
 	lists.GET("", func(c *gin.Context) {
 		user := getAuthToken(c)
@@ -285,6 +179,81 @@ func main() {
 			fmt.Println(list.Name, list.DisplayOrder)
 		}
 		c.Status(http.StatusNoContent)
+	})
+
+	// Category routes
+	// TODO: DELETE / PATCH category
+	categories := router.Group("/api/categories")
+	categories.POST("/", func(c *gin.Context) {
+		user := getAuthToken(c)
+		if user == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"non_field_errors": "Invalid authorization."})
+			return
+		}
+
+		var category struct {
+			Name string
+			List int
+		}
+		if err := c.ShouldBindJSON(&category); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		list := GetUserList(*user, category.List)
+		if list == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Item does not belong to request user."})
+			return
+		}
+
+		Category := Category{
+			Id:           NextId(),
+			Name:         category.Name,
+			FancyList:    category.List,
+			Items:        []*Item{},
+			DisplayOrder: (len(list.Categories) + 1) * 10,
+		}
+		AllCategories[Category.Id] = &Category
+		ListCategories[list.Id] = append(ListCategories[list.Id], &Category)
+		c.JSON(http.StatusCreated, Category)
+	})
+
+	// Item routes
+	// TODO: DELETE / PATCH item
+	items := router.Group("/api/items")
+	items.POST("/", func(c *gin.Context) {
+		user := getAuthToken(c)
+		if user == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"non_field_errors": "Invalid authorization."})
+			return
+		}
+
+		var item struct {
+			Name     string
+			Category int
+		}
+		if err := c.ShouldBindJSON(&item); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		category := AllCategories[item.Category]
+		if category == nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Category not found."})
+			return
+		}
+		list := GetUserList(*user, category.FancyList)
+		if list == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Item does not belong to request user."})
+			return
+		}
+
+		Item := Item{
+			Id:           NextId(),
+			Name:         item.Name,
+			Category:     item.Category,
+			DisplayOrder: (len(list.Items) + 1) * 10,
+		}
+		CategoryItems[category.Id] = append(CategoryItems[category.Id], &Item)
+		c.JSON(http.StatusCreated, Item)
 	})
 
 	// By default it serves on :8080 unless a

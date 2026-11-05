@@ -119,9 +119,6 @@ func main() {
 			DisplayOrder: (len(AppLists[*user]) + 1) * 10,
 		}
 		AppLists[*user] = append(AppLists[*user], &FancyList)
-		for _, list := range AppLists[*user] {
-			fmt.Println(list.Name, list.DisplayOrder)
-		}
 		c.JSON(http.StatusCreated, FancyList)
 	})
 	lists.PATCH("/:id/", func(c *gin.Context) {
@@ -155,9 +152,6 @@ func main() {
 		UpdateReorderable(list, payload)
 
 		AppLists[*user] = MoveReorderable(AppLists[*user], parsedId, payload.DisplayOrder)
-		for _, list := range AppLists[*user] {
-			fmt.Println(list.Name, list.DisplayOrder)
-		}
 		c.JSON(http.StatusOK, list)
 	})
 	lists.DELETE("/:id/", func(c *gin.Context) {
@@ -175,14 +169,11 @@ func main() {
 		}
 
 		AppLists[*user] = DeleteReorderable(AppLists[*user], parsedId)
-		for _, list := range AppLists[*user] {
-			fmt.Println(list.Name, list.DisplayOrder)
-		}
 		c.Status(http.StatusNoContent)
 	})
 
 	// Category routes
-	// TODO: DELETE / PATCH category
+	// TODO: PATCH category
 	categories := router.Group("/api/categories")
 	categories.POST("/", func(c *gin.Context) {
 		user := getAuthToken(c)
@@ -205,20 +196,40 @@ func main() {
 			return
 		}
 
-		Category := Category{
-			Id:           NextId(),
-			Name:         category.Name,
-			FancyList:    category.List,
-			Items:        []*Item{},
-			DisplayOrder: (len(list.Categories) + 1) * 10,
+		newCategory := CreateCategory(category.Name, list)
+		c.JSON(http.StatusCreated, newCategory)
+	})
+	categories.DELETE("/:id/", func(c *gin.Context) {
+		user := getAuthToken(c)
+		if user == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"non_field_errors": "Invalid authorization."})
+			return
 		}
-		AllCategories[Category.Id] = &Category
-		ListCategories[list.Id] = append(ListCategories[list.Id], &Category)
-		c.JSON(http.StatusCreated, Category)
+
+		id := c.Param("id")
+		parsedId, err := strconv.Atoi(id)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID."})
+			return
+		}
+
+		category := AllCategories[parsedId]
+		if category == nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Category not found."})
+			return
+		}
+		list := GetUserList(*user, category.FancyList)
+		if list == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Category does not belong to request user."})
+			return
+		}
+
+		DeleteCategory(category)
+		c.Status(http.StatusNoContent)
 	})
 
 	// Item routes
-	// TODO: DELETE / PATCH item
+	// TODO: PATCH item
 	items := router.Group("/api/items")
 	items.POST("/", func(c *gin.Context) {
 		user := getAuthToken(c)
@@ -246,14 +257,41 @@ func main() {
 			return
 		}
 
-		Item := Item{
-			Id:           NextId(),
-			Name:         item.Name,
-			Category:     item.Category,
-			DisplayOrder: (len(list.Items) + 1) * 10,
+		newItem := CreateItem(item.Name, category)
+		c.JSON(http.StatusCreated, newItem)
+	})
+	items.DELETE("/:id/", func(c *gin.Context) {
+		user := getAuthToken(c)
+		if user == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"non_field_errors": "Invalid authorization."})
+			return
 		}
-		CategoryItems[category.Id] = append(CategoryItems[category.Id], &Item)
-		c.JSON(http.StatusCreated, Item)
+
+		id := c.Param("id")
+		parsedId, err := strconv.Atoi(id)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID."})
+			return
+		}
+
+		item := AllItems[parsedId]
+		if item == nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Item not found."})
+			return
+		}
+		category := AllCategories[item.Category]
+		if category == nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Category not found."})
+			return
+		}
+		list := GetUserList(*user, category.FancyList)
+		if list == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Category does not belong to request user."})
+			return
+		}
+
+		DeleteItem(item)
+		c.Status(http.StatusNoContent)
 	})
 
 	// By default it serves on :8080 unless a

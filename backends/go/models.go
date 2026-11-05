@@ -3,6 +3,7 @@ package main
 import (
 	"cmp"
 	"encoding/json"
+	"maps"
 	"slices"
 	"time"
 )
@@ -129,21 +130,21 @@ type FancyList struct {
 	BaseReorderable
 }
 
+// Map of users to their corresponding lists
 var AppLists = map[User][]*FancyList{}
 
 func GetUserList(user User, id int) *FancyList {
-	items := []*Item{}
 	for _, list := range AppLists[user] {
 		if list.Id == id {
-			categories := []*Category{}
-			for _, listCategory := range GetListCategories(list) {
-				category := GetCategory(listCategory)
-				items = append(items, category.Items...)
-				categories = append(categories, category)
-			}
+			// Populate all categories associated with the list
+			list.Categories = GetListCategories(list)
 
-			list.Categories = categories
-			list.Items = items
+			// Populate all items associated with the list
+			listItems := slices.Collect(maps.Values(AllItems))
+			if listItems == nil {
+				listItems = []*Item{}
+			}
+			list.Items = listItems
 			return list
 		}
 	}
@@ -164,15 +165,36 @@ var AllCategories = map[int]*Category{}
 // Map of list ID to its corresponding categories
 var ListCategories = map[int][]*Category{}
 
-func GetCategory(category *Category) *Category {
-	category.Items = GetCategoryItems(category)
-	return category
+func CreateCategory(name string, list *FancyList) *Category {
+	category := Category{
+		Id:           NextId(),
+		Name:         name,
+		FancyList:    list.Id,
+		Items:        []*Item{},
+		DisplayOrder: (len(list.Categories) + 1) * 10,
+	}
+	AllCategories[category.Id] = &category
+	ListCategories[list.Id] = append(ListCategories[list.Id], &category)
+	return &category
+}
+
+func DeleteCategory(category *Category) {
+	for _, item := range GetCategoryItems(category) {
+		DeleteItem(item)
+	}
+
+	delete(AllCategories, category.Id)
+	ListCategories[category.FancyList] = DeleteReorderable(ListCategories[category.FancyList], category.Id)
 }
 
 func GetListCategories(list *FancyList) []*Category {
 	listCategories := ListCategories[list.Id]
 	if listCategories == nil {
 		return []*Category{}
+	}
+
+	for _, category := range listCategories {
+		category.Items = GetCategoryItems(category)
 	}
 
 	return listCategories
@@ -184,8 +206,29 @@ type Item struct {
 	BaseReorderable
 }
 
+// Map of item ID to its corresponding item
+var AllItems = map[int]*Item{}
+
 // Map of category ID to its corresponding items
 var CategoryItems = map[int][]*Item{}
+
+func CreateItem(name string, category *Category) *Item {
+	categoryItems := GetCategoryItems(category)
+	item := Item{
+		Id:           NextId(),
+		Name:         name,
+		Category:     category.Id,
+		DisplayOrder: (len(categoryItems) + 1) * 10,
+	}
+	AllItems[item.Id] = &item
+	CategoryItems[category.Id] = append(CategoryItems[category.Id], &item)
+	return &item
+}
+
+func DeleteItem(item *Item) {
+	delete(AllItems, item.Id)
+	CategoryItems[item.Category] = DeleteReorderable(CategoryItems[item.Category], item.Id)
+}
 
 func GetCategoryItems(category *Category) []*Item {
 	categoryItems := CategoryItems[category.Id]

@@ -135,23 +135,22 @@ func main() {
 			return
 		}
 
-		list := GetUserReorderable(AppLists, *user, parsedId)
+		list := GetUserList(*user, parsedId)
 		if list == nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Item does not belong to request user."})
 			return
 		}
 
-		var payload struct {
-			Name         string `json:"name,omitempty"`
-			DisplayOrder int    `json:"display_order,omitempty"`
+		payload := UpdateReorderablePayload{
+			Name:         list.Name,
+			DisplayOrder: list.DisplayOrder,
 		}
 		if err := c.ShouldBindJSON(&payload); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		UpdateReorderable(list, payload)
 
-		AppLists[*user] = MoveReorderable(AppLists[*user], parsedId, payload.DisplayOrder)
+		UpdateList(list, payload)
 		c.JSON(http.StatusOK, list)
 	})
 	lists.DELETE("/:id/", func(c *gin.Context) {
@@ -173,7 +172,6 @@ func main() {
 	})
 
 	// Category routes
-	// TODO: PATCH category
 	categories := router.Group("/api/categories")
 	categories.POST("/", func(c *gin.Context) {
 		user := getAuthToken(c)
@@ -198,6 +196,42 @@ func main() {
 
 		newCategory := CreateCategory(category.Name, list)
 		c.JSON(http.StatusCreated, newCategory)
+	})
+	categories.PATCH("/:id/", func(c *gin.Context) {
+		user := getAuthToken(c)
+		if user == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization."})
+			return
+		}
+
+		id := c.Param("id")
+		parsedId, err := strconv.Atoi(id)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID."})
+			return
+		}
+
+		category := AllCategories[parsedId]
+		if category == nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Category not found."})
+			return
+		}
+		list := GetUserList(*user, category.FancyList)
+		if list == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Category does not belong to request user."})
+			return
+		}
+
+		payload := UpdateReorderablePayload{
+			Name:         category.Name,
+			DisplayOrder: category.DisplayOrder,
+		}
+		if err := c.ShouldBindJSON(&payload); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		UpdateCategory(category, payload)
+		c.JSON(http.StatusOK, category)
 	})
 	categories.DELETE("/:id/", func(c *gin.Context) {
 		user := getAuthToken(c)
@@ -229,7 +263,6 @@ func main() {
 	})
 
 	// Item routes
-	// TODO: PATCH item
 	items := router.Group("/api/items")
 	items.POST("/", func(c *gin.Context) {
 		user := getAuthToken(c)
@@ -259,6 +292,47 @@ func main() {
 
 		newItem := CreateItem(item.Name, category)
 		c.JSON(http.StatusCreated, newItem)
+	})
+	items.PATCH("/:id/", func(c *gin.Context) {
+		user := getAuthToken(c)
+		if user == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization."})
+			return
+		}
+
+		id := c.Param("id")
+		parsedId, err := strconv.Atoi(id)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID."})
+			return
+		}
+
+		item := AllItems[parsedId]
+		if item == nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Item not found."})
+			return
+		}
+		category := AllCategories[item.Category]
+		if category == nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Category not found."})
+			return
+		}
+		list := GetUserList(*user, category.FancyList)
+		if list == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Category does not belong to request user."})
+			return
+		}
+
+		payload := UpdateReorderablePayload{
+			Name:         item.Name,
+			DisplayOrder: item.DisplayOrder,
+		}
+		if err := c.ShouldBindJSON(&payload); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		UpdateItem(item, payload)
+		c.JSON(http.StatusOK, item)
 	})
 	items.DELETE("/:id/", func(c *gin.Context) {
 		user := getAuthToken(c)

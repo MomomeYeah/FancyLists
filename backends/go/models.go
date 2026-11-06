@@ -2,7 +2,6 @@ package main
 
 import (
 	"cmp"
-	"encoding/json"
 	"maps"
 	"slices"
 	"time"
@@ -60,20 +59,9 @@ func (b *BaseReorderable) GetId() int { return b.Id }
 func (b *BaseReorderable) GetDisplayOrder() int      { return b.DisplayOrder }
 func (b *BaseReorderable) SetDisplayOrder(order int) { b.DisplayOrder = order }
 
-func GetUserReorderable[T Reorderable](reorderables map[User][]T, user User, id int) *T {
-	userReorderables := reorderables[user]
-	for _, item := range userReorderables {
-		if item.GetId() == id {
-			return &item
-		}
-	}
-
-	return nil
-}
-
-func UpdateReorderable[T Reorderable](item *T, other any) {
-	data, _ := json.Marshal(other)
-	json.Unmarshal(data, item)
+type UpdateReorderablePayload struct {
+	Name         string `json:"name,omitempty"`
+	DisplayOrder int    `json:"display_order,omitempty"`
 }
 
 func MoveReorderable[T Reorderable](list []T, id int, displayOrder int) []T {
@@ -88,7 +76,7 @@ func MoveReorderable[T Reorderable](list []T, id int, displayOrder int) []T {
 				// If display order has decreased, then `moved` goes before sibling with same order
 				item.SetDisplayOrder(newDisplayOrder - 5)
 			} else {
-				// If display order has decreased, then `moved` goes before sibling with same order
+				// If display order has increased, then `moved` goes after sibling with same order
 				item.SetDisplayOrder(newDisplayOrder + 5)
 			}
 		}
@@ -144,12 +132,27 @@ func GetUserList(user User, id int) *FancyList {
 			if listItems == nil {
 				listItems = []*Item{}
 			}
+
+			slices.SortFunc(listItems, func(a, b *Item) int {
+				return cmp.Compare(a.GetDisplayOrder(), b.GetDisplayOrder())
+			})
+
 			list.Items = listItems
 			return list
 		}
 	}
 
 	return nil
+}
+
+func UpdateList(list *FancyList, payload UpdateReorderablePayload) {
+	if payload.Name != "" {
+		list.Name = payload.Name
+	}
+
+	if payload.DisplayOrder != list.DisplayOrder {
+		AppLists[list.Owner] = MoveReorderable(AppLists[list.Owner], list.Id, payload.DisplayOrder)
+	}
 }
 
 type Category struct {
@@ -176,6 +179,16 @@ func CreateCategory(name string, list *FancyList) *Category {
 	AllCategories[category.Id] = &category
 	ListCategories[list.Id] = append(ListCategories[list.Id], &category)
 	return &category
+}
+
+func UpdateCategory(category *Category, payload UpdateReorderablePayload) {
+	if payload.Name != "" {
+		category.Name = payload.Name
+	}
+
+	if payload.DisplayOrder != category.DisplayOrder {
+		ListCategories[category.FancyList] = MoveReorderable(ListCategories[category.FancyList], category.Id, payload.DisplayOrder)
+	}
 }
 
 func DeleteCategory(category *Category) {
@@ -223,6 +236,16 @@ func CreateItem(name string, category *Category) *Item {
 	AllItems[item.Id] = &item
 	CategoryItems[category.Id] = append(CategoryItems[category.Id], &item)
 	return &item
+}
+
+func UpdateItem(item *Item, payload UpdateReorderablePayload) {
+	if payload.Name != "" {
+		item.Name = payload.Name
+	}
+
+	if payload.DisplayOrder != item.DisplayOrder {
+		CategoryItems[item.Category] = MoveReorderable(CategoryItems[item.Category], item.Id, payload.DisplayOrder)
+	}
 }
 
 func DeleteItem(item *Item) {

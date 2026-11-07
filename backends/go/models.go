@@ -169,16 +169,16 @@ var AllCategories = map[int]*Category{}
 var ListCategories = map[int][]*Category{}
 
 func CreateCategory(name string, list *FancyList) *Category {
-	category := Category{
+	category := &Category{
 		Id:           NextId(),
 		Name:         name,
 		FancyList:    list.Id,
 		Items:        []*Item{},
 		DisplayOrder: (len(list.Categories) + 1) * 10,
 	}
-	AllCategories[category.Id] = &category
-	ListCategories[list.Id] = append(ListCategories[list.Id], &category)
-	return &category
+	AllCategories[category.Id] = category
+	ListCategories[list.Id] = append(ListCategories[list.Id], category)
+	return category
 }
 
 func UpdateCategory(category *Category, payload UpdateReorderablePayload) {
@@ -227,15 +227,15 @@ var CategoryItems = map[int][]*Item{}
 
 func CreateItem(name string, category *Category) *Item {
 	categoryItems := GetCategoryItems(category)
-	item := Item{
+	item := &Item{
 		Id:           NextId(),
 		Name:         name,
 		Category:     category.Id,
 		DisplayOrder: (len(categoryItems) + 1) * 10,
 	}
-	AllItems[item.Id] = &item
-	CategoryItems[category.Id] = append(CategoryItems[category.Id], &item)
-	return &item
+	AllItems[item.Id] = item
+	CategoryItems[category.Id] = append(CategoryItems[category.Id], item)
+	return item
 }
 
 func UpdateItem(item *Item, payload UpdateReorderablePayload) {

@@ -21,6 +21,9 @@
     * owner / members?
 
 ## Backend - Go
+* Tests
+    * Add some basic tests
+    * Describe how to run them in the README
 * Auth
     * Get key from request Authorization header
     * Correspond to user
@@ -35,6 +38,7 @@
 * General
     * Full object owner details returned in JSON, including e.g. API key
     * Need error handling for PATCH list item DNE
+    * Create / Update / Delete list functions
 
 ## Frontend
 

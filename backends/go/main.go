@@ -293,6 +293,7 @@ func main() {
 		newItem := CreateItem(item.Name, category)
 		c.JSON(http.StatusCreated, newItem)
 	})
+	// TODO: Update item categories
 	items.PATCH("/:id/", func(c *gin.Context) {
 		user := getAuthToken(c)
 		if user == nil {

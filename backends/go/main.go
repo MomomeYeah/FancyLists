@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/rand"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -36,8 +37,9 @@ func main() {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	// TODO: User register
-	router.POST("/auth/login/", func(c *gin.Context) {
+	// Auth routes
+	auth := router.Group("/auth")
+	auth.POST("/login/", func(c *gin.Context) {
 		var user User
 		if err := c.ShouldBindJSON(&user); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -57,6 +59,38 @@ func main() {
 
 		fmt.Println(requestUser, "logged in")
 		c.JSON(http.StatusOK, gin.H{"key": requestUser.Key})
+	})
+	auth.POST("/registration/", func(c *gin.Context) {
+		var newUser struct {
+			Username  string `json:"username"`
+			Password1 string `json:"password1"`
+			Password2 string `json:"password2"`
+		}
+		if err := c.ShouldBindJSON(&newUser); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		if newUser.Password1 != newUser.Password2 {
+			c.JSON(http.StatusBadRequest, gin.H{"non_field_errors": "Passwords must match."})
+			return
+		}
+
+		_, ok := AppUsers[newUser.Username]
+		if ok {
+			c.JSON(http.StatusBadRequest, gin.H{"non_field_errors": "User already exists."})
+			return
+		}
+
+		AppUsers[newUser.Username] = User{
+			Username: newUser.Username,
+			Password: newUser.Password1,
+			Key:      rand.Text(),
+		}
+
+		fmt.Println(AppUsers[newUser.Username])
+
+		c.JSON(http.StatusOK, AppUsers[newUser.Username])
 	})
 
 	// List routes

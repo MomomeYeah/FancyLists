@@ -10,7 +10,7 @@ import (
 type User struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
-	Key      string `json:"key1"`
+	Key      string `json:"key"`
 }
 
 // Hard code users for now
@@ -37,7 +37,7 @@ func GetUserByKey(key string) *User {
 	return nil
 }
 
-var currentId = 1
+var currentId = 15
 
 func NextId() int {
 	currentId += 1
@@ -119,7 +119,37 @@ type FancyList struct {
 }
 
 // Map of users to their corresponding lists
-var AppLists = map[User][]*FancyList{}
+var AppLists = map[User][]*FancyList{
+	AppUsers["admin"]: {
+		{
+			Id:           1,
+			Name:         "List 1",
+			CreatedDate:  time.Now(),
+			Owner:        AppUsers["admin"],
+			Categories:   []*Category{},
+			Items:        []*Item{},
+			DisplayOrder: 10,
+		},
+		{
+			Id:           2,
+			Name:         "List 2",
+			CreatedDate:  time.Now(),
+			Owner:        AppUsers["admin"],
+			Categories:   []*Category{},
+			Items:        []*Item{},
+			DisplayOrder: 20,
+		},
+		{
+			Id:           3,
+			Name:         "List 3",
+			CreatedDate:  time.Now(),
+			Owner:        AppUsers["admin"],
+			Categories:   []*Category{},
+			Items:        []*Item{},
+			DisplayOrder: 30,
+		},
+	},
+}
 
 func GetUserList(user User, id int) *FancyList {
 	for _, list := range AppLists[user] {
@@ -163,10 +193,56 @@ type Category struct {
 }
 
 // Map of category ID to its corresponding category
-var AllCategories = map[int]*Category{}
+var AllCategories = map[int]*Category{
+	4: {
+		Id:           4,
+		Name:         "Category 1",
+		FancyList:    1,
+		Items:        []*Item{},
+		DisplayOrder: 10,
+	},
+	5: {
+		Id:           5,
+		Name:         "Category 2",
+		FancyList:    1,
+		Items:        []*Item{},
+		DisplayOrder: 20,
+	},
+	6: {
+		Id:           6,
+		Name:         "Category 3",
+		FancyList:    1,
+		Items:        []*Item{},
+		DisplayOrder: 30,
+	},
+}
 
 // Map of list ID to its corresponding categories
-var ListCategories = map[int][]*Category{}
+var ListCategories = map[int][]*Category{
+	1: {
+		{
+			Id:           4,
+			Name:         "Category 1",
+			FancyList:    1,
+			Items:        []*Item{},
+			DisplayOrder: 10,
+		},
+		{
+			Id:           5,
+			Name:         "Category 2",
+			FancyList:    1,
+			Items:        []*Item{},
+			DisplayOrder: 20,
+		},
+		{
+			Id:           6,
+			Name:         "Category 3",
+			FancyList:    1,
+			Items:        []*Item{},
+			DisplayOrder: 30,
+		},
+	},
+}
 
 func CreateCategory(name string, list *FancyList) *Category {
 	category := &Category{
@@ -220,10 +296,126 @@ type Item struct {
 }
 
 // Map of item ID to its corresponding item
-var AllItems = map[int]*Item{}
+var AllItems = map[int]*Item{
+	7: {
+		Id:           7,
+		Name:         "Item 1",
+		Category:     4,
+		DisplayOrder: 10,
+	},
+	8: {
+		Id:           8,
+		Name:         "Item 2",
+		Category:     4,
+		DisplayOrder: 20,
+	},
+	9: {
+		Id:           9,
+		Name:         "Item 3",
+		Category:     4,
+		DisplayOrder: 30,
+	},
+	10: {
+		Id:           10,
+		Name:         "Item 4",
+		Category:     5,
+		DisplayOrder: 10,
+	},
+	11: {
+		Id:           11,
+		Name:         "Item 5",
+		Category:     5,
+		DisplayOrder: 20,
+	},
+	12: {
+		Id:           12,
+		Name:         "Item 6",
+		Category:     5,
+		DisplayOrder: 30,
+	},
+	13: {
+		Id:           10,
+		Name:         "Item 7",
+		Category:     6,
+		DisplayOrder: 10,
+	},
+	14: {
+		Id:           11,
+		Name:         "Item 8",
+		Category:     6,
+		DisplayOrder: 20,
+	},
+	15: {
+		Id:           12,
+		Name:         "Item 9",
+		Category:     6,
+		DisplayOrder: 30,
+	},
+}
 
 // Map of category ID to its corresponding items
-var CategoryItems = map[int][]*Item{}
+var CategoryItems = map[int][]*Item{
+	4: {
+		{
+			Id:           7,
+			Name:         "Item 1",
+			Category:     4,
+			DisplayOrder: 10,
+		},
+		{
+			Id:           8,
+			Name:         "Item 2",
+			Category:     4,
+			DisplayOrder: 20,
+		},
+		{
+			Id:           9,
+			Name:         "Item 3",
+			Category:     4,
+			DisplayOrder: 30,
+		},
+	},
+	5: {
+		{
+			Id:           10,
+			Name:         "Item 4",
+			Category:     5,
+			DisplayOrder: 10,
+		},
+		{
+			Id:           11,
+			Name:         "Item 5",
+			Category:     5,
+			DisplayOrder: 20,
+		},
+		{
+			Id:           12,
+			Name:         "Item 6",
+			Category:     5,
+			DisplayOrder: 30,
+		},
+	},
+	6: {
+		{
+			Id:           13,
+			Name:         "Item 7",
+			Category:     6,
+			DisplayOrder: 10,
+		},
+		{
+			Id:           14,
+			Name:         "Item 8",
+			Category:     6,
+			DisplayOrder: 20,
+		},
+		{
+			Id:           15,
+			Name:         "Item 9",
+			Category:     6,
+			DisplayOrder: 30,
+		},
+	},
+}
 
 func CreateItem(name string, category *Category) *Item {
 	categoryItems := GetCategoryItems(category)

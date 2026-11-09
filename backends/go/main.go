@@ -358,8 +358,9 @@ func main() {
 			return
 		}
 
-		payload := UpdateReorderablePayload{
+		payload := UpdateItemPayload{
 			Name:         item.Name,
+			Category:     item.Category,
 			DisplayOrder: item.DisplayOrder,
 		}
 		if err := c.ShouldBindJSON(&payload); err != nil {

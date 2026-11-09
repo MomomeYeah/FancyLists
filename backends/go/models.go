@@ -295,6 +295,12 @@ type Item struct {
 	BaseReorderable
 }
 
+type UpdateItemPayload struct {
+	Name         string `json:"name,omitempty"`
+	Category     int    `json:"category,omitempty"`
+	DisplayOrder int    `json:"display_order,omitempty"`
+}
+
 // Map of item ID to its corresponding item
 var AllItems = map[int]*Item{
 	7: {
@@ -334,19 +340,19 @@ var AllItems = map[int]*Item{
 		DisplayOrder: 30,
 	},
 	13: {
-		Id:           10,
+		Id:           13,
 		Name:         "Item 7",
 		Category:     6,
 		DisplayOrder: 10,
 	},
 	14: {
-		Id:           11,
+		Id:           14,
 		Name:         "Item 8",
 		Category:     6,
 		DisplayOrder: 20,
 	},
 	15: {
-		Id:           12,
+		Id:           15,
 		Name:         "Item 9",
 		Category:     6,
 		DisplayOrder: 30,
@@ -430,7 +436,7 @@ func CreateItem(name string, category *Category) *Item {
 	return item
 }
 
-func UpdateItem(item *Item, payload UpdateReorderablePayload) {
+func UpdateItem(item *Item, payload UpdateItemPayload) {
 	if payload.Name != "" {
 		item.Name = payload.Name
 	}

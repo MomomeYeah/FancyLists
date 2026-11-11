@@ -32,7 +32,7 @@ type UpdateReorderablePayload struct {
 	DisplayOrder int    `json:"display_order,omitempty"`
 }
 
-func UpdateReorderable[T Reorderable](reorderable T, payload UpdateReorderablePayload) {
+func UpdateReorderable[T Reorderable](reorderable T, payload *UpdateReorderablePayload) {
 	data, _ := json.Marshal(payload)
 	json.Unmarshal(data, &reorderable)
 }
@@ -51,16 +51,6 @@ type Category struct {
 	FancyList int     `json:"list" validate:"required"`
 	Items     []*Item `json:"items"`
 	BaseReorderable
-}
-
-func UpdateCategory(category *Category, payload UpdateReorderablePayload) {
-	if payload.Name != "" {
-		category.Name = payload.Name
-	}
-
-	// if payload.DisplayOrder != category.DisplayOrder {
-	// 	ListCategories[category.FancyList] = MoveReorderable(ListCategories[category.FancyList], category.Id, payload.DisplayOrder)
-	// }
 }
 
 type Item struct {

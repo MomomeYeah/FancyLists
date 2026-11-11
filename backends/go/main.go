@@ -195,7 +195,7 @@ func main() {
 			return
 		}
 
-		UpdateList(db, list, payload)
+		list = UpdateList(db, list, user, &payload)
 		c.JSON(http.StatusOK, list)
 	})
 	lists.DELETE("/:id/", func(c *gin.Context) {
@@ -258,40 +258,42 @@ func main() {
 			return
 		}
 
-		// TODO
-		// id := c.Param("id")
-		// parsedId, err := strconv.Atoi(id)
-		// if err != nil {
-		// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID."})
-		// 	return
-		// }
+		id := c.Param("id")
+		parsedId, err := strconv.Atoi(id)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID."})
+			return
+		}
 
-		// category := AllCategories[parsedId]
-		// if category == nil {
-		// 	c.JSON(http.StatusNotFound, gin.H{"error": "Category not found."})
-		// 	return
-		// }
-		// list, err := GetUserList(db, *user, category.FancyList)
-		// if err != nil {
-		// 	c.JSON(http.StatusBadRequest, gin.H{"error": err})
-		// 	return
-		// }
-		// if list == nil {
-		// 	c.JSON(http.StatusUnauthorized, gin.H{"error": "List does not belong to request user."})
-		// 	return
-		// }
+		category, err := GetCategoryById(db, parsedId)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			return
+		}
+		if category == nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Category not found."})
+			return
+		}
+		list, err := GetUserList(db, *user, category.FancyList)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err})
+			return
+		}
+		if list == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "List does not belong to request user."})
+			return
+		}
 
-		// payload := UpdateReorderablePayload{
-		// 	Name:         category.Name,
-		// 	DisplayOrder: category.DisplayOrder,
-		// }
-		// if err := c.ShouldBindJSON(&payload); err != nil {
-		// 	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		// 	return
-		// }
-		// UpdateCategory(category, payload)
-		// c.JSON(http.StatusOK, category)
-		c.Status(http.StatusNoContent)
+		payload := UpdateReorderablePayload{
+			Name:         category.Name,
+			DisplayOrder: category.DisplayOrder,
+		}
+		if err := c.ShouldBindJSON(&payload); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		category = UpdateCategory(db, category, list, &payload)
+		c.JSON(http.StatusOK, category)
 	})
 	categories.DELETE("/:id/", func(c *gin.Context) {
 		user := getAuthToken(c, db)

@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/rand"
 	"database/sql"
+	"fmt"
 	"log"
 	"time"
 
@@ -281,41 +282,37 @@ func CreateList(db *sql.DB, name string, owner User) (*FancyList, error) {
 	return list, nil
 }
 
-func UpdateList(db *sql.DB, list *FancyList, payload UpdateReorderablePayload) *FancyList {
+func ReorderReorderable[T Reorderable](db *sql.DB, reorderable T, payload *UpdateReorderablePayload, tableName string, corellationField string, corellationValue int) {
 	// Normalise display order
-	payloadDisplayOrder := (payload.DisplayOrder + 1) * 10
+	payload.DisplayOrder = (payload.DisplayOrder + 1) * 10
 
 	// If display order has increased, then item appears after its sibling with the same display order
-	if payloadDisplayOrder > list.DisplayOrder {
-		_, err := db.Exec(`
-		UPDATE fancylists
+	if payload.DisplayOrder > reorderable.GetDisplayOrder() {
+		_, err := db.Exec(fmt.Sprintf(`
+		UPDATE %s
 		SET display_order = display_order - 10
-		WHERE owner = (
-			SELECT id
-			FROM users
-			WHERE username = ?
-		)
-		AND display_order BETWEEN ? AND ?`,
-			list.Owner, list.DisplayOrder, payloadDisplayOrder)
+		WHERE %s = %d
+		AND display_order BETWEEN %d AND %d`,
+			tableName, corellationField, corellationValue, reorderable.GetDisplayOrder(), payload.DisplayOrder))
 		if err != nil {
 			log.Fatal(err)
 		}
 		// If display order has decreased, then item appears before its sibling with the same display order
-	} else if payloadDisplayOrder < list.DisplayOrder {
-		_, err := db.Exec(`
-		UPDATE fancylists
+	} else if payload.DisplayOrder < reorderable.GetDisplayOrder() {
+		_, err := db.Exec(fmt.Sprintf(`
+		UPDATE %s
 		SET display_order = display_order + 10
-		WHERE owner = (
-			SELECT id
-			FROM users
-			WHERE username = ?
-		)
-		AND display_order BETWEEN ? AND ?`,
-			list.Owner, payloadDisplayOrder, list.DisplayOrder)
+		WHERE %s = %d
+		AND display_order BETWEEN %d AND %d`,
+			tableName, corellationField, corellationValue, payload.DisplayOrder, reorderable.GetDisplayOrder()))
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
+}
+
+func UpdateList(db *sql.DB, list *FancyList, owner *User, payload *UpdateReorderablePayload) *FancyList {
+	ReorderReorderable(db, list, payload, "fancylists", "owner", owner.Id)
 
 	UpdateReorderable(list, payload)
 	_, err := db.Exec(`
@@ -324,7 +321,7 @@ func UpdateList(db *sql.DB, list *FancyList, payload UpdateReorderablePayload) *
 		name = ?,
 		display_order = ?
 	WHERE id = ?`,
-		list.Name, payloadDisplayOrder, list.Id)
+		list.Name, list.DisplayOrder, list.Id)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -359,7 +356,8 @@ func GetListCategories(db *sql.DB, list int) ([]*Category, error) {
 	rows, err := db.Query(`
 	SELECT c.id, c.name, c.fancylist, c.display_order
 	FROM categories c
-	WHERE c.fancylist = ?`,
+	WHERE c.fancylist = ?
+	ORDER BY c.display_order ASC`,
 		list)
 	if err != nil {
 		return nil, err
@@ -411,6 +409,24 @@ func CreateCategory(db *sql.DB, name string, fancylist int) (*Category, error) {
 	return list, nil
 }
 
+func UpdateCategory(db *sql.DB, category *Category, list *FancyList, payload *UpdateReorderablePayload) *Category {
+	ReorderReorderable(db, category, payload, "categories", "fancylist", list.Id)
+
+	UpdateReorderable(category, payload)
+	_, err := db.Exec(`
+	UPDATE categories
+	SET
+		name = ?,
+		display_order = ?
+	WHERE id = ?`,
+		category.Name, category.DisplayOrder, category.Id)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return category
+}
+
 func DeleteCategory(db *sql.DB, id int) {
 	_, err := db.Exec("DELETE FROM categories WHERE id = ?", id)
 	if err != nil {
@@ -440,7 +456,8 @@ func GetListItems(db *sql.DB, list int) ([]*Item, error) {
 	FROM fancylists f
 	JOIN categories c ON c.fancylist = f.id
 	JOIN items i ON i.category = c.id
-	WHERE f.id = ?`,
+	WHERE f.id = ?
+	ORDER BY i.display_order ASC`,
 		list)
 	if err != nil {
 		return nil, err
@@ -467,7 +484,8 @@ func GetCategoryItems(db *sql.DB, category int) ([]*Item, error) {
 	rows, err := db.Query(`
 	SELECT i.id, i.name, i.category, i.display_order
 	FROM items i
-	WHERE i.category = ?`,
+	WHERE i.category = ?
+	ORDER BY i.display_order ASC`,
 		category)
 	if err != nil {
 		return nil, err

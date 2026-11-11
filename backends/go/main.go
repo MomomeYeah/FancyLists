@@ -1,8 +1,9 @@
 package main
 
 import (
-	"crypto/rand"
+	"database/sql"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -11,20 +12,27 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func getAuthToken(c *gin.Context) *User {
+func getAuthToken(c *gin.Context, db *sql.DB) *User {
 	substr := len("Token ")
 	header := c.GetHeader("Authorization")
 	token := header[substr:]
-	user := GetUserByKey(token)
+	user, err := GetUserByKey(db, token)
+	if err != nil {
+		log.Fatal("getAuthToken: ", err)
+	}
+
 	fmt.Println("Got user", user.Username, "from", header)
 
 	return user
 }
 
 func main() {
+	// Init database
+	db := InitDb()
+	defer CloseDb(db)
+
 	// Creates a gin router with default middleware:
 	// - logger and recovery (crash-free) middleware
-
 	router := gin.Default()
 
 	// Apply CORS middleware
@@ -46,8 +54,9 @@ func main() {
 			return
 		}
 
-		requestUser, ok := AppUsers[user.Username]
-		if !ok {
+		requestUser, err := GetUserByUsername(db, user.Username)
+		if err != nil {
+			fmt.Println(err.Error())
 			c.JSON(http.StatusUnauthorized, gin.H{"non_field_errors": "Unable to log in with provided credentials."})
 			return
 		}
@@ -71,45 +80,40 @@ func main() {
 			return
 		}
 
+		// TODO: check username doesn't exist
 		if newUser.Password1 != newUser.Password2 {
 			c.JSON(http.StatusBadRequest, gin.H{"non_field_errors": "Passwords must match."})
 			return
 		}
 
-		_, ok := AppUsers[newUser.Username]
-		if ok {
-			c.JSON(http.StatusBadRequest, gin.H{"non_field_errors": "User already exists."})
+		user, err := CreateUser(db, newUser.Username, newUser.Password1)
+		if err != nil {
+			fmt.Println(err)
+			c.JSON(http.StatusBadRequest, gin.H{"non_field_errors": "Unable to register user"})
 			return
 		}
 
-		AppUsers[newUser.Username] = User{
-			Username: newUser.Username,
-			Password: newUser.Password1,
-			Key:      rand.Text(),
-		}
-
-		fmt.Println(AppUsers[newUser.Username])
-
-		c.JSON(http.StatusOK, AppUsers[newUser.Username])
+		c.JSON(http.StatusOK, user)
 	})
 
 	// List routes
 	lists := router.Group("/api/lists")
 	lists.GET("", func(c *gin.Context) {
-		user := getAuthToken(c)
+		user := getAuthToken(c, db)
 		if user == nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"non_field_errors": "Invalid authorization."})
 			return
 		}
 
-		userLists := AppLists[*user]
-		if userLists == nil {
-			userLists = []*FancyList{}
+		lists, err := GetUserLists(db, *user)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"Error": err.Error()})
+			return
 		}
-		c.JSON(http.StatusOK, userLists)
+		c.JSON(http.StatusOK, lists)
 	})
 	lists.GET("/:id/", func(c *gin.Context) {
-		user := getAuthToken(c)
+		user := getAuthToken(c, db)
 		if user == nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"non_field_errors": "Invalid authorization."})
 			return
@@ -122,41 +126,43 @@ func main() {
 			return
 		}
 
-		list := GetUserList(*user, parsedId)
+		list, err := GetUserList(db, *user, parsedId)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err})
+			return
+		}
 		if list == nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Item does not belong to request user."})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "List does not belong to request user."})
 			return
 		}
 
 		c.JSON(http.StatusOK, list)
 	})
 	lists.POST("/", func(c *gin.Context) {
-		user := getAuthToken(c)
+		user := getAuthToken(c, db)
 		if user == nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"non_field_errors": "Invalid authorization."})
 			return
 		}
 
-		var list struct {
+		var payload struct {
 			Name string
 		}
-		if err := c.ShouldBindJSON(&list); err != nil {
+		if err := c.ShouldBindJSON(&payload); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		FancyList := FancyList{
-			Id:           NextId(),
-			Name:         list.Name,
-			CreatedDate:  time.Now(),
-			Owner:        *user,
-			DisplayOrder: (len(AppLists[*user]) + 1) * 10,
+		list, err := CreateList(db, payload.Name, *user)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			return
 		}
-		AppLists[*user] = append(AppLists[*user], &FancyList)
-		c.JSON(http.StatusCreated, FancyList)
+
+		c.JSON(http.StatusCreated, list)
 	})
 	lists.PATCH("/:id/", func(c *gin.Context) {
-		user := getAuthToken(c)
+		user := getAuthToken(c, db)
 		if user == nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization."})
 			return
@@ -169,9 +175,14 @@ func main() {
 			return
 		}
 
-		list := GetUserList(*user, parsedId)
+		// TODO: fetches more data than necessary
+		list, err := GetUserList(db, *user, parsedId)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err})
+			return
+		}
 		if list == nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Item does not belong to request user."})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "List does not belong to request user."})
 			return
 		}
 
@@ -184,11 +195,11 @@ func main() {
 			return
 		}
 
-		UpdateList(list, payload)
+		UpdateList(db, list, payload)
 		c.JSON(http.StatusOK, list)
 	})
 	lists.DELETE("/:id/", func(c *gin.Context) {
-		user := getAuthToken(c)
+		user := getAuthToken(c, db)
 		if user == nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"non_field_errors": "Invalid authorization."})
 			return
@@ -201,14 +212,15 @@ func main() {
 			return
 		}
 
-		AppLists[*user] = DeleteReorderable(AppLists[*user], parsedId)
+		// TODO: check it belongs to the request user
+		DeleteList(db, parsedId)
 		c.Status(http.StatusNoContent)
 	})
 
 	// Category routes
 	categories := router.Group("/api/categories")
 	categories.POST("/", func(c *gin.Context) {
-		user := getAuthToken(c)
+		user := getAuthToken(c, db)
 		if user == nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"non_field_errors": "Invalid authorization."})
 			return
@@ -222,53 +234,67 @@ func main() {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		list := GetUserList(*user, category.List)
+		list, err := GetUserList(db, *user, category.List)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err})
+			return
+		}
 		if list == nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Item does not belong to request user."})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "List does not belong to request user."})
 			return
 		}
 
-		newCategory := CreateCategory(category.Name, list)
+		newCategory, err := CreateCategory(db, category.Name, list.Id)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			return
+		}
 		c.JSON(http.StatusCreated, newCategory)
 	})
 	categories.PATCH("/:id/", func(c *gin.Context) {
-		user := getAuthToken(c)
+		user := getAuthToken(c, db)
 		if user == nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization."})
 			return
 		}
 
-		id := c.Param("id")
-		parsedId, err := strconv.Atoi(id)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID."})
-			return
-		}
+		// TODO
+		// id := c.Param("id")
+		// parsedId, err := strconv.Atoi(id)
+		// if err != nil {
+		// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID."})
+		// 	return
+		// }
 
-		category := AllCategories[parsedId]
-		if category == nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Category not found."})
-			return
-		}
-		list := GetUserList(*user, category.FancyList)
-		if list == nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Category does not belong to request user."})
-			return
-		}
+		// category := AllCategories[parsedId]
+		// if category == nil {
+		// 	c.JSON(http.StatusNotFound, gin.H{"error": "Category not found."})
+		// 	return
+		// }
+		// list, err := GetUserList(db, *user, category.FancyList)
+		// if err != nil {
+		// 	c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		// 	return
+		// }
+		// if list == nil {
+		// 	c.JSON(http.StatusUnauthorized, gin.H{"error": "List does not belong to request user."})
+		// 	return
+		// }
 
-		payload := UpdateReorderablePayload{
-			Name:         category.Name,
-			DisplayOrder: category.DisplayOrder,
-		}
-		if err := c.ShouldBindJSON(&payload); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		UpdateCategory(category, payload)
-		c.JSON(http.StatusOK, category)
+		// payload := UpdateReorderablePayload{
+		// 	Name:         category.Name,
+		// 	DisplayOrder: category.DisplayOrder,
+		// }
+		// if err := c.ShouldBindJSON(&payload); err != nil {
+		// 	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		// 	return
+		// }
+		// UpdateCategory(category, payload)
+		// c.JSON(http.StatusOK, category)
+		c.Status(http.StatusNoContent)
 	})
 	categories.DELETE("/:id/", func(c *gin.Context) {
-		user := getAuthToken(c)
+		user := getAuthToken(c, db)
 		if user == nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"non_field_errors": "Invalid authorization."})
 			return
@@ -281,25 +307,33 @@ func main() {
 			return
 		}
 
-		category := AllCategories[parsedId]
+		category, err := GetCategoryById(db, parsedId)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			return
+		}
 		if category == nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Category not found."})
 			return
 		}
-		list := GetUserList(*user, category.FancyList)
+		list, err := GetUserList(db, *user, category.FancyList)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err})
+			return
+		}
 		if list == nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Category does not belong to request user."})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "List does not belong to request user."})
 			return
 		}
 
-		DeleteCategory(category)
+		DeleteCategory(db, category.Id)
 		c.Status(http.StatusNoContent)
 	})
 
 	// Item routes
 	items := router.Group("/api/items")
 	items.POST("/", func(c *gin.Context) {
-		user := getAuthToken(c)
+		user := getAuthToken(c, db)
 		if user == nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"non_field_errors": "Invalid authorization."})
 			return
@@ -313,23 +347,34 @@ func main() {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		category := AllCategories[item.Category]
-		if category == nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Category not found."})
-			return
-		}
-		list := GetUserList(*user, category.FancyList)
-		if list == nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Item does not belong to request user."})
-			return
-		}
 
-		newItem := CreateItem(item.Name, category)
-		c.JSON(http.StatusCreated, newItem)
+		// TODO
+		// category := AllCategories[item.Category]
+		// if category == nil {
+		// 	c.JSON(http.StatusNotFound, gin.H{"error": "Category not found."})
+		// 	return
+		// }
+		// list, err := GetUserList(db, *user, category.FancyList)
+		// if err != nil {
+		// 	c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		// 	return
+		// }
+		// if list == nil {
+		// 	c.JSON(http.StatusUnauthorized, gin.H{"error": "List does not belong to request user."})
+		// 	return
+		// }
+
+		// newItem, err := CreateItem(db, item.Name, category.Id)
+		// if err != nil {
+		// 	c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		// 	return
+		// }
+		// c.JSON(http.StatusCreated, newItem)
+		c.Status(http.StatusNoContent)
 	})
 	// TODO: Update item categories
 	items.PATCH("/:id/", func(c *gin.Context) {
-		user := getAuthToken(c)
+		user := getAuthToken(c, db)
 		if user == nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization."})
 			return
@@ -342,19 +387,33 @@ func main() {
 			return
 		}
 
-		item := AllItems[parsedId]
+		item, err := GetItemById(db, parsedId)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			return
+		}
 		if item == nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Item not found."})
 			return
 		}
-		category := AllCategories[item.Category]
+
+		category, err := GetCategoryById(db, parsedId)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			return
+		}
 		if category == nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Category not found."})
 			return
 		}
-		list := GetUserList(*user, category.FancyList)
+
+		list, err := GetUserList(db, *user, category.FancyList)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err})
+			return
+		}
 		if list == nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Category does not belong to request user."})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "List does not belong to request user."})
 			return
 		}
 
@@ -371,36 +430,41 @@ func main() {
 		c.JSON(http.StatusOK, item)
 	})
 	items.DELETE("/:id/", func(c *gin.Context) {
-		user := getAuthToken(c)
+		user := getAuthToken(c, db)
 		if user == nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"non_field_errors": "Invalid authorization."})
 			return
 		}
 
-		id := c.Param("id")
-		parsedId, err := strconv.Atoi(id)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID."})
-			return
-		}
+		// id := c.Param("id")
+		// parsedId, err := strconv.Atoi(id)
+		// if err != nil {
+		// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID."})
+		// 	return
+		// }
 
-		item := AllItems[parsedId]
-		if item == nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Item not found."})
-			return
-		}
-		category := AllCategories[item.Category]
-		if category == nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Category not found."})
-			return
-		}
-		list := GetUserList(*user, category.FancyList)
-		if list == nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Category does not belong to request user."})
-			return
-		}
+		// TODO
+		// item := AllItems[parsedId]
+		// if item == nil {
+		// 	c.JSON(http.StatusNotFound, gin.H{"error": "Item not found."})
+		// 	return
+		// }
+		// category := AllCategories[item.Category]
+		// if category == nil {
+		// 	c.JSON(http.StatusNotFound, gin.H{"error": "Category not found."})
+		// 	return
+		// }
+		// list, err := GetUserList(db, *user, category.FancyList)
+		// if err != nil {
+		// 	c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		// 	return
+		// }
+		// if list == nil {
+		// 	c.JSON(http.StatusUnauthorized, gin.H{"error": "List does not belong to request user."})
+		// 	return
+		// }
 
-		DeleteItem(item)
+		// DeleteItem(db, item.Id)
 		c.Status(http.StatusNoContent)
 	})
 

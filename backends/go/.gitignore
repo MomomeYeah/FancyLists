@@ -20,3 +20,4 @@ profile.cov
 # Local workspace files
 go.work
 go.work.sum
+*.db

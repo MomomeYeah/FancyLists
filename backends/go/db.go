@@ -531,6 +531,25 @@ func CreateItem(db *sql.DB, name string, category int) (*Item, error) {
 	return list, nil
 }
 
+func UpdateItem(db *sql.DB, item *Item, category *Category, payload *UpdateReorderablePayload) *Item {
+	ReorderReorderable(db, item, payload, "items", "category", category.Id)
+
+	UpdateReorderable(item, payload)
+	_, err := db.Exec(`
+	UPDATE items
+	SET
+		name = ?,
+		category = ?,
+		display_order = ?
+	WHERE id = ?`,
+		item.Name, item.Category, item.DisplayOrder, item.Id)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return item
+}
+
 func DeleteItem(db *sql.DB, id int) {
 	_, err := db.Exec("DELETE FROM items WHERE id = ?", id)
 	if err != nil {

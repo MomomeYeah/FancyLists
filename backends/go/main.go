@@ -198,6 +198,7 @@ func main() {
 		list = UpdateList(db, list, user, &payload)
 		c.JSON(http.StatusOK, list)
 	})
+	// TODO: delete requires a reorder
 	lists.DELETE("/:id/", func(c *gin.Context) {
 		user := getAuthToken(c, db)
 		if user == nil {
@@ -295,6 +296,7 @@ func main() {
 		category = UpdateCategory(db, category, list, &payload)
 		c.JSON(http.StatusOK, category)
 	})
+	// TODO: delete requires a reorder
 	categories.DELETE("/:id/", func(c *gin.Context) {
 		user := getAuthToken(c, db)
 		if user == nil {
@@ -350,35 +352,94 @@ func main() {
 			return
 		}
 
-		// TODO
-		// category := AllCategories[item.Category]
-		// if category == nil {
-		// 	c.JSON(http.StatusNotFound, gin.H{"error": "Category not found."})
-		// 	return
-		// }
-		// list, err := GetUserList(db, *user, category.FancyList)
-		// if err != nil {
-		// 	c.JSON(http.StatusBadRequest, gin.H{"error": err})
-		// 	return
-		// }
-		// if list == nil {
-		// 	c.JSON(http.StatusUnauthorized, gin.H{"error": "List does not belong to request user."})
-		// 	return
-		// }
+		category, err := GetCategoryById(db, item.Category)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			return
+		}
+		if category == nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Category not found."})
+			return
+		}
+		list, err := GetUserList(db, *user, category.FancyList)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err})
+			return
+		}
+		if list == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "List does not belong to request user."})
+			return
+		}
 
-		// newItem, err := CreateItem(db, item.Name, category.Id)
-		// if err != nil {
-		// 	c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-		// 	return
-		// }
-		// c.JSON(http.StatusCreated, newItem)
-		c.Status(http.StatusNoContent)
+		newItem, err := CreateItem(db, item.Name, category.Id)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusCreated, newItem)
 	})
 	// TODO: Update item categories
-	items.PATCH("/:id/", func(c *gin.Context) {
+	// items.PATCH("/:id/", func(c *gin.Context) {
+	// 	user := getAuthToken(c, db)
+	// 	if user == nil {
+	// 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization."})
+	// 		return
+	// 	}
+
+	// 	id := c.Param("id")
+	// 	parsedId, err := strconv.Atoi(id)
+	// 	if err != nil {
+	// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID."})
+	// 		return
+	// 	}
+
+	// 	item, err := GetItemById(db, parsedId)
+	// 	if err != nil {
+	// 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	// 		return
+	// 	}
+	// 	if item == nil {
+	// 		c.JSON(http.StatusNotFound, gin.H{"error": "Item not found."})
+	// 		return
+	// 	}
+
+	// 	category, err := GetCategoryById(db, parsedId)
+	// 	if err != nil {
+	// 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	// 		return
+	// 	}
+	// 	if category == nil {
+	// 		c.JSON(http.StatusNotFound, gin.H{"error": "Category not found."})
+	// 		return
+	// 	}
+
+	// 	list, err := GetUserList(db, *user, category.FancyList)
+	// 	if err != nil {
+	// 		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+	// 		return
+	// 	}
+	// 	if list == nil {
+	// 		c.JSON(http.StatusUnauthorized, gin.H{"error": "List does not belong to request user."})
+	// 		return
+	// 	}
+
+	// 	payload := UpdateItemPayload{
+	// 		Name:         item.Name,
+	// 		Category:     item.Category,
+	// 		DisplayOrder: item.DisplayOrder,
+	// 	}
+	// 	if err := c.ShouldBindJSON(&payload); err != nil {
+	// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	// 		return
+	// 	}
+	// 	UpdateItem(item, payload)
+	// 	c.JSON(http.StatusOK, item)
+	// })
+	// TODO: delete requires a reorder
+	items.DELETE("/:id/", func(c *gin.Context) {
 		user := getAuthToken(c, db)
 		if user == nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization."})
+			c.JSON(http.StatusUnauthorized, gin.H{"non_field_errors": "Invalid authorization."})
 			return
 		}
 
@@ -398,8 +459,7 @@ func main() {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Item not found."})
 			return
 		}
-
-		category, err := GetCategoryById(db, parsedId)
+		category, err := GetCategoryById(db, item.Category)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			return
@@ -408,7 +468,6 @@ func main() {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Category not found."})
 			return
 		}
-
 		list, err := GetUserList(db, *user, category.FancyList)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err})
@@ -419,54 +478,7 @@ func main() {
 			return
 		}
 
-		payload := UpdateItemPayload{
-			Name:         item.Name,
-			Category:     item.Category,
-			DisplayOrder: item.DisplayOrder,
-		}
-		if err := c.ShouldBindJSON(&payload); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		UpdateItem(item, payload)
-		c.JSON(http.StatusOK, item)
-	})
-	items.DELETE("/:id/", func(c *gin.Context) {
-		user := getAuthToken(c, db)
-		if user == nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"non_field_errors": "Invalid authorization."})
-			return
-		}
-
-		// id := c.Param("id")
-		// parsedId, err := strconv.Atoi(id)
-		// if err != nil {
-		// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID."})
-		// 	return
-		// }
-
-		// TODO
-		// item := AllItems[parsedId]
-		// if item == nil {
-		// 	c.JSON(http.StatusNotFound, gin.H{"error": "Item not found."})
-		// 	return
-		// }
-		// category := AllCategories[item.Category]
-		// if category == nil {
-		// 	c.JSON(http.StatusNotFound, gin.H{"error": "Category not found."})
-		// 	return
-		// }
-		// list, err := GetUserList(db, *user, category.FancyList)
-		// if err != nil {
-		// 	c.JSON(http.StatusBadRequest, gin.H{"error": err})
-		// 	return
-		// }
-		// if list == nil {
-		// 	c.JSON(http.StatusUnauthorized, gin.H{"error": "List does not belong to request user."})
-		// 	return
-		// }
-
-		// DeleteItem(db, item.Id)
+		DeleteItem(db, item.Id)
 		c.Status(http.StatusNoContent)
 	})
 

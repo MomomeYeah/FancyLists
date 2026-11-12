@@ -65,12 +65,12 @@ type UpdateItemPayload struct {
 	DisplayOrder int    `json:"display_order,omitempty"`
 }
 
-func UpdateItem(item *Item, payload UpdateItemPayload) {
-	if payload.Name != "" {
-		item.Name = payload.Name
-	}
+// func UpdateItem(item *Item, payload UpdateItemPayload) {
+// 	if payload.Name != "" {
+// 		item.Name = payload.Name
+// 	}
 
-	// if payload.DisplayOrder != item.DisplayOrder {
-	// 	CategoryItems[item.Category] = MoveReorderable(CategoryItems[item.Category], item.Id, payload.DisplayOrder)
-	// }
-}
+// 	// if payload.DisplayOrder != item.DisplayOrder {
+// 	// 	CategoryItems[item.Category] = MoveReorderable(CategoryItems[item.Category], item.Id, payload.DisplayOrder)
+// 	// }
+// }

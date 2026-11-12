@@ -97,6 +97,7 @@ func main() {
 	})
 
 	// List routes
+	// TODO: every endpoint needs to check ownership
 	lists := router.Group("/api/lists")
 	lists.GET("", func(c *gin.Context) {
 		user := getAuthToken(c, db)

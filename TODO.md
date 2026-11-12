@@ -23,6 +23,12 @@
 ## Backend - Go
 * Tests
     * Add some basic tests
+        * Golden path
+        * Entity exists
+        * Entity owned by current user
+        * Reordering correct on move
+        * Reordering correct on delete
+        * Registration - user exists
     * Describe how to run them in the README
 * Auth
     * Get key from request Authorization header

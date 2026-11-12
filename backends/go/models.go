@@ -27,12 +27,24 @@ func (b *BaseReorderable) GetId() int { return b.Id }
 func (b *BaseReorderable) GetDisplayOrder() int      { return b.DisplayOrder }
 func (b *BaseReorderable) SetDisplayOrder(order int) { b.DisplayOrder = order }
 
-type UpdateReorderablePayload struct {
+type UpdateReorderablePayload interface {
+	GetDisplayOrder() int
+	SetDisplayOrder(order int)
+}
+type BaseReorderablePayload struct {
 	Name         string `json:"name,omitempty"`
 	DisplayOrder int    `json:"display_order,omitempty"`
 }
 
-func UpdateReorderable[T Reorderable](reorderable T, payload *UpdateReorderablePayload) {
+func (b *BaseReorderablePayload) GetDisplayOrder() int      { return b.DisplayOrder }
+func (b *BaseReorderablePayload) SetDisplayOrder(order int) { b.DisplayOrder = order }
+
+type UpdateItemPayload struct {
+	Category int `json:"category,omitempty"`
+	BaseReorderablePayload
+}
+
+func UpdateReorderable[T Reorderable, S UpdateReorderablePayload](reorderable T, payload S) {
 	data, _ := json.Marshal(payload)
 	json.Unmarshal(data, &reorderable)
 }
@@ -58,19 +70,3 @@ type Item struct {
 	Category int    `json:"category" validate:"required"`
 	BaseReorderable
 }
-
-type UpdateItemPayload struct {
-	Name         string `json:"name,omitempty"`
-	Category     int    `json:"category,omitempty"`
-	DisplayOrder int    `json:"display_order,omitempty"`
-}
-
-// func UpdateItem(item *Item, payload UpdateItemPayload) {
-// 	if payload.Name != "" {
-// 		item.Name = payload.Name
-// 	}
-
-// 	// if payload.DisplayOrder != item.DisplayOrder {
-// 	// 	CategoryItems[item.Category] = MoveReorderable(CategoryItems[item.Category], item.Id, payload.DisplayOrder)
-// 	// }
-// }

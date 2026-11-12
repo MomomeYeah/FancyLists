@@ -187,10 +187,7 @@ func main() {
 			return
 		}
 
-		payload := UpdateReorderablePayload{
-			Name:         list.Name,
-			DisplayOrder: list.DisplayOrder,
-		}
+		payload := BaseReorderablePayload{}
 		if err := c.ShouldBindJSON(&payload); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -286,10 +283,7 @@ func main() {
 			return
 		}
 
-		payload := UpdateReorderablePayload{
-			Name:         category.Name,
-			DisplayOrder: category.DisplayOrder,
-		}
+		payload := BaseReorderablePayload{}
 		if err := c.ShouldBindJSON(&payload); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -379,63 +373,58 @@ func main() {
 		}
 		c.JSON(http.StatusCreated, newItem)
 	})
-	// TODO: Update item categories
-	// items.PATCH("/:id/", func(c *gin.Context) {
-	// 	user := getAuthToken(c, db)
-	// 	if user == nil {
-	// 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization."})
-	// 		return
-	// 	}
+	items.PATCH("/:id/", func(c *gin.Context) {
+		user := getAuthToken(c, db)
+		if user == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization."})
+			return
+		}
 
-	// 	id := c.Param("id")
-	// 	parsedId, err := strconv.Atoi(id)
-	// 	if err != nil {
-	// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID."})
-	// 		return
-	// 	}
+		id := c.Param("id")
+		parsedId, err := strconv.Atoi(id)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID."})
+			return
+		}
 
-	// 	item, err := GetItemById(db, parsedId)
-	// 	if err != nil {
-	// 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-	// 		return
-	// 	}
-	// 	if item == nil {
-	// 		c.JSON(http.StatusNotFound, gin.H{"error": "Item not found."})
-	// 		return
-	// 	}
+		item, err := GetItemById(db, parsedId)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			return
+		}
+		if item == nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Item not found."})
+			return
+		}
 
-	// 	category, err := GetCategoryById(db, parsedId)
-	// 	if err != nil {
-	// 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-	// 		return
-	// 	}
-	// 	if category == nil {
-	// 		c.JSON(http.StatusNotFound, gin.H{"error": "Category not found."})
-	// 		return
-	// 	}
+		category, err := GetCategoryById(db, parsedId)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			return
+		}
+		if category == nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Category not found."})
+			return
+		}
 
-	// 	list, err := GetUserList(db, *user, category.FancyList)
-	// 	if err != nil {
-	// 		c.JSON(http.StatusBadRequest, gin.H{"error": err})
-	// 		return
-	// 	}
-	// 	if list == nil {
-	// 		c.JSON(http.StatusUnauthorized, gin.H{"error": "List does not belong to request user."})
-	// 		return
-	// 	}
+		list, err := GetUserList(db, *user, category.FancyList)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err})
+			return
+		}
+		if list == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "List does not belong to request user."})
+			return
+		}
 
-	// 	payload := UpdateItemPayload{
-	// 		Name:         item.Name,
-	// 		Category:     item.Category,
-	// 		DisplayOrder: item.DisplayOrder,
-	// 	}
-	// 	if err := c.ShouldBindJSON(&payload); err != nil {
-	// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	// 		return
-	// 	}
-	// 	UpdateItem(item, payload)
-	// 	c.JSON(http.StatusOK, item)
-	// })
+		payload := UpdateItemPayload{}
+		if err := c.ShouldBindJSON(&payload); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		item = UpdateItem(db, item, category, &payload)
+		c.JSON(http.StatusOK, item)
+	})
 	// TODO: delete requires a reorder
 	items.DELETE("/:id/", func(c *gin.Context) {
 		user := getAuthToken(c, db)

@@ -282,36 +282,36 @@ func CreateList(db *sql.DB, name string, owner User) (*FancyList, error) {
 	return list, nil
 }
 
-func ReorderReorderable[T Reorderable](db *sql.DB, reorderable T, payload *UpdateReorderablePayload, tableName string, corellationField string, corellationValue int) {
+func ReorderReorderable[T Reorderable, S UpdateReorderablePayload](db *sql.DB, reorderable T, payload S, tableName string, corellationField string, corellationValue int) {
 	// Normalise display order
-	payload.DisplayOrder = (payload.DisplayOrder + 1) * 10
+	payload.SetDisplayOrder((payload.GetDisplayOrder() + 1) * 10)
 
 	// If display order has increased, then item appears after its sibling with the same display order
-	if payload.DisplayOrder > reorderable.GetDisplayOrder() {
+	if payload.GetDisplayOrder() > reorderable.GetDisplayOrder() {
 		_, err := db.Exec(fmt.Sprintf(`
 		UPDATE %s
 		SET display_order = display_order - 10
 		WHERE %s = %d
 		AND display_order BETWEEN %d AND %d`,
-			tableName, corellationField, corellationValue, reorderable.GetDisplayOrder(), payload.DisplayOrder))
+			tableName, corellationField, corellationValue, reorderable.GetDisplayOrder(), payload.GetDisplayOrder()))
 		if err != nil {
 			log.Fatal(err)
 		}
 		// If display order has decreased, then item appears before its sibling with the same display order
-	} else if payload.DisplayOrder < reorderable.GetDisplayOrder() {
+	} else if payload.GetDisplayOrder() < reorderable.GetDisplayOrder() {
 		_, err := db.Exec(fmt.Sprintf(`
 		UPDATE %s
 		SET display_order = display_order + 10
 		WHERE %s = %d
 		AND display_order BETWEEN %d AND %d`,
-			tableName, corellationField, corellationValue, payload.DisplayOrder, reorderable.GetDisplayOrder()))
+			tableName, corellationField, corellationValue, payload.GetDisplayOrder(), reorderable.GetDisplayOrder()))
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
 }
 
-func UpdateList(db *sql.DB, list *FancyList, owner *User, payload *UpdateReorderablePayload) *FancyList {
+func UpdateList(db *sql.DB, list *FancyList, owner *User, payload *BaseReorderablePayload) *FancyList {
 	ReorderReorderable(db, list, payload, "fancylists", "owner", owner.Id)
 
 	UpdateReorderable(list, payload)
@@ -409,7 +409,7 @@ func CreateCategory(db *sql.DB, name string, fancylist int) (*Category, error) {
 	return list, nil
 }
 
-func UpdateCategory(db *sql.DB, category *Category, list *FancyList, payload *UpdateReorderablePayload) *Category {
+func UpdateCategory(db *sql.DB, category *Category, list *FancyList, payload *BaseReorderablePayload) *Category {
 	ReorderReorderable(db, category, payload, "categories", "fancylist", list.Id)
 
 	UpdateReorderable(category, payload)
@@ -531,7 +531,7 @@ func CreateItem(db *sql.DB, name string, category int) (*Item, error) {
 	return list, nil
 }
 
-func UpdateItem(db *sql.DB, item *Item, category *Category, payload *UpdateReorderablePayload) *Item {
+func UpdateItem(db *sql.DB, item *Item, category *Category, payload *UpdateItemPayload) *Item {
 	ReorderReorderable(db, item, payload, "items", "category", category.Id)
 
 	UpdateReorderable(item, payload)

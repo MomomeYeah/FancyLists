@@ -311,6 +311,18 @@ func ReorderReorderable[T Reorderable, S UpdateReorderablePayload](db *sql.DB, r
 	}
 }
 
+func DeleteReorderable[T Reorderable](db *sql.DB, reorderable T, tableName string, corellationField string, corellationValue int) {
+	_, err := db.Exec(fmt.Sprintf(`
+	UPDATE %s
+	SET display_order = display_order - 10
+	WHERE %s = %d
+	AND display_order > %d`,
+		tableName, corellationField, corellationValue, reorderable.GetDisplayOrder()))
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 func UpdateList(db *sql.DB, list *FancyList, owner *User, payload *BaseReorderablePayload) *FancyList {
 	ReorderReorderable(db, list, payload, "fancylists", "owner", owner.Id)
 
@@ -329,11 +341,13 @@ func UpdateList(db *sql.DB, list *FancyList, owner *User, payload *BaseReorderab
 	return list
 }
 
-func DeleteList(db *sql.DB, id int) {
-	_, err := db.Exec("DELETE FROM fancylists WHERE id = ?", id)
+func DeleteList(db *sql.DB, list *FancyList, owner *User) {
+	_, err := db.Exec("DELETE FROM fancylists WHERE id = ?", list.Id)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	DeleteReorderable(db, list, "fancylists", "owner", owner.Id)
 }
 
 func GetCategoryById(db *sql.DB, id int) (*Category, error) {
@@ -427,11 +441,13 @@ func UpdateCategory(db *sql.DB, category *Category, list *FancyList, payload *Ba
 	return category
 }
 
-func DeleteCategory(db *sql.DB, id int) {
-	_, err := db.Exec("DELETE FROM categories WHERE id = ?", id)
+func DeleteCategory(db *sql.DB, category *Category, list *FancyList) {
+	_, err := db.Exec("DELETE FROM categories WHERE id = ?", category.Id)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	DeleteReorderable(db, category, "categories", "fancylist", list.Id)
 }
 
 func GetItemById(db *sql.DB, id int) (*Item, error) {
@@ -550,9 +566,11 @@ func UpdateItem(db *sql.DB, item *Item, category *Category, payload *UpdateItemP
 	return item
 }
 
-func DeleteItem(db *sql.DB, id int) {
-	_, err := db.Exec("DELETE FROM items WHERE id = ?", id)
+func DeleteItem(db *sql.DB, item *Item, category *Category) {
+	_, err := db.Exec("DELETE FROM items WHERE id = ?", item.Id)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	DeleteReorderable(db, item, "items", "category", category.Id)
 }

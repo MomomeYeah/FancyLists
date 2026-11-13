@@ -196,7 +196,6 @@ func main() {
 		list = UpdateList(db, list, user, &payload)
 		c.JSON(http.StatusOK, list)
 	})
-	// TODO: delete requires a reorder
 	lists.DELETE("/:id/", func(c *gin.Context) {
 		user := getAuthToken(c, db)
 		if user == nil {
@@ -211,8 +210,18 @@ func main() {
 			return
 		}
 
+		list, err := GetUserList(db, *user, parsedId)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err})
+			return
+		}
+		if list == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "List does not belong to request user."})
+			return
+		}
+
 		// TODO: check it belongs to the request user
-		DeleteList(db, parsedId)
+		DeleteList(db, list, user)
 		c.Status(http.StatusNoContent)
 	})
 
@@ -291,7 +300,6 @@ func main() {
 		category = UpdateCategory(db, category, list, &payload)
 		c.JSON(http.StatusOK, category)
 	})
-	// TODO: delete requires a reorder
 	categories.DELETE("/:id/", func(c *gin.Context) {
 		user := getAuthToken(c, db)
 		if user == nil {
@@ -325,7 +333,7 @@ func main() {
 			return
 		}
 
-		DeleteCategory(db, category.Id)
+		DeleteCategory(db, category, list)
 		c.Status(http.StatusNoContent)
 	})
 
@@ -425,7 +433,6 @@ func main() {
 		item = UpdateItem(db, item, category, &payload)
 		c.JSON(http.StatusOK, item)
 	})
-	// TODO: delete requires a reorder
 	items.DELETE("/:id/", func(c *gin.Context) {
 		user := getAuthToken(c, db)
 		if user == nil {
@@ -468,7 +475,7 @@ func main() {
 			return
 		}
 
-		DeleteItem(db, item.Id)
+		DeleteItem(db, item, category)
 		c.Status(http.StatusNoContent)
 	})
 

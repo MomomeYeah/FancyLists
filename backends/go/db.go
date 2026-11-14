@@ -266,7 +266,10 @@ func GetListById(db *sql.DB, id int) (*FancyList, error) {
 
 func CreateList(db *sql.DB, name string, owner User) (*FancyList, error) {
 	created_date := time.Now()
-	result, err := db.Exec("INSERT INTO fancylists (name, created_date, owner, display_order) VALUES (?, ?, ?, (SELECT MAX(display_order) + 10 FROM fancylists WHERE owner = ?))", name, created_date, owner.Id, owner.Id)
+	result, err := db.Exec(`
+	INSERT INTO fancylists (name, created_date, owner, display_order)
+	VALUES (?, ?, ?, (SELECT COALESCE(MAX(display_order), 0) + 10 FROM fancylists WHERE owner = ?))`,
+		name, created_date, owner.Id, owner.Id)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -414,7 +417,7 @@ func GetListCategories(db *sql.DB, list int) ([]*Category, error) {
 func CreateCategory(db *sql.DB, name string, fancylist int) (*Category, error) {
 	result, err := db.Exec(`
 	INSERT INTO categories (name, fancylist, display_order)
-	VALUES (?, ?, (SELECT MAX(display_order) + 10 FROM categories WHERE fancylist = ?))`,
+	VALUES (?, ?, (SELECT COALESCE(MAX(display_order), 0) + 10 FROM categories WHERE fancylist = ?))`,
 		name, fancylist, fancylist)
 	if err != nil {
 		log.Fatal(err)
@@ -550,7 +553,7 @@ func GetCategoryItems(db *sql.DB, category int) ([]*Item, error) {
 func CreateItem(db *sql.DB, name string, category int) (*Item, error) {
 	result, err := db.Exec(`
 	INSERT INTO items (name, category, display_order)
-	VALUES (?, ?, (SELECT MAX(display_order) + 10 FROM items WHERE category = ?))`,
+	VALUES (?, ?, (SELECT COALESCE(MAX(display_order), 0) + 10 FROM items WHERE category = ?))`,
 		name, category, category)
 	if err != nil {
 		log.Fatal(err)

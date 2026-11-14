@@ -29,6 +29,7 @@
         * Reordering correct on move
         * Reordering correct on delete
         * Registration - user exists
+        * Create list / category / item in parent where none exists yet
     * Describe how to run them in the README
 * Auth
     * Get key from request Authorization header

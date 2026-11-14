@@ -127,13 +127,15 @@ func main() {
 			return
 		}
 
+		// TODO: could check "not found" from "does not exist" separately here
+		// Maybe GetUserList -> GetListDetails?
 		list, err := GetUserList(db, *user, parsedId)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err})
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		if list == nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "List does not belong to request user."})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "List not found."})
 			return
 		}
 
@@ -176,13 +178,16 @@ func main() {
 			return
 		}
 
-		// TODO: fetches more data than necessary
-		list, err := GetUserList(db, *user, parsedId)
+		list, err := GetListById(db, parsedId)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err})
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		if list == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "List not found."})
+			return
+		}
+		if list.Owner != user.Id {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "List does not belong to request user."})
 			return
 		}
@@ -210,17 +215,20 @@ func main() {
 			return
 		}
 
-		list, err := GetUserList(db, *user, parsedId)
+		list, err := GetListById(db, parsedId)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err})
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		if list == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "List not found."})
+			return
+		}
+		if list.Owner != user.Id {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "List does not belong to request user."})
 			return
 		}
 
-		// TODO: check it belongs to the request user
 		DeleteList(db, list, user)
 		c.Status(http.StatusNoContent)
 	})
@@ -242,12 +250,16 @@ func main() {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		list, err := GetUserList(db, *user, category.List)
+		list, err := GetListById(db, category.List)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err})
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		if list == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "List not found."})
+			return
+		}
+		if list.Owner != user.Id {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "List does not belong to request user."})
 			return
 		}
@@ -273,7 +285,7 @@ func main() {
 			return
 		}
 
-		category, err := GetCategoryById(db, parsedId)
+		category, list, err := GetCategoryById(db, parsedId)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			return
@@ -282,12 +294,7 @@ func main() {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Category not found."})
 			return
 		}
-		list, err := GetUserList(db, *user, category.FancyList)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err})
-			return
-		}
-		if list == nil {
+		if list.Owner != user.Id {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "List does not belong to request user."})
 			return
 		}
@@ -314,7 +321,7 @@ func main() {
 			return
 		}
 
-		category, err := GetCategoryById(db, parsedId)
+		category, list, err := GetCategoryById(db, parsedId)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			return
@@ -323,12 +330,7 @@ func main() {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Category not found."})
 			return
 		}
-		list, err := GetUserList(db, *user, category.FancyList)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err})
-			return
-		}
-		if list == nil {
+		if list.Owner != user.Id {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "List does not belong to request user."})
 			return
 		}
@@ -355,7 +357,7 @@ func main() {
 			return
 		}
 
-		category, err := GetCategoryById(db, item.Category)
+		category, list, err := GetCategoryById(db, item.Category)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			return
@@ -364,12 +366,7 @@ func main() {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Category not found."})
 			return
 		}
-		list, err := GetUserList(db, *user, category.FancyList)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err})
-			return
-		}
-		if list == nil {
+		if list.Owner != user.Id {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "List does not belong to request user."})
 			return
 		}
@@ -395,7 +392,7 @@ func main() {
 			return
 		}
 
-		item, err := GetItemById(db, parsedId)
+		item, category, list, err := GetItemById(db, parsedId)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			return
@@ -404,23 +401,7 @@ func main() {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Item not found."})
 			return
 		}
-
-		category, err := GetCategoryById(db, parsedId)
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-			return
-		}
-		if category == nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Category not found."})
-			return
-		}
-
-		list, err := GetUserList(db, *user, category.FancyList)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err})
-			return
-		}
-		if list == nil {
+		if list.Owner != user.Id {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "List does not belong to request user."})
 			return
 		}
@@ -447,7 +428,7 @@ func main() {
 			return
 		}
 
-		item, err := GetItemById(db, parsedId)
+		item, category, list, err := GetItemById(db, parsedId)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			return
@@ -456,21 +437,7 @@ func main() {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Item not found."})
 			return
 		}
-		category, err := GetCategoryById(db, item.Category)
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-			return
-		}
-		if category == nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Category not found."})
-			return
-		}
-		list, err := GetUserList(db, *user, category.FancyList)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err})
-			return
-		}
-		if list == nil {
+		if list.Owner != user.Id {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "List does not belong to request user."})
 			return
 		}

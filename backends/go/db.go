@@ -190,9 +190,8 @@ func CreateUser(db *sql.DB, username string, password string) (*User, error) {
 
 func GetUserList(db *sql.DB, user User, id int) (*FancyList, error) {
 	row := db.QueryRow(`
-	SELECT f.id, f.name, f.created_date, u.username, f.display_order
+	SELECT f.id, f.name, f.created_date, f.owner, f.display_order
 	FROM fancylists f
-	JOIN users u ON u.id = f.owner
 	WHERE f.id = ?
 	AND f.owner = ?`,
 		id, user.Id)
@@ -222,9 +221,8 @@ func GetUserList(db *sql.DB, user User, id int) (*FancyList, error) {
 
 func GetUserLists(db *sql.DB, user User) ([]*FancyList, error) {
 	rows, err := db.Query(`
-	SELECT f.id, f.name, f.created_date, u.username, f.display_order
+	SELECT f.id, f.name, f.created_date, f.owner, f.display_order
 	FROM fancylists f
-	JOIN users u ON u.id = f.owner
 	WHERE f.owner = ?
 	ORDER BY f.display_order ASC`,
 		user.Id)
@@ -251,7 +249,11 @@ func GetUserLists(db *sql.DB, user User) ([]*FancyList, error) {
 }
 
 func GetListById(db *sql.DB, id int) (*FancyList, error) {
-	row := db.QueryRow("SELECT f.id, f.name, f.created_date, u.username, f.display_order FROM fancylists f JOIN users u ON u.id = f.owner WHERE f.id = ?", id)
+	row := db.QueryRow(`
+	SELECT f.id, f.name, f.created_date, f.owner, f.display_order
+	FROM fancylists f
+	WHERE f.id = ?`,
+		id)
 	list := FancyList{}
 
 	err := row.Scan(&list.Id, &list.Name, &list.CreatedDate, &list.Owner, &list.DisplayOrder)
@@ -350,20 +352,28 @@ func DeleteList(db *sql.DB, list *FancyList, owner *User) {
 	DeleteReorderable(db, list, "fancylists", "owner", owner.Id)
 }
 
-func GetCategoryById(db *sql.DB, id int) (*Category, error) {
+func GetCategoryById(db *sql.DB, id int) (*Category, *FancyList, error) {
 	row := db.QueryRow(`
-	SELECT c.id, c.name, c.fancylist, c.display_order
+	SELECT
+		c.id, c.name, c.fancylist, c.display_order,
+		f.id, f.name, f.created_date, f.owner, f.display_order
 	FROM categories c
+	JOIN fancylists f ON f.id = c.fancylist
 	WHERE c.id = ?`,
 		id)
-	category := Category{}
 
-	err := row.Scan(&category.Id, &category.Name, &category.FancyList, &category.DisplayOrder)
+	category := Category{}
+	list := FancyList{}
+
+	err := row.Scan(
+		&category.Id, &category.Name, &category.FancyList, &category.DisplayOrder,
+		&list.Id, &list.Name, &list.CreatedDate, &list.Owner, &list.DisplayOrder,
+	)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return &category, nil
+	return &category, &list, nil
 }
 
 func GetListCategories(db *sql.DB, list int) ([]*Category, error) {
@@ -415,12 +425,12 @@ func CreateCategory(db *sql.DB, name string, fancylist int) (*Category, error) {
 		log.Fatal("CreateCategory: lastInsertId: ", err)
 	}
 
-	list, err := GetCategoryById(db, int(lastInsertId))
+	category, _, err := GetCategoryById(db, int(lastInsertId))
 	if err != nil {
 		log.Fatal("CreateCategory: GetCategoryById: ", err)
 	}
 
-	return list, nil
+	return category, nil
 }
 
 func UpdateCategory(db *sql.DB, category *Category, list *FancyList, payload *BaseReorderablePayload) *Category {
@@ -450,20 +460,32 @@ func DeleteCategory(db *sql.DB, category *Category, list *FancyList) {
 	DeleteReorderable(db, category, "categories", "fancylist", list.Id)
 }
 
-func GetItemById(db *sql.DB, id int) (*Item, error) {
+func GetItemById(db *sql.DB, id int) (*Item, *Category, *FancyList, error) {
 	row := db.QueryRow(`
-	SELECT i.id, i.name, i.category, i.display_order
+	SELECT
+		i.id, i.name, i.category, i.display_order,
+		c.id, c.name, c.fancylist, c.display_order,
+		f.id, f.name, f.created_date, f.owner, f.display_order
 	FROM items i
+	JOIN categories c ON c.id = i.category
+	JOIN fancylists f ON f.id = c.fancylist
 	WHERE i.id = ?`,
 		id)
-	item := Item{}
 
-	err := row.Scan(&item.Id, &item.Name, &item.Category, &item.DisplayOrder)
+	item := Item{}
+	category := Category{}
+	list := FancyList{}
+
+	err := row.Scan(
+		&item.Id, &item.Name, &item.Category, &item.DisplayOrder,
+		&category.Id, &category.Name, &category.FancyList, &category.DisplayOrder,
+		&list.Id, &list.Name, &list.CreatedDate, &list.Owner, &list.DisplayOrder,
+	)
 	if err != nil {
-		return nil, err
+		return nil, nil, nil, err
 	}
 
-	return &item, nil
+	return &item, &category, &list, nil
 }
 
 func GetListItems(db *sql.DB, list int) ([]*Item, error) {
@@ -539,12 +561,12 @@ func CreateItem(db *sql.DB, name string, category int) (*Item, error) {
 		log.Fatal("CreateCategory: lastInsertId: ", err)
 	}
 
-	list, err := GetItemById(db, int(lastInsertId))
+	item, _, _, err := GetItemById(db, int(lastInsertId))
 	if err != nil {
 		log.Fatal("CreateItem: GetItemById: ", err)
 	}
 
-	return list, nil
+	return item, nil
 }
 
 func UpdateItem(db *sql.DB, item *Item, category *Category, payload *UpdateItemPayload) *Item {

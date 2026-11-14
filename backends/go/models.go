@@ -52,7 +52,7 @@ func UpdateReorderable[T Reorderable, S UpdateReorderablePayload](reorderable T,
 type FancyList struct {
 	Name        string      `json:"name" validate:"required,max=100"`
 	CreatedDate time.Time   `json:"created_date" validate:"required"`
-	Owner       string      `json:"owner" validate:"required"`
+	Owner       int         `json:"owner" validate:"required"`
 	Categories  []*Category `json:"categories"`
 	Items       []*Item     `json:"items"`
 	BaseReorderable

@@ -40,8 +40,11 @@
         * Create / Edit versions of model?
     * Validation rules
     * Database logic
+        * internal/api/db.go
     * Controllers
     * Routes
+        * internal/api/router.go
+    * Logging / error messages
 * General
     * Full object owner details returned in JSON, including e.g. API key
     * Need error handling for PATCH list item DNE

@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"crypto/rand"
@@ -52,7 +52,7 @@ func createTables() string {
 	`
 }
 
-func seedDb(db *sql.DB) {
+func SeedDb(db *sql.DB) (bool, error) {
 	// User admin
 	_, err := db.Exec(`
 	INSERT INTO users (username, password, key)
@@ -60,7 +60,7 @@ func seedDb(db *sql.DB) {
 		('admin', 'password', 'OFV2OLB5CSXHUFAHG6EYVK5FOT'),
 		('admin1', 'password', 'HGI5JEEKXMV4FTQLJERU45JBO4')`)
 	if err != nil {
-		log.Fatal(err)
+		return false, err
 	}
 
 	// Lists
@@ -74,7 +74,7 @@ func seedDb(db *sql.DB) {
 		('List 5!', datetime('now'), (SELECT id FROM users WHERE username = 'admin'), 50),
 		('List 6!', datetime('now'), (SELECT id FROM users WHERE username = 'admin'), 60)`)
 	if err != nil {
-		log.Fatal(err)
+		return false, err
 	}
 
 	// Categories
@@ -85,7 +85,7 @@ func seedDb(db *sql.DB) {
 		('Category 2!', (SELECT id FROM fancylists WHERE name = 'List 1!'), 20),
 		('Category 3!', (SELECT id FROM fancylists WHERE name = 'List 1!'), 30)`)
 	if err != nil {
-		log.Fatal(err)
+		return false, err
 	}
 
 	// Items
@@ -104,42 +104,49 @@ func seedDb(db *sql.DB) {
 		('Item 8!', (SELECT id FROM categories WHERE name = 'Category 3!'), 20),
 		('Item 9!', (SELECT id FROM categories WHERE name = 'Category 3!'), 30)`)
 	if err != nil {
-		log.Fatal(err)
+		return false, err
 	}
+
+	return true, nil
 }
 
-// TODO: save DB as a global variable maybe?
-func InitDb() *sql.DB {
-	db, err := sql.Open("sqlite", "./fancylists.db")
+type DBConfig struct {
+	Path string
+}
+
+func InitDb(cfg DBConfig) (*sql.DB, error) {
+	path := cfg.Path
+	if path == "" {
+		path = "./fancylists.db"
+	}
+
+	db, err := sql.Open("sqlite", path)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	// Enable foreign key constraints
 	_, err = db.Exec("PRAGMA foreign_keys = ON")
 	if err != nil {
-		log.Fatal(err)
+		db.Close()
+		return nil, err
 	}
 
 	// Drop all tables
 	_, err = db.Exec(dropTables())
 	if err != nil {
-		log.Fatal(err)
+		db.Close()
+		return nil, err
 	}
 
 	// Create tables
 	_, err = db.Exec(createTables())
 	if err != nil {
-		log.Fatal(err)
+		db.Close()
+		return nil, err
 	}
 
-	seedDb(db)
-
-	return db
-}
-
-func CloseDb(db *sql.DB) {
-	db.Close()
+	return db, nil
 }
 
 func GetUserByUsername(db *sql.DB, username string) (*User, error) {
@@ -264,7 +271,7 @@ func GetListById(db *sql.DB, id int) (*FancyList, error) {
 	return &list, nil
 }
 
-func CreateList(db *sql.DB, name string, owner User) (*FancyList, error) {
+func CreateList(db *sql.DB, name string, owner *User) (*FancyList, error) {
 	created_date := time.Now()
 	result, err := db.Exec(`
 	INSERT INTO fancylists (name, created_date, owner, display_order)

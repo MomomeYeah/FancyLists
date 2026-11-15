@@ -3,6 +3,7 @@ package internal
 import (
 	"crypto/rand"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -207,6 +208,10 @@ func GetUserList(db *sql.DB, user User, id int) (*FancyList, error) {
 
 	err := row.Scan(&list.Id, &list.Name, &list.CreatedDate, &list.Owner, &list.DisplayOrder)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+
 		return nil, err
 	}
 
@@ -265,6 +270,10 @@ func GetListById(db *sql.DB, id int) (*FancyList, error) {
 
 	err := row.Scan(&list.Id, &list.Name, &list.CreatedDate, &list.Owner, &list.DisplayOrder)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+
 		return nil, err
 	}
 

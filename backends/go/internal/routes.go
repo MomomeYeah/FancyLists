@@ -136,15 +136,13 @@ func GetRouter(db *sql.DB) *gin.Engine {
 			return
 		}
 
-		// TODO: could check "not found" from "does not exist" separately here
-		// Maybe GetUserList -> GetListDetails?
 		list, err := GetUserList(db, *user, parsedId)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		if list == nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "List not found."})
+		if list == nil || list.Owner != user.Id {
+			c.JSON(http.StatusNotFound, gin.H{"error": "List not found."})
 			return
 		}
 
@@ -194,12 +192,8 @@ func GetRouter(db *sql.DB) *gin.Engine {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		if list == nil {
+		if list == nil || list.Owner != user.Id {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "List not found."})
-			return
-		}
-		if list.Owner != user.Id {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "List does not belong to request user."})
 			return
 		}
 
@@ -232,12 +226,8 @@ func GetRouter(db *sql.DB) *gin.Engine {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		if list == nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "List not found."})
-			return
-		}
-		if list.Owner != user.Id {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "List does not belong to request user."})
+		if list == nil || list.Owner != user.Id {
+			c.JSON(http.StatusNotFound, gin.H{"error": "List not found."})
 			return
 		}
 
@@ -268,12 +258,8 @@ func GetRouter(db *sql.DB) *gin.Engine {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		if list == nil {
+		if list == nil || list.Owner != user.Id {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "List not found."})
-			return
-		}
-		if list.Owner != user.Id {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "List does not belong to request user."})
 			return
 		}
 
@@ -304,12 +290,8 @@ func GetRouter(db *sql.DB) *gin.Engine {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			return
 		}
-		if category == nil {
+		if category == nil || list.Owner != user.Id {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Category not found."})
-			return
-		}
-		if list.Owner != user.Id {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "List does not belong to request user."})
 			return
 		}
 
@@ -341,12 +323,8 @@ func GetRouter(db *sql.DB) *gin.Engine {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			return
 		}
-		if category == nil {
+		if category == nil || list.Owner != user.Id {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Category not found."})
-			return
-		}
-		if list.Owner != user.Id {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "List does not belong to request user."})
 			return
 		}
 
@@ -378,12 +356,8 @@ func GetRouter(db *sql.DB) *gin.Engine {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			return
 		}
-		if category == nil {
+		if category == nil || list.Owner != user.Id {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Category not found."})
-			return
-		}
-		if list.Owner != user.Id {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "List does not belong to request user."})
 			return
 		}
 
@@ -414,12 +388,8 @@ func GetRouter(db *sql.DB) *gin.Engine {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			return
 		}
-		if item == nil {
+		if item == nil || list.Owner != user.Id {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Item not found."})
-			return
-		}
-		if list.Owner != user.Id {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "List does not belong to request user."})
 			return
 		}
 
@@ -451,12 +421,8 @@ func GetRouter(db *sql.DB) *gin.Engine {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			return
 		}
-		if item == nil {
+		if item == nil || list.Owner != user.Id {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Item not found."})
-			return
-		}
-		if list.Owner != user.Id {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "List does not belong to request user."})
 			return
 		}
 

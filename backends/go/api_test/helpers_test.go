@@ -1,7 +1,9 @@
 package api_test
 
 import (
+	"bytes"
 	"database/sql"
+	"encoding/json"
 	"fancylists/internal"
 	"fmt"
 	"net/http"
@@ -11,6 +13,15 @@ import (
 
 var TestUser1 = &internal.User{}
 var TestUser2 = &internal.User{}
+
+func GetPostBody(t *testing.T, body map[string]string) *bytes.Buffer {
+	payload, err := json.Marshal(body)
+	if err != nil {
+		t.Fatalf("Failed to marshal post body: %v", err)
+	}
+
+	return bytes.NewBuffer(payload)
+}
 
 func NewTestDB(t *testing.T) *sql.DB {
 	t.Helper()

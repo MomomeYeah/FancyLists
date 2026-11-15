@@ -24,8 +24,8 @@
 * Tests
     * Add some basic tests
         * Golden path
-        * Entity exists
-        * Entity owned by current user
+        * Missing fields
+        * Invalid auth header
         * Reordering correct on move
         * Reordering correct on delete
         * Registration - user exists
@@ -41,6 +41,7 @@
     * Validation rules
     * Database logic
         * internal/api/db.go
+        * Good package that already handles e.g. ORM, no-rows handling
     * Controllers
     * Routes
         * internal/api/router.go

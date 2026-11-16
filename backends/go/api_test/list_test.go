@@ -165,6 +165,122 @@ func TestCreateList(t *testing.T) {
 	}
 }
 
+func TestUpdateList(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	db := NewTestDB(t)
+	router := internal.GetRouter(db)
+
+	// Create test lists
+	list1 := CreateList(t, db, "List 1", TestUser1)
+
+	// Update list name
+	body := map[string]string{
+		"name": "List 1!",
+	}
+	req := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/api/lists/%d/", list1.Id), GetPostBody(t, body))
+	AddUser1AuthHeader(req)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("Got status %d, want %d, %v", w.Code, http.StatusOK, w.Body)
+	}
+
+	// Check return value has been updated
+	var list *internal.FancyList
+	if err := json.Unmarshal(w.Body.Bytes(), &list); err != nil {
+		t.Fatalf("Decode response: %v", err)
+	}
+
+	if list.Name != "List 1!" {
+		t.Fatalf("Got name %s, want %s", list.Name, "List 1")
+	}
+
+	if list.Owner != TestUser1.Id {
+		t.Fatalf("Got owner %d, want %d", list.Owner, TestUser1.Id)
+	}
+
+	if list.DisplayOrder != 10 {
+		t.Fatalf("Got display order %d, want %d", list.DisplayOrder, 10)
+	}
+
+	// Retrieve list from scratch and check return values
+	req = httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/lists/%d/", list1.Id), nil)
+	AddUser1AuthHeader(req)
+	w = httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("Got status %d, want %d, %v", w.Code, http.StatusOK, w.Body)
+	}
+
+	// Check return value has been updated
+	if err := json.Unmarshal(w.Body.Bytes(), &list); err != nil {
+		t.Fatalf("Decode response: %v", err)
+	}
+
+	if list.Name != "List 1!" {
+		t.Fatalf("Got name %s, want %s", list.Name, "List 1")
+	}
+
+	if list.Owner != TestUser1.Id {
+		t.Fatalf("Got owner %d, want %d", list.Owner, TestUser1.Id)
+	}
+
+	if list.DisplayOrder != 10 {
+		t.Fatalf("Got display order %d, want %d", list.DisplayOrder, 10)
+	}
+}
+
+func TestUpdateListInvalidID(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	db := NewTestDB(t)
+	router := internal.GetRouter(db)
+
+	req := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/api/lists/%s/", invalidID), nil)
+	AddUser1AuthHeader(req)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("Got status %d, want %d, %v", w.Code, http.StatusBadRequest, w.Body)
+	}
+}
+
+func TestUpdateListDoesNotExist(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	db := NewTestDB(t)
+	router := internal.GetRouter(db)
+
+	req := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/api/lists/%d/", nonexistentID), nil)
+	AddUser1AuthHeader(req)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusNotFound {
+		t.Fatalf("Got status %d, want %d, %v", w.Code, http.StatusNotFound, w.Body)
+	}
+}
+
+func TestUpdateListOwnerDoesNotMatch(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	db := NewTestDB(t)
+	router := internal.GetRouter(db)
+
+	// Create the list with user 1
+	list := CreateList(t, db, "List 1", TestUser1)
+
+	// Attempt to update the list with user 2
+	req := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/api/lists/%d/", list.Id), GetPostBody(t, map[string]string{}))
+	AddUser2AuthHeader(req)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusNotFound {
+		t.Fatalf("Got status %d, want %d, %v", w.Code, http.StatusNotFound, w.Body)
+	}
+}
+
 func TestDeleteList(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db := NewTestDB(t)

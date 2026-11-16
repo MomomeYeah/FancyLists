@@ -32,8 +32,6 @@ func getAuthUser(c *gin.Context, db *sql.DB) (*User, error) {
 		return nil, err
 	}
 
-	fmt.Println("Got user", user.Username, "from", header)
-
 	return user, nil
 }
 
@@ -193,7 +191,7 @@ func GetRouter(db *sql.DB) *gin.Engine {
 			return
 		}
 		if list == nil || list.Owner != user.Id {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "List not found."})
+			c.JSON(http.StatusNotFound, gin.H{"error": "List not found."})
 			return
 		}
 

@@ -362,13 +362,15 @@ func UpdateList(db *sql.DB, list *FancyList, owner *User, payload *BaseReorderab
 	return list
 }
 
-func DeleteList(db *sql.DB, list *FancyList, owner *User) {
+func DeleteList(db *sql.DB, list *FancyList) (bool, error) {
 	_, err := db.Exec("DELETE FROM fancylists WHERE id = ?", list.Id)
 	if err != nil {
-		log.Fatal(err)
+		return false, err
 	}
 
-	DeleteReorderable(db, list, "fancylists", "owner", owner.Id)
+	DeleteReorderable(db, list, "fancylists", "owner", list.Owner)
+
+	return true, nil
 }
 
 func GetCategoryById(db *sql.DB, id int) (*Category, *FancyList, error) {

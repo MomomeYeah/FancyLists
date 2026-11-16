@@ -231,7 +231,7 @@ func GetRouter(db *sql.DB) *gin.Engine {
 			return
 		}
 
-		DeleteList(db, list, user)
+		DeleteList(db, list)
 		c.Status(http.StatusNoContent)
 	})
 

@@ -170,27 +170,13 @@ func TestDeleteList(t *testing.T) {
 	db := NewTestDB(t)
 	router := internal.GetRouter(db)
 
-	body := map[string]string{
-		"name": "List 1",
-	}
-	req := httptest.NewRequest(http.MethodPost, "/api/lists/", GetPostBody(t, body))
-	AddUser1AuthHeader(req)
-	w := httptest.NewRecorder()
-	router.ServeHTTP(w, req)
-
-	if w.Code != http.StatusCreated {
-		t.Fatalf("Got status %d, want %d, %v", w.Code, http.StatusCreated, w.Body)
-	}
-
-	var list *internal.FancyList
-	if err := json.Unmarshal(w.Body.Bytes(), &list); err != nil {
-		t.Fatalf("Decode response: %v", err)
-	}
+	// Create a list
+	list := CreateList(t, db, "List 1", TestUser1)
 
 	// Delete the list
-	req = httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/api/lists/%d/", list.Id), nil)
+	req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/api/lists/%d/", list.Id), nil)
 	AddUser1AuthHeader(req)
-	w = httptest.NewRecorder()
+	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
 	if w.Code != http.StatusNoContent {
@@ -228,27 +214,9 @@ func TestDeleteListDoesNotExist(t *testing.T) {
 	db := NewTestDB(t)
 	router := internal.GetRouter(db)
 
-	body := map[string]string{
-		"name": "List 1",
-	}
-	req := httptest.NewRequest(http.MethodPost, "/api/lists/", GetPostBody(t, body))
+	req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/api/lists/%d/", nonexistentID), nil)
 	AddUser1AuthHeader(req)
 	w := httptest.NewRecorder()
-	router.ServeHTTP(w, req)
-
-	if w.Code != http.StatusCreated {
-		t.Fatalf("Got status %d, want %d, %v", w.Code, http.StatusCreated, w.Body)
-	}
-
-	var list *internal.FancyList
-	if err := json.Unmarshal(w.Body.Bytes(), &list); err != nil {
-		t.Fatalf("Decode response: %v", err)
-	}
-
-	// Delete the list
-	req = httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/api/lists/%d/", nonexistentID), nil)
-	AddUser1AuthHeader(req)
-	w = httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
 	if w.Code != http.StatusNotFound {
@@ -261,28 +229,13 @@ func TestDeleteListOwnerDoesNotMatch(t *testing.T) {
 	db := NewTestDB(t)
 	router := internal.GetRouter(db)
 
-	// Create a list with user 1
-	body := map[string]string{
-		"name": "List 1",
-	}
-	req := httptest.NewRequest(http.MethodPost, "/api/lists/", GetPostBody(t, body))
-	AddUser1AuthHeader(req)
-	w := httptest.NewRecorder()
-	router.ServeHTTP(w, req)
-
-	if w.Code != http.StatusCreated {
-		t.Fatalf("Got status %d, want %d, %v", w.Code, http.StatusCreated, w.Body)
-	}
-
-	var list *internal.FancyList
-	if err := json.Unmarshal(w.Body.Bytes(), &list); err != nil {
-		t.Fatalf("Decode response: %v", err)
-	}
+	// Create the list with user 1
+	list := CreateList(t, db, "List 1", TestUser1)
 
 	// Attempt to delete the list with user 2
-	req = httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/api/lists/%d/", list.Id), nil)
+	req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/api/lists/%d/", list.Id), nil)
 	AddUser2AuthHeader(req)
-	w = httptest.NewRecorder()
+	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
 	if w.Code != http.StatusNotFound {

@@ -91,7 +91,7 @@ exclude = ["*/migrations"]
 include = ["**/models.py", "**/serializers.py"]
 
 [tool.ty.overrides.rules]
-invalid-attribute-override = "ignore"
+incompatible-attribute-override = "ignore"
 
 [tool.ty.terminal]
 # Warnings shown in the editor must also fail CI

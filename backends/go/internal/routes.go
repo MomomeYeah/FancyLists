@@ -2,7 +2,6 @@ package internal
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -11,29 +10,6 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
-
-func getAuthUser(c *gin.Context, db *sql.DB) (*User, error) {
-	prefix_length := len("Token ")
-	header := c.GetHeader("Authorization")
-	if header == "" {
-		return nil, errors.New("Authorization header missing")
-	}
-
-	if len(header) < prefix_length {
-		return nil, errors.New("Authorization header malformed")
-	}
-
-	token := header[prefix_length:]
-	user, err := GetUserByKey(db, token)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errors.New("User not found")
-		}
-		return nil, err
-	}
-
-	return user, nil
-}
 
 func GetRouter(db *sql.DB) *gin.Engine {
 	// Creates a gin router with default middleware:
@@ -103,14 +79,12 @@ func GetRouter(db *sql.DB) *gin.Engine {
 
 	// List routes
 	// TODO: every endpoint needs to check ownership
-	lists := router.Group("/api/lists")
+	api := router.Group("/api")
+	api.Use(TokenAuth(db))
+
+	lists := api.Group("/lists")
 	lists.GET("", func(c *gin.Context) {
-		user, err := getAuthUser(c, db)
-		if user == nil {
-			fmt.Println(err.Error())
-			c.JSON(http.StatusUnauthorized, gin.H{"non_field_errors": "Invalid authorization."})
-			return
-		}
+		user := c.MustGet("user").(*User)
 
 		lists, err := GetUserLists(db, *user)
 		if err != nil {
@@ -120,12 +94,7 @@ func GetRouter(db *sql.DB) *gin.Engine {
 		c.JSON(http.StatusOK, lists)
 	})
 	lists.GET("/:id/", func(c *gin.Context) {
-		user, err := getAuthUser(c, db)
-		if user == nil {
-			fmt.Println(err.Error())
-			c.JSON(http.StatusUnauthorized, gin.H{"non_field_errors": "Invalid authorization."})
-			return
-		}
+		user := c.MustGet("user").(*User)
 
 		id := c.Param("id")
 		parsedId, err := strconv.Atoi(id)
@@ -147,12 +116,7 @@ func GetRouter(db *sql.DB) *gin.Engine {
 		c.JSON(http.StatusOK, list)
 	})
 	lists.POST("/", func(c *gin.Context) {
-		user, err := getAuthUser(c, db)
-		if user == nil {
-			fmt.Println(err.Error())
-			c.JSON(http.StatusUnauthorized, gin.H{"non_field_errors": "Invalid authorization."})
-			return
-		}
+		user := c.MustGet("user").(*User)
 
 		var payload struct {
 			Name string
@@ -171,12 +135,7 @@ func GetRouter(db *sql.DB) *gin.Engine {
 		c.JSON(http.StatusCreated, list)
 	})
 	lists.PATCH("/:id/", func(c *gin.Context) {
-		user, err := getAuthUser(c, db)
-		if user == nil {
-			fmt.Println(err.Error())
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization."})
-			return
-		}
+		user := c.MustGet("user").(*User)
 
 		id := c.Param("id")
 		parsedId, err := strconv.Atoi(id)
@@ -205,12 +164,7 @@ func GetRouter(db *sql.DB) *gin.Engine {
 		c.JSON(http.StatusOK, list)
 	})
 	lists.DELETE("/:id/", func(c *gin.Context) {
-		user, err := getAuthUser(c, db)
-		if user == nil {
-			fmt.Println(err.Error())
-			c.JSON(http.StatusUnauthorized, gin.H{"non_field_errors": "Invalid authorization."})
-			return
-		}
+		user := c.MustGet("user").(*User)
 
 		id := c.Param("id")
 		parsedId, err := strconv.Atoi(id)
@@ -234,14 +188,9 @@ func GetRouter(db *sql.DB) *gin.Engine {
 	})
 
 	// Category routes
-	categories := router.Group("/api/categories")
+	categories := api.Group("/categories")
 	categories.POST("/", func(c *gin.Context) {
-		user, err := getAuthUser(c, db)
-		if user == nil {
-			fmt.Println(err.Error())
-			c.JSON(http.StatusUnauthorized, gin.H{"non_field_errors": "Invalid authorization."})
-			return
-		}
+		user := c.MustGet("user").(*User)
 
 		var category struct {
 			Name string
@@ -269,12 +218,7 @@ func GetRouter(db *sql.DB) *gin.Engine {
 		c.JSON(http.StatusCreated, newCategory)
 	})
 	categories.PATCH("/:id/", func(c *gin.Context) {
-		user, err := getAuthUser(c, db)
-		if user == nil {
-			fmt.Println(err.Error())
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization."})
-			return
-		}
+		user := c.MustGet("user").(*User)
 
 		id := c.Param("id")
 		parsedId, err := strconv.Atoi(id)
@@ -302,12 +246,7 @@ func GetRouter(db *sql.DB) *gin.Engine {
 		c.JSON(http.StatusOK, category)
 	})
 	categories.DELETE("/:id/", func(c *gin.Context) {
-		user, err := getAuthUser(c, db)
-		if user == nil {
-			fmt.Println(err.Error())
-			c.JSON(http.StatusUnauthorized, gin.H{"non_field_errors": "Invalid authorization."})
-			return
-		}
+		user := c.MustGet("user").(*User)
 
 		id := c.Param("id")
 		parsedId, err := strconv.Atoi(id)
@@ -331,14 +270,9 @@ func GetRouter(db *sql.DB) *gin.Engine {
 	})
 
 	// Item routes
-	items := router.Group("/api/items")
+	items := api.Group("/items")
 	items.POST("/", func(c *gin.Context) {
-		user, err := getAuthUser(c, db)
-		if user == nil {
-			fmt.Println(err.Error())
-			c.JSON(http.StatusUnauthorized, gin.H{"non_field_errors": "Invalid authorization."})
-			return
-		}
+		user := c.MustGet("user").(*User)
 
 		var item struct {
 			Name     string
@@ -367,12 +301,7 @@ func GetRouter(db *sql.DB) *gin.Engine {
 		c.JSON(http.StatusCreated, newItem)
 	})
 	items.PATCH("/:id/", func(c *gin.Context) {
-		user, err := getAuthUser(c, db)
-		if user == nil {
-			fmt.Println(err.Error())
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization."})
-			return
-		}
+		user := c.MustGet("user").(*User)
 
 		id := c.Param("id")
 		parsedId, err := strconv.Atoi(id)
@@ -400,12 +329,7 @@ func GetRouter(db *sql.DB) *gin.Engine {
 		c.JSON(http.StatusOK, item)
 	})
 	items.DELETE("/:id/", func(c *gin.Context) {
-		user, err := getAuthUser(c, db)
-		if user == nil {
-			fmt.Println(err.Error())
-			c.JSON(http.StatusUnauthorized, gin.H{"non_field_errors": "Invalid authorization."})
-			return
-		}
+		user := c.MustGet("user").(*User)
 
 		id := c.Param("id")
 		parsedId, err := strconv.Atoi(id)
